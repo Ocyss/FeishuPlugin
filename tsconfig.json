@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "types": ["@intlify/unplugin-vue-i18n/messages", "vite/client"],
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    // "moduleResolution": "bundler",
+    "moduleResolution": "node",
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/**/*.json",
+    "./env.d.ts",
+    "./typed-router.d.ts",
+    "./auto-imports.d.ts"
+  ],
+  "exclude": ["node_modules", "build", "dist"],
+  "references": [
+    {
+      "path": "./tsconfig.config.json"
+    }
+  ]
+}
