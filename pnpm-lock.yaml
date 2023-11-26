@@ -20,6 +20,9 @@ dependencies:
   date-fns:
     specifier: ^2.30.0
     version: 2.30.0
+  easy-speech:
+    specifier: ^2.1.1
+    version: 2.1.1
   liquidjs:
     specifier: ^10.9.4
     version: 10.9.4
@@ -600,6 +603,11 @@ packages:
 
   /delegate@3.2.0:
     resolution: {integrity: sha512-IofjkYBZaZivn0V8nnsMJGBr4jVLxHDheKSW88PyxS5QC4Vo9ZbZVvhzlSxY87fVq3STR6r+4cGepyHkcWOQSw==}
+    dev: false
+
+  /easy-speech@2.1.1:
+    resolution: {integrity: sha512-/Nh2SxkQc3aIdrCnagDbuaUAxuZuSVrEI00Jp1Kg8aQaD04socTjVDsyKZ/yw483q1nZC3CQ9IB7vMCnSY2LTQ==}
+    engines: {node: '>= 14.x'}
     dev: false
 
   /esbuild-android-64@0.15.18:

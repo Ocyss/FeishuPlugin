@@ -1,3 +1,4 @@
+import { FieldType } from "@lark-base-open/js-sdk";
 export enum LogType {
   Default = "default",
   Primary = "primary",

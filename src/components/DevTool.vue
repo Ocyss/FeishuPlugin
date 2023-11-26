@@ -20,9 +20,10 @@
       <!-- <n-ellipsis>tenantKey:{{ state.bridge.tenantKey }}</n-ellipsis> -->
       <n-dropdown
         trigger="click"
-        :options="routes"
-        @select="(path:string)=>router.push(path)"
-        key-field="label"
+        :options="routes as DropdownOption[]"
+        @select="(path:keyof RouteNamedMap)=>router.push({ name: path })"
+        key-field="name"
+        label-field="name"
       >
         <n-button>路由跳转</n-button>
       </n-dropdown>
@@ -57,16 +58,16 @@
 </template>
 
 <script lang="ts" setup>
+import { getRoutes } from "@/utils";
 import { bitable, ThemeModeType } from "@lark-base-open/js-sdk";
 import type { DropdownOption } from "naive-ui";
 import { useI18n } from "vue-i18n";
-import { routes as _routes } from "vue-router/auto/routes";
+import { routes as _routes, RouteNamedMap } from "vue-router/auto/routes";
 const { locale } = useI18n();
 const router = useRouter();
 const show = ref(false);
-const routes: DropdownOption[] = _routes.map((val) => {
-  return { label: val.path, value: val };
-});
+const routes = [{ name: "home" }, ...getRoutes(_routes)];
+
 const apis: DropdownOption[] = [
   {
     label: "alert",

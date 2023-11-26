@@ -9,7 +9,7 @@ import VueRouter from "unplugin-vue-router/vite";
 import { VueRouterAutoImports } from "unplugin-vue-router";
 
 const pathSrc = path.resolve(__dirname, "src");
-
+const basePkg = ["bitable", "FieldType", ["*", "base"]];
 const baseType = [
   "ITableMeta",
   "IOpenCellValue",
@@ -17,7 +17,6 @@ const baseType = [
   "IFieldMeta",
   "IGetRecordsResponse",
   "IRecord",
-  "FieldType",
   "IOpenSingleSelect",
   "IOpenUser",
   "IOpenUrlSegment",
@@ -51,7 +50,7 @@ export default defineConfig({
             "useNotification",
             "useLoadingBar",
           ],
-          "@lark-base-open/js-sdk": ["bitable", ["*", "base"]],
+          "@lark-base-open/js-sdk": basePkg as string[],
           "vue-i18n": ["useI18n"],
         },
         {

@@ -1,14 +1,33 @@
-<route lang="json">
-{
-  "name": "ID Info Extractor",
-  "meta": {
-    "desc": "By inputting an ID card number, this plugin intelligently extracts information such as age, gender, date of birth, zodiac sign, Chinese zodiac, and native place. This smart identification greatly simplifies the handling of ID card information.",
-    "help": "According to the ID number, obtain age, gender, date of birth, constellation, zodiac sign, and place of origin information.",
-    "group": "https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=06fj76e0-4524-4ec9-8d90-b9e85578d126",
-    "tags": ["Audit"],
-    "avatar": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 576 512\"><path d=\"M528 32H48C21.5 32 0 53.5 0 80v16h576V80c0-26.5-21.5-48-48-48zM0 432c0 26.5 21.5 48 48 48h480c26.5 0 48-21.5 48-48V128H0v304zm352-232c0-4.4 3.6-8 8-8h144c4.4 0 8 3.6 8 8v16c0 4.4-3.6 8-8 8H360c-4.4 0-8-3.6-8-8v-16zm0 64c0-4.4 3.6-8 8-8h144c4.4 0 8 3.6 8 8v16c0 4.4-3.6 8-8 8H360c-4.4 0-8-3.6-8-8v-16zm0 64c0-4.4 3.6-8 8-8h144c4.4 0 8 3.6 8 8v16c0 4.4-3.6 8-8 8H360c-4.4 0-8-3.6-8-8v-16zM176 192c35.3 0 64 28.7 64 64s-28.7 64-64 64s-64-28.7-64-64s28.7-64 64-64zM67.1 396.2C75.5 370.5 99.6 352 128 352h8.2c12.3 5.1 25.7 8 39.8 8s27.6-2.9 39.8-8h8.2c28.4 0 52.5 18.5 60.9 44.2c3.2 9.9-5.2 19.8-15.6 19.8H82.7c-10.4 0-18.8-10-15.6-19.8z\" fill=\"currentColor\"></path></svg>"
-  }
-}
+<route lang="yaml">
+name: IDcardWithdrawal
+meta:
+  title: ID Info Extractor
+  desc: >-
+    By inputting an ID card number, this plugin intelligently extracts
+    information such as age, gender, date of birth, zodiac sign, Chinese zodiac,
+    and native place. This smart identification greatly simplifies the handling
+    of ID card information.
+  help: >-
+    According to the ID number, obtain age, gender, date of birth,
+    constellation, zodiac sign, and place of origin information.
+  group: >-
+    https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=06fj76e0-4524-4ec9-8d90-b9e85578d126
+  tags:
+    - Audit
+    - 重构中，不可用
+  avatar: >-
+    <svg xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 576 512"><path
+    d="M528 32H48C21.5 32 0 53.5 0 80v16h576V80c0-26.5-21.5-48-48-48zM0 432c0
+    26.5 21.5 48 48 48h480c26.5 0 48-21.5 48-48V128H0v304zm352-232c0-4.4 3.6-8
+    8-8h144c4.4 0 8 3.6 8 8v16c0 4.4-3.6 8-8 8H360c-4.4 0-8-3.6-8-8v-16zm0
+    64c0-4.4 3.6-8 8-8h144c4.4 0 8 3.6 8 8v16c0 4.4-3.6 8-8 8H360c-4.4
+    0-8-3.6-8-8v-16zm0 64c0-4.4 3.6-8 8-8h144c4.4 0 8 3.6 8 8v16c0 4.4-3.6 8-8
+    8H360c-4.4 0-8-3.6-8-8v-16zM176 192c35.3 0 64 28.7 64 64s-28.7 64-64
+    64s-64-28.7-64-64s28.7-64 64-64zM67.1 396.2C75.5 370.5 99.6 352 128
+    352h8.2c12.3 5.1 25.7 8 39.8 8s27.6-2.9 39.8-8h8.2c28.4 0 52.5 18.5 60.9
+    44.2c3.2 9.9-5.2 19.8-15.6 19.8H82.7c-10.4 0-18.8-10-15.6-19.8z"
+    fill="currentColor"></path></svg>
 </route>
 <template>
   <Layout ref="layout">
@@ -21,18 +40,14 @@
     <Select
       :msg="t('Select ID field')"
       v-model:value="formData.input"
-      :options="
-        fieldMetaList.filter((item) => item.type == base.FieldType.Text)
-      "
+      :options="fieldMetaList.filter((item) => item.type == FieldType.Text)"
     />
     <Select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
       :options="
         fieldMetaList.filter(
-          (item) =>
-            item.type == base.FieldType.Text ||
-            item.type == base.FieldType.Number
+          (item) => item.type == FieldType.Text || item.type == FieldType.Number
         )
       "
     />
@@ -42,8 +57,7 @@
       :options="outputFormat"
       multiple
       v-if="
-        formData.output &&
-        fieldMap.IdToType[formData.output] == base.FieldType.Text
+        formData.output && fieldMap.IdToType[formData.output] == FieldType.Text
       "
     />
     <Select
@@ -52,7 +66,7 @@
       disabled
       v-else-if="
         formData.output &&
-        fieldMap.IdToType[formData.output] == base.FieldType.Number
+        fieldMap.IdToType[formData.output] == FieldType.Number
       "
     />
     <n-space>
@@ -127,7 +141,7 @@ function main(recordId: string, val: IOpenCellValue): string | number | null {
   };
 
   let res =
-    fieldMap.IdToType[formData.output!] === base.FieldType.Text
+    fieldMap.IdToType[formData.output!] === FieldType.Text
       ? formData.format!.map((item) => getValueByField(item)).join(" ")
       : info.age;
   return res;

@@ -1,3 +1,7 @@
+<route lang="yaml">
+path: /home
+name: home
+</route>
 <template>
   <div style="padding: 6px 20px">
     <n-h2 prefix="bar" align-text>
@@ -5,10 +9,15 @@
     </n-h2>
   </div>
   <n-list hoverable bordered clickable style="--n-color: none">
-    <n-list-item v-for="route in routes" @click="router.push(route.path)">
+    <n-list-item
+      v-for="route in routes"
+      @click="router.push({ name: route.name as keyof RouteNamedMap })"
+    >
       <n-thing>
         <template #header>
-          <n-h3 style="margin-bottom: 3px">{{ t(route.name as string) }}</n-h3>
+          <n-h3 style="margin-bottom: 3px">
+            {{ t(route.meta?.title as string) }}
+          </n-h3>
         </template>
         <template v-if="route.meta?.avatar" #avatar>
           <n-avatar>
@@ -35,16 +44,12 @@
 
 <script lang="ts" setup>
 import { routes as _routes } from "vue-router/auto/routes";
+import { getRoutes } from "@/utils";
+import type { RouteNamedMap } from "vue-router/auto/routes";
 const { t } = useI18n();
 const router = useRouter();
 
-const routes = _routes
-  .filter((v) => v.path !== "/")
-  .map((v) => {
-    const index = v.children![0];
-    index.path = v.path;
-    return index;
-  });
+const routes = getRoutes(_routes);
 </script>
 
 <style lang="scss" scoped></style>

@@ -6,6 +6,7 @@
 export {}
 declare global {
   const EffectScope: typeof import('vue')['EffectScope']
+  const FieldType: typeof import('@lark-base-open/js-sdk')['FieldType']
   const IFieldMeta: typeof import('@lark-base-open/js-sdk')['IFieldMeta']
   const base: typeof import('@lark-base-open/js-sdk')
   const bitable: typeof import('@lark-base-open/js-sdk')['bitable']
@@ -79,7 +80,7 @@ declare global {
   export type { Component, ComponentPublicInstance, ComputedRef, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
-  export type { ITableMeta, IOpenCellValue, IOpenSegment, IFieldMeta, IGetRecordsResponse, IRecord, FieldType, IOpenSingleSelect, IOpenUser, IOpenUrlSegment, IOpenAttachment, IOpenLink, IOpenLocation, IOpenGroupChat, ITable, IRecordType, IAttachmentField, ICell, IViewMeta, IView } from '@lark-base-open/js-sdk'
+  export type { ITableMeta, IOpenCellValue, IOpenSegment, IFieldMeta, IGetRecordsResponse, IRecord, IOpenSingleSelect, IOpenUser, IOpenUrlSegment, IOpenAttachment, IOpenLink, IOpenLocation, IOpenGroupChat, ITable, IRecordType, IAttachmentField, ICell, IViewMeta, IView } from '@lark-base-open/js-sdk'
   import('@lark-base-open/js-sdk')
 }
 // for vue template auto import
@@ -87,6 +88,7 @@ import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface ComponentCustomProperties {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly FieldType: UnwrapRef<typeof import('@lark-base-open/js-sdk')['FieldType']>
     readonly base: UnwrapRef<typeof import('@lark-base-open/js-sdk')>
     readonly bitable: UnwrapRef<typeof import('@lark-base-open/js-sdk')['bitable']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
@@ -156,6 +158,7 @@ declare module 'vue' {
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly FieldType: UnwrapRef<typeof import('@lark-base-open/js-sdk')['FieldType']>
     readonly base: UnwrapRef<typeof import('@lark-base-open/js-sdk')>
     readonly bitable: UnwrapRef<typeof import('@lark-base-open/js-sdk')['bitable']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>

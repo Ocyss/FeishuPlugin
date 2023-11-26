@@ -1,14 +1,30 @@
-<route lang="json">
-{
-  "name": "Phone Location Lookup",
-  "meta": {
-    "desc": "This plugin effortlessly retrieves location and carrier information based on a mobile phone number. This querying function allows quick access to associated information behind the phone number.",
-    "help": "1. The public third-party API will be used for query (domestic registration is preferred)<br> 2. Query failure will be empty<br> 3. The data is for reference only, non-operator interface",
-    "group": "https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=964h4312-c75e-484d-86f9-6b082a1c899a",
-    "tags": ["Audit"],
-    "avatar": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 448 512\"><path d=\"M400 32H48A48 48 0 0 0 0 80v352a48 48 0 0 0 48 48h352a48 48 0 0 0 48-48V80a48 48 0 0 0-48-48zm-16.39 307.37l-15 65A15 15 0 0 1 354 416C194 416 64 286.29 64 126a15.7 15.7 0 0 1 11.63-14.61l65-15A18.23 18.23 0 0 1 144 96a16.27 16.27 0 0 1 13.79 9.09l30 70A17.9 17.9 0 0 1 189 181a17 17 0 0 1-5.5 11.61l-37.89 31a231.91 231.91 0 0 0 110.78 110.78l31-37.89A17 17 0 0 1 299 291a17.85 17.85 0 0 1 5.91 1.21l70 30A16.25 16.25 0 0 1 384 336a17.41 17.41 0 0 1-.39 3.37z\" fill=\"currentColor\"></path></svg>"
-  }
-}
+<route lang="yaml">
+name: Phonearea
+meta:
+  title: Phone Location Lookup
+  desc: >-
+    This plugin effortlessly retrieves location and carrier information based on
+    a mobile phone number. This querying function allows quick access to
+    associated information behind the phone number.
+  help: >-
+    1. The public third-party API will be used for query (domestic registration
+    is preferred)<br> 2. Query failure will be empty<br> 3. The data is for
+    reference only, non-operator interface
+  group: >-
+    https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=964h4312-c75e-484d-86f9-6b082a1c899a
+  tags:
+    - Audit
+    - 重构中，不可用
+  avatar: >-
+    <svg xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 448 512"><path
+    d="M400 32H48A48 48 0 0 0 0 80v352a48 48 0 0 0 48 48h352a48 48 0 0 0
+    48-48V80a48 48 0 0 0-48-48zm-16.39 307.37l-15 65A15 15 0 0 1 354 416C194 416
+    64 286.29 64 126a15.7 15.7 0 0 1 11.63-14.61l65-15A18.23 18.23 0 0 1 144
+    96a16.27 16.27 0 0 1 13.79 9.09l30 70A17.9 17.9 0 0 1 189 181a17 17 0 0
+    1-5.5 11.61l-37.89 31a231.91 231.91 0 0 0 110.78 110.78l31-37.89A17 17 0 0 1
+    299 291a17.85 17.85 0 0 1 5.91 1.21l70 30A16.25 16.25 0 0 1 384 336a17.41
+    17.41 0 0 1-.39 3.37z" fill="currentColor"></path></svg>
 </route>
 <template>
   <Layout ref="layout">
@@ -21,9 +37,7 @@
     <Select
       :msg="t('Select PhoneNumber field')"
       v-model:value="formData.input"
-      :options="
-        fieldMetaList.filter((item) => item.type == base.FieldType.Text)
-      "
+      :options="fieldMetaList.filter((item) => item.type == FieldType.Text)"
     />
     <Select
       :msg="t('Select output format')"
@@ -33,9 +47,7 @@
     <Select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
-      :options="
-        fieldMetaList.filter((item) => item.type === base.FieldType.Text)
-      "
+      :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
     />
     <n-space>
       <n-button

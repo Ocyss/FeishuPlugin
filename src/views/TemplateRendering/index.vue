@@ -1,14 +1,30 @@
-<route lang="json">
-{
-  "name": "Template Renderer",
-  "meta": {
-    "desc": "Template rendering is a powerful tool that automatically passes field values to templates for flexible rendering. Supporting pipeline symbols allows users to perform advanced operations easily, enabling highly customized data processing.",
-    "help": "Wrap field names with {'{'}{'{'} and {'}'}{'}'} to automatically generate corresponding text<br/>Supports pipeline like {'{'}{'{'} username {'|'} append: \", welcome to LiquidJS!\" {'|'} capitalize{'}'}{'}'}, for more syntax, please see https://liquidjs.com/",
-    "group": "https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=06fj76e0-4524-4ec9-8d90-b9e85578d126",
-    "tags": ["Audit"],
-    "avatar": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"4\" rx=\"1\"></rect><rect x=\"4\" y=\"12\" width=\"6\" height=\"8\" rx=\"1\"></rect><path d=\"M14 12h6\"></path><path d=\"M14 16h6\"></path><path d=\"M14 20h6\"></path></g></svg>"
-  }
-}
+<route lang="yaml">
+name: TemplateRendering
+meta:
+  title: Template Renderer
+  desc: >-
+    Template rendering is a powerful tool that automatically passes field values
+    to templates for flexible rendering. Supporting pipeline symbols allows
+    users to perform advanced operations easily, enabling highly customized data
+    processing.
+  help: >-
+    Wrap field names with {'{'}{'{'} and {'}'}{'}'} to automatically generate
+    corresponding text<br/>Supports pipeline like {'{'}{'{'} username {'|'}
+    append: ", welcome to LiquidJS!" {'|'} capitalize{'}'}{'}'}, for more
+    syntax, please see https://liquidjs.com/
+  group: >-
+    https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=06fj76e0-4524-4ec9-8d90-b9e85578d126
+  tags:
+    - Audit
+    - 重构中，不可用
+  avatar: >-
+    <svg xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><g
+    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+    stroke-linejoin="round"><rect x="4" y="4" width="16" height="4"
+    rx="1"></rect><rect x="4" y="12" width="6" height="8" rx="1"></rect><path
+    d="M14 12h6"></path><path d="M14 16h6"></path><path d="M14
+    20h6"></path></g></svg>
 </route>
 
 <template>
@@ -22,16 +38,12 @@
     <Select
       :msg="t('Select Source Field')"
       v-model:value="formData.input"
-      :options="
-        fieldMetaList.filter((item) => item.type === base.FieldType.Text)
-      "
+      :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
     />
     <Select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
-      :options="
-        fieldMetaList.filter((item) => item.type === base.FieldType.Text)
-      "
+      :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
     />
     <n-space>
       <n-button

@@ -1,14 +1,25 @@
-<route lang="json">
-{
-  "name": "Field Extractor",
-  "meta": {
-    "desc": "This plugin easily extracts desired attributes from various fields—whether it's link fields for links/text, personnel fields for ID/name/email, or attachment fields for type/size—streamlining information processing workflows.",
-    "help": "",
-    "group": "https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=595mb5bd-1d13-4cc6-9d41-223e4b4619ae",
-    "tags": ["Audit"],
-    "avatar": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 24 24\"><path d=\"M20 7h-5V4c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9-3h2v5h-2V4zm0 12H9v2H7v-2H5v-2h2v-2h2v2h2v2zm2-1.5V13h6v1.5h-6zm0 3V16h4v1.5h-4z\" fill=\"currentColor\"></path></svg>"
-  }
-}
+<route lang="yaml">
+name: FieldExtraction
+meta:
+  title: Field Extractor
+  desc: >-
+    This plugin easily extracts desired attributes from various fields—whether
+    it's link fields for links/text, personnel fields for ID/name/email, or
+    attachment fields for type/size—streamlining information processing
+    workflows.
+  help: ""
+  group: >-
+    https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=595mb5bd-1d13-4cc6-9d41-223e4b4619ae
+  tags:
+    - Audit
+    - 重构中，不可用
+  avatar: >-
+    <svg xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M20
+    7h-5V4c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2
+    2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9-3h2v5h-2V4zm0
+    12H9v2H7v-2H5v-2h2v-2h2v2h2v2zm2-1.5V13h6v1.5h-6zm0 3V16h4v1.5h-4z"
+    fill="currentColor"></path></svg>
 </route>
 <template>
   <Layout ref="spin">
@@ -34,7 +45,7 @@
       "
       v-show="
         fieldMap.IdToType[formData.input] &&
-        fieldMap.IdToType[formData.input] != base.FieldType.DateTime
+        fieldMap.IdToType[formData.input] != FieldType.DateTime
       "
       :options="fieldInfos"
     />
@@ -48,7 +59,7 @@
         ) +
         `<a href=&quot;https://date-fns.org/v2.6.0/docs/format&quot; target=&quot;_blank&quot;>date-fns format</a>`
       "
-      v-show="fieldMap.IdToType[formData.input] == base.FieldType.DateTime"
+      v-show="fieldMap.IdToType[formData.input] == FieldType.DateTime"
       :options="dateFormatter"
       :render-label="dateRenderLabel"
     />
@@ -66,9 +77,7 @@
     <Select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
-      :options="
-        fieldMetaList.filter((item) => item.type === base.FieldType.Text)
-      "
+      :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
     />
     <n-space>
       <n-button
@@ -148,7 +157,7 @@ function start(records: IRecord[]): IRecord[] {
       const val = item.fields[formData.input];
       let res = "";
 
-      if (fieldMap.IdToType[formData.input] === base.FieldType.DateTime) {
+      if (fieldMap.IdToType[formData.input] === FieldType.DateTime) {
         res = format(val as number, formData.dateKey);
       } else {
         res = processValue(val);

@@ -12,6 +12,7 @@
     "@zxing/library": "^0.20.0",
     "axios": "^1.6.2",
     "date-fns": "^2.30.0",
+    "easy-speech": "^2.1.1",
     "liquidjs": "^10.9.4",
     "reset-css": "^5.0.2",
     "sass": "^1.69.5",

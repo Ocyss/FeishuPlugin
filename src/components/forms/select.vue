@@ -17,12 +17,13 @@
       :tag="input"
       :clearable="clearable"
       :disabled="disabled"
+      :render-tag="renderTag"
+      @create="emitCreate"
     />
   </n-form-item>
 </template>
 
 <script lang="ts" setup>
-import { VNodeChild } from "vue";
 import labelVue from "./label.vue";
 
 type Props = {
@@ -36,7 +37,8 @@ type Props = {
   tooltip?: string;
   clearable?: boolean;
   disabled?: boolean;
-  renderLabel?: (SelectOption: any) => VNodeChild;
+  renderTag?: any;
+  renderLabel?: any;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -47,9 +49,21 @@ const props = withDefaults(defineProps<Props>(), {
   clearable: true,
 });
 
-const emit = defineEmits(["update:value"]);
-const emitUpdate = (newValue: any) => {
-  emit("update:value", newValue);
+const emit = defineEmits<{
+  (e: "update:value", value: any, option: any): void;
+  (e: "create", label: string, f: (v: any) => void): void;
+}>();
+
+const emitUpdate = (value: any, option: any) => {
+  emit("update:value", value, option);
+};
+
+const emitCreate = (label: string) => {
+  let res: any;
+  emit("create", label, (v: any) => {
+    res = v;
+  });
+  return res;
 };
 </script>
 

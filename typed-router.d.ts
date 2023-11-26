@@ -39,16 +39,17 @@ import type {
 
 declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
-    '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
-    'Date/Time Tools': RouteRecordInfo<'Date/Time Tools', '/DateOperations', Record<never, never>, Record<never, never>>,
-    'AriaLink Batch Downloader': RouteRecordInfo<'AriaLink Batch Downloader', '/Downloader', Record<never, never>, Record<never, never>>,
-    'Field Extractor': RouteRecordInfo<'Field Extractor', '/FieldExtraction', Record<never, never>, Record<never, never>>,
-    'ID Info Extractor': RouteRecordInfo<'ID Info Extractor', '/IDcardWithdrawal', Record<never, never>, Record<never, never>>,
-    'JSON Parser': RouteRecordInfo<'JSON Parser', '/JsonParser', Record<never, never>, Record<never, never>>,
-    'Phone Location Lookup': RouteRecordInfo<'Phone Location Lookup', '/Phonearea', Record<never, never>, Record<never, never>>,
-    'Code Scanner': RouteRecordInfo<'Code Scanner', '/QRCodeParser', Record<never, never>, Record<never, never>>,
-    'Template Renderer': RouteRecordInfo<'Template Renderer', '/TemplateRendering', Record<never, never>, Record<never, never>>,
-    'Web to Attachment': RouteRecordInfo<'Web to Attachment', '/UrlToImg', Record<never, never>, Record<never, never>>,
+    'DateOperations': RouteRecordInfo<'DateOperations', '/DateOperations', Record<never, never>, Record<never, never>>,
+    'Downloader': RouteRecordInfo<'Downloader', '/Downloader', Record<never, never>, Record<never, never>>,
+    'FieldExtraction': RouteRecordInfo<'FieldExtraction', '/FieldExtraction', Record<never, never>, Record<never, never>>,
+    'home': RouteRecordInfo<'home', '/home', Record<never, never>, Record<never, never>>,
+    'IDcardWithdrawal': RouteRecordInfo<'IDcardWithdrawal', '/IDcardWithdrawal', Record<never, never>, Record<never, never>>,
+    'JsonParser': RouteRecordInfo<'JsonParser', '/JsonParser', Record<never, never>, Record<never, never>>,
+    'Phonearea': RouteRecordInfo<'Phonearea', '/Phonearea', Record<never, never>, Record<never, never>>,
+    'PhoneticsMate': RouteRecordInfo<'PhoneticsMate', '/PhoneticsMate', Record<never, never>, Record<never, never>>,
+    'QRCodeParser': RouteRecordInfo<'QRCodeParser', '/QRCodeParser', Record<never, never>, Record<never, never>>,
+    'TemplateRendering': RouteRecordInfo<'TemplateRendering', '/TemplateRendering', Record<never, never>, Record<never, never>>,
+    'UrlToImg': RouteRecordInfo<'UrlToImg', '/UrlToImg', Record<never, never>, Record<never, never>>,
   }
 }
 

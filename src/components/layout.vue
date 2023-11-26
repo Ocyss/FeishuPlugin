@@ -1,9 +1,9 @@
 <template>
   <n-h4 style="margin-top: 0px">
-    <n-avatar>
+    <n-avatar @contextmenu.prevent.stop="router.push({ name: 'home' })">
       <n-icon v-html="route.meta.avatar" />
     </n-avatar>
-    {{ t(route.name) }}
+    {{ t(route.meta.title as string) }}
     <n-a
       :title="t('Join the feedback group')"
       v-if="route.meta.group"
@@ -66,6 +66,7 @@ import type { DataTableColumns } from "naive-ui";
 import { NTag } from "naive-ui";
 import { LogType, LogRowData, Track, Data } from "@/types";
 import { fieldMaps } from "@/utils";
+const router = useRouter();
 const { t } = useI18n();
 const columns: DataTableColumns<LogRowData> = [
   {
@@ -107,11 +108,13 @@ function _log(type: LogType, log: string, track?: Track) {
   });
 }
 
-async function getField(formData: Data) {
+async function getField(formData: Data, table?: ITable) {
   formData.input = null;
   formData.output = null;
   update(true, t("Update field data"));
-  const table = await bitable.base.getTableById(formData.tableId!);
+  if (!table) {
+    table = await bitable.base.getTableById(formData.tableId!);
+  }
   const fieldMetaList = await table.getFieldMetaList();
   const fieldMap = fieldMaps(fieldMetaList);
   update(false);
@@ -132,9 +135,11 @@ async function getViewField(formData: Data, table?: ITable) {
   return { fieldMap, fieldMetaList, view, table };
 }
 
-async function getView(formData: Data) {
+async function getView(formData: Data, table?: ITable) {
   update(true, t("Update view data"));
-  const table = await bitable.base.getTableById(formData.tableId!);
+  if (!table) {
+    table = await bitable.base.getTableById(formData.tableId!);
+  }
   const views = await table.getViewMetaList();
   const viewMetaList = views.filter((item) => item.type == base.ViewType.Grid);
   formData.viewId = viewMetaList[0].id;
@@ -148,7 +153,8 @@ async function getTable(formData: Data) {
     bitable.base.getSelection(),
   ]);
   formData.tableId = selection.tableId;
-  return { ...selection, tableMetaList };
+  const table = await bitable.base.getTableById(formData.tableId!);
+  return { ...selection, tableMetaList, table };
 }
 
 async function getRecords(

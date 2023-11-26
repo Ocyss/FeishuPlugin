@@ -1,14 +1,28 @@
-<route lang="json">
-{
-  "name": "Web to Attachment",
-  "meta": {
-    "desc": "This powerful plugin easily converts web pages into images and uploads them as preview images in attachments. This convenient conversion method provides users with more display options.",
-    "help": "According to the ID number, obtain age, gender, date of birth, constellation, zodiac sign, and place of origin information.",
-    "group": "https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=ce0u68e4-9348-492a-b0f3-ed122c47aad7",
-    "tags": ["Audit"],
-    "avatar": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 32 32\"><path d=\"M26 2h4v4h-4z\" fill=\"currentColor\"></path><path d=\"M26 8h4v4h-4z\" fill=\"currentColor\"></path><path d=\"M20 2h4v4h-4z\" fill=\"currentColor\"></path><path d=\"M20 8h4v4h-4z\" fill=\"currentColor\"></path><path d=\"M28 16v6H4V6h12V4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2v-6zM18 28h-4v-4h4z\" fill=\"currentColor\"></path></svg>"
-  }
-}
+<route lang="yaml">
+name: UrlToImg
+meta:
+  title: Web to Attachment
+  desc: >-
+    This powerful plugin easily converts web pages into images and uploads them
+    as preview images in attachments. This convenient conversion method provides
+    users with more display options.
+  help: >-
+    According to the ID number, obtain age, gender, date of birth,
+    constellation, zodiac sign, and place of origin information.
+  group: >-
+    https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=ce0u68e4-9348-492a-b0f3-ed122c47aad7
+  tags:
+    - Audit
+    - 重构中，不可用
+  avatar: >-
+    <svg xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32"><path d="M26
+    2h4v4h-4z" fill="currentColor"></path><path d="M26 8h4v4h-4z"
+    fill="currentColor"></path><path d="M20 2h4v4h-4z"
+    fill="currentColor"></path><path d="M20 8h4v4h-4z"
+    fill="currentColor"></path><path d="M28 16v6H4V6h12V4H4a2 2 0 0 0-2 2v16a2 2
+    0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2v-6zM18 28h-4v-4h4z"
+    fill="currentColor"></path></svg>
 </route>
 <template>
   <Layout ref="layout">
@@ -21,15 +35,13 @@
     <Select
       :msg="t('Select Url Field')"
       v-model:value="formData.input"
-      :options="
-        fieldMetaList.filter((item) => item.type === base.FieldType.Url)
-      "
+      :options="fieldMetaList.filter((item) => item.type === FieldType.Url)"
     />
     <Select
       :msg="t('Select Output Field')"
       v-model:value="formData.input"
       :options="
-        fieldMetaList.filter((item) => item.type === base.FieldType.Attachment)
+        fieldMetaList.filter((item) => item.type === FieldType.Attachment)
       "
     />
     <n-space>
@@ -48,7 +60,7 @@
 <script setup lang="ts">
 import axios from "axios";
 import { reactive } from "vue";
-import { Progress } from "@/types";
+import { Progress } from "@/utils";
 import Layout from "@/components/layout.vue";
 
 const layout = ref<InstanceType<typeof Layout> | null>(null);

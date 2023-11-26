@@ -36,6 +36,14 @@ const lightThemeOverrides: GlobalThemeOverrides = {};
 const themes = ref<GlobalTheme | null>(
   props.theme === ThemeModeType.DARK ? darkTheme : null
 );
+onMounted(() => {
+  const themeOff = bitable.bridge.onThemeChange((event) => {
+    themes.value = event.data.theme === ThemeModeType.DARK ? darkTheme : null;
+  });
+  onBeforeUnmount(() => {
+    themeOff();
+  });
+});
 </script>
 
 <style>
