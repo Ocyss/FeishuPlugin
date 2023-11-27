@@ -30,6 +30,7 @@ meta:
     <Select
       :msg="t('Select Download file')"
       v-model:value="formData.input"
+      :emptyMsg="FieldEmptyMsg([FieldType.Attachment, FieldType.Url])"
       :options="data.filterFields([FieldType.Attachment, FieldType.Url])"
     />
 
@@ -81,7 +82,7 @@ meta:
 
 <script setup lang="ts">
 import Layout from "@/components/layout.vue";
-import { Data } from "@/utils";
+import { Data, FieldEmptyMsg } from "@/utils";
 import request from "@/utils/request";
 import { NTag, SelectRenderTag } from "naive-ui";
 import { VNodeChild } from "vue";
@@ -133,8 +134,12 @@ const fileNameCreateOptions = ref<
 >({});
 
 const fileNameOptions = computed(() => {
+  const textFields = data.filterFields(FieldType.Text);
+  if (!textFields) {
+    return [];
+  }
   return [
-    ...data.filterFields(FieldType.Text)!.map((item) => {
+    ...textFields.map((item) => {
       return { ...item, tag: "error" };
     }),
     { name: "递增数字(0)", id: "num0", tag: "success" },

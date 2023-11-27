@@ -25,7 +25,7 @@ import DevTool from "@/components/DevTool.vue";
 import { NConfigProvider, darkTheme } from "naive-ui";
 import type { GlobalTheme, GlobalThemeOverrides } from "naive-ui";
 import { ThemeModeType, Language } from "@lark-base-open/js-sdk";
-
+const { t } = useI18n();
 const props = defineProps<{ lang: Language; theme: ThemeModeType }>();
 const darkThemeOverrides: GlobalThemeOverrides = {
   common: {
@@ -37,6 +37,7 @@ const themes = ref<GlobalTheme | null>(
   props.theme === ThemeModeType.DARK ? darkTheme : null
 );
 onMounted(() => {
+  window.$t = t;
   const themeOff = bitable.bridge.onThemeChange((event) => {
     themes.value = event.data.theme === ThemeModeType.DARK ? darkTheme : null;
   });

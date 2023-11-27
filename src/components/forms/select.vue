@@ -19,12 +19,23 @@
       :disabled="disabled"
       :render-tag="renderTag"
       @create="emitCreate"
-    />
+    >
+      <template #empty>
+        <n-empty :description="emptyMsg">
+          <template #extra>
+            <n-button size="small" @click="emptyRefresh">
+              {{ t("refresh") }}
+            </n-button>
+          </template>
+        </n-empty>
+      </template>
+    </n-select>
   </n-form-item>
 </template>
 
 <script lang="ts" setup>
 import labelVue from "./label.vue";
+const { t } = useI18n();
 
 type Props = {
   msg: string;
@@ -39,6 +50,8 @@ type Props = {
   disabled?: boolean;
   renderTag?: any;
   renderLabel?: any;
+  emptyMsg?: string;
+  emptyRefresh?: () => void;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -47,6 +60,12 @@ const props = withDefaults(defineProps<Props>(), {
   labelField: "name",
   valueField: "id",
   clearable: true,
+  emptyRefresh: () => {
+    window.$message?.info(window.$t("Invalid, refresh method not defined"));
+  },
+  emptyMsg: window.$t(
+    "There is no data. There is a high probability that the field type has been filtered. Please check whether there are related types."
+  ),
 });
 
 const emit = defineEmits<{

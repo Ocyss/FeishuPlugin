@@ -223,6 +223,9 @@ defineExpose({
   warning: (log: string, track?: Track) => _log(LogType.Warning, log, track),
   error: (log: string, track?: Track) => _log(LogType.Error, log, track),
 });
+onMounted(() => {
+  window.$message = useMessage();
+});
 </script>
 
 <style lang="scss" scoped>

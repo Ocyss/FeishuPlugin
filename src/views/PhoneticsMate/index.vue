@@ -152,7 +152,16 @@ async function start(records: IRecord[]) {
   const text = records.map((item) => {
     return TextFieldToStr(item.fields[formData.input!] as IOpenSegment[]);
   });
-  const res = await request.post("http://127.0.0.1:5000/transcript/ipa", text);
+  const res = await request.post(
+    "https://phoneticsmate.ocyss.repl.co/transcript/ipa",
+    text,
+    {
+      timeout: 20000,
+    }
+  );
+  if (res.data.code == 0) {
+    return [];
+  }
   const dict = res.data.data;
   return records
     .map((item) => {

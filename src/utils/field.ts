@@ -138,3 +138,45 @@ export const FieldInfos: (
   }
   return [{ id: "暂未支持该字段，请在交流群内反馈" }];
 };
+export const FieldName = (type: FieldType) => {
+  const fieldTypeStrings: Record<number, string> = {
+    [FieldType.NotSupport]: "NotSupport",
+    [FieldType.Text]: "Text",
+    [FieldType.Number]: "Number",
+    [FieldType.SingleSelect]: "SingleSelect",
+    [FieldType.MultiSelect]: "MultiSelect",
+    [FieldType.DateTime]: "DateTime",
+    [FieldType.Checkbox]: "Checkbox",
+    [FieldType.User]: "User",
+    [FieldType.Phone]: "Phone",
+    [FieldType.Url]: "Url",
+    [FieldType.Attachment]: "Attachment",
+    [FieldType.SingleLink]: "SingleLink",
+    [FieldType.Lookup]: "Lookup",
+    [FieldType.Formula]: "Formula",
+    [FieldType.DuplexLink]: "DuplexLink",
+    [FieldType.Location]: "Location",
+    [FieldType.GroupChat]: "GroupChat",
+    [FieldType.Denied]: "Denied",
+
+    [FieldType.CreatedTime]: "CreatedTime",
+    [FieldType.ModifiedTime]: "ModifiedTime",
+    [FieldType.CreatedUser]: "CreatedUser",
+    [FieldType.ModifiedUser]: "ModifiedUser",
+    [FieldType.AutoNumber]: "AutoNumber",
+    [FieldType.Barcode]: "Barcode",
+    [FieldType.Progress]: "Progress",
+    [FieldType.Currency]: "Currency",
+    [FieldType.Rating]: "Rating",
+  };
+  return fieldTypeStrings[type];
+};
+
+export function FieldEmptyMsg(type: FieldType | FieldType[]) {
+  const text = (Array.isArray(type) ? type : [type])
+    .map((item) => {
+      return FieldName(item);
+    })
+    .join(", ");
+  return `Only {${text}} fields are supported`;
+}
