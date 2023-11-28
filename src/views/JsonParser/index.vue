@@ -14,7 +14,6 @@ meta:
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=1faj62f2-b373-4442-a8a7-c53a08bf67a4
   tags:
     - Audit
-    - 重构中，不可用
   avatar: >-
     <svg xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32"><path d="M31
@@ -32,194 +31,132 @@ meta:
   <Layout ref="layout">
     <form-select
       :msg="t('Select Data Table')"
-      v-model:value="formData.tableId"
-      :options="tableMetaList"
-      @update:value="getView"
-    />
+      v-model:value="store.tableId"
+      :options="store.tableMetaList"
+      @update:value="() => store.getView()" />
     <form-select
       :msg="t('Select View')"
-      v-model:value="formData.viewId"
-      :options="viewMetaList"
-      @update:value="getField"
-    />
+      v-model:value="store.viewId"
+      :options="store.viewMetaList"
+      @update:value="() => store.getField()" />
     <form-select
       :msg="t('Select Input Field')"
-      v-model:value="formData.input"
-      :options="fieldMetaList?.filter((item) => item.type === FieldType.Text)"
-      @update:value="inputUpdate"
-    />
+      v-model:value="store.input"
+      :options="store.filterFields(FieldType.Text)"
+      @update:value="inputUpdate" />
     <form-select
       :msg="t('Select Output Field')"
       v-model:value="formData.fieldList"
       :options="
-          fieldMetaList?.map((item) => {
-            // 拷贝防止影响其他值
-            const val:SelectOption = { ...item };
-            if (val.id === formData.input) {
-              val.disabled = true;
-            }
-            return val;
-          })
-        "
+        store.fieldMetaList?.map(item => {
+          // 拷贝防止影响其他值
+          const val: SelectOption = {...item}
+          if (val.id === store.input) {
+            val.disabled = true
+          }
+          return val
+        })
+      "
       multiple
-      @update:value="fieldUpdate"
-    />
-    <n-space>
-      <n-button
-        type="primary"
-        :disabled="
-          formData.tableId == '' ||
-          formData.viewId == '' ||
-          formData.input == ''
-        "
-        size="large"
-        @click="main"
-      >
-        {{ t("Parse") }}
-      </n-button>
+      @update:value="fieldUpdate" />
+    <form-start @update:click="main" :disableds="disableds">
       <n-button type="info" size="large" @click="() => toCopy(true)">
         {{ t("Copy as Object") }}
       </n-button>
       <n-button type="info" size="large" @click="() => toCopy(false)">
         {{ t("Copy as Array") }}
       </n-button>
-    </n-space>
+    </form-start>
   </Layout>
 </template>
 
 <script lang="ts" setup>
-import { type SelectOption } from "naive-ui"
+import {type SelectOption} from "naive-ui"
 import useClipboard from "vue-clipboard3"
-import { useI18n } from "vue-i18n"
+import {useI18n} from "vue-i18n"
 
 import Layout from "@/components/layout.vue"
-import type { Data, FieldMaps } from "@/types"
-import { fieldDefault,type Progress,TextFieldToStr } from "@/utils"
+import {store} from "@/store.js"
+import {fieldDefault, type Progress, TextFieldToStr} from "@/utils"
 
-const { t } = useI18n()
+const {t} = useI18n()
 const layout = ref<InstanceType<typeof Layout> | null>(null)
 
-const { toClipboard } = useClipboard()
+const {toClipboard} = useClipboard()
 
-const formData = reactive<
-Data<{
-  fieldList: string[]
-}>
->({
-  "tableId": "",
-  "viewId": "",
-  "input": "",
+const disableds = computed<Array<[boolean, string]>>(() => [
+  [!store.input, t("Input can not be empty")],
+  [!store.viewId, t("View can not be empty")]
+])
+
+const formData = reactive<{fieldList: string[]}>({
   "fieldList": []
 })
 
-const tableMetaList = ref<ITableMeta[]>([])
-const viewMetaList = ref<IViewMeta[]>([])
-const fieldMetaList = ref<IFieldMeta[]>([])
-
-let fieldMap: FieldMaps = { "NameToId": {}, "IdToName": {}, "IdToType": {} }
-
-const main = async () => {
-  layout.value?.update(true, t("Step 1 - Get the data table"))
-  layout.value?.init()
-  const tableId = formData.tableId
-  if (tableId) {
-    const table = await bitable.base.getTableById(tableId)
-    layout.value?.update(true, t("Step 2 - Get the record list"))
-    const recordList = await table.getRecordList()
-    const promises = []
-    const pr = layout.value?.spin(t("Record"), 0)
-    const pc = layout.value?.spin(t("Cell"), 0)
-    if (!pr || !pc) {
-      return
-    }
-    for (const record of recordList) {
-      pr?.addTotal()
-      promises.push(start(record, pr, pc))
-    }
-    await Promise.all(promises)
-    layout.value?.finish()
-  }
-  layout.value?.update(false)
-}
-
-const start = async (record: IRecordType, pr: Progress, pc: Progress) => {
-  const inputCell = await record.getCellByField(formData.input as string)
-  const val = await inputCell.getValue()
-  if (!val) {
-    return
-  }
-  const text = TextFieldToStr(val)
-  const track = {
-    "tableId": formData.tableId,
-    "viewId": formData.viewId,
-    "recordId": record.id
-  }
-  try {
-    const obj = JSON.parse(text)
-    const temp = []
-    if (Array.isArray(obj)) {
-      if (formData.fieldList.length === obj.length) {
-        obj.forEach((value: any, index: number) => {
-          pc.addTotal()
-          temp.push(setValue(record, formData.fieldList[index], value, pc))
-        })
-      } else {
-        layout.value?.error(t("Array Length Error"), track)
-      }
-    } else if (typeof obj === "object" && obj !== null) {
-      for (const key in obj) {
-        pc.addTotal()
-        const fieldId = fieldMap.NameToId[key]
-        if (formData.fieldList.some((item) => item === fieldId)) {
-          temp.push(setValue(record, fieldId, obj[key], pc))
+function start(records: IRecord[], pr: Progress) {
+  return records
+    .map(record => {
+      pr.add()
+      if (store.check(false) && store.input in record.fields) {
+        const text = TextFieldToStr(record.fields[store.input])
+        const track = {
+          "tableId": store.tableId,
+          "viewId": store.viewId,
+          "recordId": record.recordId
+        }
+        try {
+          const obj = JSON.parse(text)
+          if (Array.isArray(obj)) {
+            if (formData.fieldList.length === obj.length) {
+              obj.forEach((value: any, index: number) => {
+                record.fields[formData.fieldList[index]] = value
+              })
+            } else {
+              layout.value?.error(t("Array Length Error"), track)
+            }
+          } else if (typeof obj === "object" && obj !== null) {
+            for (const key in obj) {
+              const fieldId = store.id(key)
+              if (fieldId && formData.fieldList.some(item => item === fieldId)) {
+                record.fields[fieldId] = obj[key]
+              }
+            }
+          }
+          return record
+        } catch (e) {
+          layout.value?.error(t("Not in JSON Format"), track)
         }
       }
-    }
-    await Promise.all(temp)
-  } catch (e) {
-    layout.value?.error(t("Not in JSON Format"), track)
-  } finally {
-    pr.add()
-  }
+      return null
+    })
+    .filter(record => record !== null) as IRecord[]
 }
 
-const setValue = async (
-  record: IRecordType,
-  fieldId: string,
-  value: any,
-  pc: Progress
-) => {
-  const cell = await record.getCellByField(fieldId)
-  const track = {
-    "tableId": formData.tableId,
-    "viewId": formData.viewId,
-    "recordId": record.id,
-    fieldId
+async function main() {
+  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.init()
+  if (store.check(false)) {
+    const table = await bitable.base.getTableById(store.tableId)
+    layout.value?.update(true, t("Step 2 - Getting Records"))
+    await layout.value?.getRecords(
+      table,
+      ({records, pr}) => {
+        return table.setRecords(start(records.records, pr))
+      },
+      3000
+    )
   }
-  if (cell.editable) {
-    try {
-      const res = await cell.setValue(value)
-      if (!res) {
-        layout.value?.error(t("Unknown Cell Error"), track)
-      }
-    } catch (e) {
-      layout.value?.error(t("Cell Type Error"), track)
-    }
-  } else {
-    layout.value?.error(t("Cell Not Editable"), track)
-  }
-  pc.add()
+  layout.value?.finish()
 }
 
-function inputUpdate (){
-  formData.fieldList = fieldMetaList.value
-    ?.map((item) => item.id)
-    .filter((item) => item !== formData.input)
+function inputUpdate() {
+  formData.fieldList =
+    store.fieldMetaList?.map(item => item.id).filter(item => item !== store.input) ?? []
 }
 
-function fieldUpdate (){
+function fieldUpdate() {
   const orderMap: any = {}
-  fieldMetaList.value?.forEach((element, index) => {
+  store.fieldMetaList?.forEach((element, index) => {
     orderMap[element.id] = index
   })
   formData.fieldList.sort((a, b) => {
@@ -227,10 +164,13 @@ function fieldUpdate (){
   })
 }
 
-async function toCopy (flag = true){
+async function toCopy(flag = true) {
   const res: Record<string, any> = {}
   for (const field of formData.fieldList) {
-    res[fieldMap.IdToName[field]] = fieldDefault(fieldMap.IdToType[field])
+    const name = store.name(field)
+    if (name) {
+      res[name] = fieldDefault(store.type(field))
+    }
   }
   if (flag) {
     await toClipboard(JSON.stringify(res, null, "  "))
@@ -240,22 +180,11 @@ async function toCopy (flag = true){
   alert(t("Copy Successful"))
 }
 
-async function getField (table?: ITable){
-  const data = await layout.value!.getViewField(formData, table)
-  fieldMap = data.fieldMap
-  fieldMetaList.value = data.fieldMetaList
-  formData.fieldList = data.fieldMetaList.map((item) => item.id)
-}
-
-async function getView (){
-  const data = await layout.value!.getView(formData)
-  viewMetaList.value = data.viewMetaList
-  await getField(data.table)
-}
-
 onMounted(async () => {
-  const data = await layout.value!.getTable(formData)
-  tableMetaList.value = data.tableMetaList
-  await getView()
+  const data = await store.init(layout.value!, true)
+  const ids = data.fieldMetaList?.map(item => item.id)
+  if (ids) {
+    formData.fieldList = [...ids]
+  }
 })
 </script>

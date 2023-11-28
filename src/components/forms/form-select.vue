@@ -4,22 +4,21 @@
       <form-select-label :msg="msg" :tooltip="tooltip" />
     </template>
     <n-select
+      style="width: 100%"
       :value="value"
       :options="options"
       :label-field="labelField"
       :value-field="valueField"
       :placeholder="msg"
-      @update:value="emitUpdate"
       :multiple="multiple"
-      style="width: 100%"
-      :render-label="renderLabel"
       :filterable="input"
       :tag="input"
       :clearable="clearable"
       :disabled="disabled"
+      :render-label="renderLabel"
       :render-tag="renderTag"
-      @create="emitCreate"
-    >
+      @update:value="emitUpdate"
+      @create="emitCreate">
       <template #empty>
         <n-empty :description="emptyMsg">
           <template #extra>
@@ -34,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-const { t } = useI18n()
+const {t} = useI18n()
 
 interface Props {
   msg: string

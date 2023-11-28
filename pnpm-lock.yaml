@@ -26,6 +26,9 @@ dependencies:
   liquidjs:
     specifier: ^10.9.4
     version: 10.9.4
+  random-ease:
+    specifier: ^1.0.8
+    version: 1.0.8
   reset-css:
     specifier: ^5.0.2
     version: 5.0.2
@@ -2514,6 +2517,10 @@ packages:
   /queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
     dev: true
+
+  /random-ease@1.0.8:
+    resolution: {integrity: sha512-OvA0mDSeFKHIl1o5wM6A2DPS1+HdT1jjSXf9+aZshVDrP5PqcZxOG5JWPYSTixx/ZdsDsrVP6UeuzcMcAzkbwg==}
+    dev: false
 
   /readdirp@3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}

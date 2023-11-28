@@ -12,8 +12,7 @@ name: home
     <n-list-item
       v-for="route in routes"
       :key="route.name"
-      @click="router.push({ name: route.name as keyof RouteNamedMap })"
-    >
+      @click="router.push({name: route.name as keyof RouteNamedMap})">
       <n-thing>
         <template #header>
           <n-h3 style="margin-bottom: 3px">
@@ -22,7 +21,7 @@ name: home
         </template>
         <template v-if="route.meta?.avatar" #avatar>
           <n-avatar>
-            <n-icon size="28" v-html="route.meta?.avatar"/>
+            <n-icon size="28" v-html="route.meta?.avatar" />
           </n-avatar>
         </template>
         <template #description>
@@ -32,8 +31,7 @@ name: home
               :key="tag"
               :bordered="false"
               type="info"
-              size="small"
-            >
+              size="small">
               {{ t(tag) }}
             </n-tag>
           </n-space>
@@ -45,10 +43,10 @@ name: home
 </template>
 
 <script lang="ts" setup>
-import { RouteNamedMap,routes as _routes } from "vue-router/auto/routes"
+import {RouteNamedMap, routes as _routes} from "vue-router/auto/routes"
 
-import { getRoutes } from "@/utils"
-const { t } = useI18n()
+import {getRoutes} from "@/utils"
+const {t} = useI18n()
 const router = useRouter()
 
 const routes = getRoutes(_routes)

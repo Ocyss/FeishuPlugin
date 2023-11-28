@@ -33,23 +33,12 @@ meta:
           v-model:value="formData.voiceUrl"
           :options="voice"
           label-field="name"
-          value-field="voiceURI"
-        />
+          value-field="voiceURI" />
         <n-form-item :label="t('pitch')">
-          <n-slider
-            v-model:value="formData.pitch"
-            :min="0"
-            :max="2"
-            :step="0.1"
-          />
+          <n-slider v-model:value="formData.pitch" :min="0" :max="2" :step="0.1" />
         </n-form-item>
         <n-form-item :label="t('rate')">
-          <n-slider
-            v-model:value="formData.rate"
-            :min="0.1"
-            :max="2"
-            :step="0.1"
-          />
+          <n-slider v-model:value="formData.rate" :min="0.1" :max="2" :step="0.1" />
         </n-form-item>
         <n-form-item :label="t('volume')">
           <n-slider
@@ -57,46 +46,38 @@ meta:
             :min="0"
             :max="100"
             :step="1"
-            :format-tooltip="(value: number) => `${value}%`"
-          />
+            :format-tooltip="(value: number) => `${value}%`" />
         </n-form-item>
       </n-tab-pane>
       <n-tab-pane name="chap2" tab="速查" display-directive="show">
         <n-dropdown
           trigger="click"
           :options="iframeOptions"
-          @select="(_,option) => (iframeRef = option.value as string)"
-        >
+          @select="(_, option) => (iframeRef = option.value as string)">
           <n-button style="margin-bottom: 6px; width: 100%">换源</n-button>
         </n-dropdown>
         <iframe
           v-if="iframeRef === iframeOptions[0].value || word"
-          :src="
-            iframeRef === iframeOptions[0].value ? iframeRef : iframeRef + word
-          "
+          :src="iframeRef === iframeOptions[0].value ? iframeRef : iframeRef + word"
           frameborder="0"
-          style="width: 100%; height: 80vh"
-        />
+          style="width: 100%; height: 80vh" />
         <div v-else>不支持的单元格</div>
       </n-tab-pane>
       <n-tab-pane name="chap3" tab="转换" display-directive="show">
         <n-blockquote>英语转国际音标</n-blockquote>
         <form-select
           :msg="t('Select Data Table')"
-          v-model:value="formData.tableId"
-          :options="data.tableMetaList"
-          @update:value="() => data.getField()"
-        />
+          v-model:value="store.tableId"
+          :options="store.tableMetaList"
+          @update:value="() => store.getField()" />
         <form-select
           :msg="t('Select Input Field')"
-          v-model:value="formData.input"
-          :options="data.filterFields(FieldType.Text)"
-        />
+          v-model:value="store.input"
+          :options="store.filterFields(FieldType.Text)" />
         <form-select
           :msg="t('Select Output Field')"
-          v-model:value="formData.output"
-          :options="data.filterFields(FieldType.Text)"
-        />
+          v-model:value="store.output"
+          :options="store.filterFields(FieldType.Text)" />
         <form-start @update:click="main" :disableds="disableds" />
       </n-tab-pane>
     </n-tabs>
@@ -107,20 +88,16 @@ meta:
 import EasySpeech from "easy-speech"
 
 import Layout from "@/components/layout.vue"
-import { Data, TextFieldToStr } from "@/utils"
+import {store} from "@/store.js"
+import {TextFieldToStr} from "@/utils"
 import request from "@/utils/request"
 
-const { t } = useI18n()
+const {t} = useI18n()
 
-const data = reactive(new Data())
 const voice = ref<SpeechSynthesisVoice[]>([])
 const layout = ref<InstanceType<typeof Layout>>()
 const word = ref("")
 const formData = reactive({
-  "tableId": "",
-  "viewId": "",
-  "input": null,
-  "output": null,
   "voiceUrl": "",
   "pitch": 1,
   "rate": 1,
@@ -128,16 +105,15 @@ const formData = reactive({
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, "输入不能为空"],
-  [!formData.output, "输出不能为空"],
-  [!!formData.input && formData.output === formData.input, "输入输出不能相同"]
+  [!store.input, "输入不能为空"],
+  [!store.output, "输出不能为空"],
+  [!!store.input && store.output === store.input, "输入输出不能相同"]
 ])
 
 const iframeOptions = [
   {
     "label": "国际音标",
-    "value":
-      "https://www.xdf.cn/zhuanti/bd-phonetic-alphabet-card/index.html?src=baidu"
+    "value": "https://www.xdf.cn/zhuanti/bd-phonetic-alphabet-card/index.html?src=baidu"
   },
   {
     "label": "英汉词典",
@@ -149,61 +125,58 @@ const iframeOptions = [
   }
 ]
 const iframeRef = ref(iframeOptions[0].value)
-async function start (records: IRecord[]){
-  const text = records.map((item) => {
-    return TextFieldToStr(item.fields[formData.input!] as IOpenSegment[])
+
+async function start(records: IRecord[]) {
+  const text = records.map(item => {
+    return TextFieldToStr(item.fields[store.input!] as IOpenSegment[])
   })
-  const res = await request.post(
-    "https://phoneticsmate.ocyss.repl.co/transcript/ipa",
-    text,
-    {
-      "timeout": 20000
-    }
-  )
-  if (res.data.code=== 0) {
+  const res = await request.post("https://phoneticsmate.ocyss.repl.co/transcript/ipa", text, {
+    "timeout": 20000
+  })
+  if (res.data.code === 0) {
     return []
   }
   const dict = res.data.data
   return records
-    .map((item) => {
-      const text = TextFieldToStr(
-        item.fields[formData.input!] as IOpenSegment[]
-      )
-      item.fields[formData.output!] = dict[text]
+    .map(item => {
+      const text = TextFieldToStr(item.fields[store.input!] as IOpenSegment[])
+      item.fields[store.output!] = dict[text]
       return item
     })
-    .filter((item) => item !== null)
+    .filter(item => item !== null)
 }
 
-async function main (){
+async function main() {
   layout.value?.update(true, t("Step 1 - Getting Table"))
-  const tableId = formData.tableId
-  if (tableId && formData.input) {
-    layout.value?.init()
-    const table = await bitable.base.getTableById(tableId)
+  layout.value?.init()
+  if (store.check()) {
+    const table = await bitable.base.getTableById(store.tableId)
     layout.value?.update(true, t("Step 2 - Getting Records"))
     await layout.value?.getRecords(
       table,
-      async ({ records }) => {
+      async ({records}) => {
         return await table.setRecords(await start(records.records))
       },
-      20
+      30
     )
-    layout.value?.finish()
   }
-  layout.value?.update(false)
+  layout.value?.finish()
 }
 
 onMounted(async () => {
-  await data.init(formData, layout.value!)
+  await store.init(layout.value!)
   EasySpeech.detect()
   let table: ITable
-  await EasySpeech.init({ "maxTimeout": 5000, "interval": 250, "quiet": true })
-    .then(() => { console.debug("load complete") })
-    .catch((e) => { console.error(e) })
-  voice.value = EasySpeech.voices().filter((item) => item.lang === "en-US")
+  await EasySpeech.init({"maxTimeout": 5000, "interval": 250, "quiet": true})
+    .then(() => {
+      console.debug("load complete")
+    })
+    .catch(e => {
+      console.error(e)
+    })
+  voice.value = EasySpeech.voices().filter(item => item.lang === "en-US")
   formData.voiceUrl = voice.value[0].voiceURI
-  const off = bitable.base.onSelectionChange(async ({ data }) => {
+  const off = bitable.base.onSelectionChange(async ({data}) => {
     if (data.tableId && data.fieldId && data.recordId) {
       if (!table || table.id !== data.tableId) {
         table = await bitable.base.getTableById(data.tableId)
@@ -221,7 +194,7 @@ onMounted(async () => {
         EasySpeech.cancel()
         await EasySpeech.speak({
           "text": word.value,
-          "voice": voice.value.find((item) => item.voiceURI === formData.voiceUrl),
+          "voice": voice.value.find(item => item.voiceURI === formData.voiceUrl),
           "pitch": formData.pitch,
           "rate": formData.rate,
           "volume": formData.volume / 100

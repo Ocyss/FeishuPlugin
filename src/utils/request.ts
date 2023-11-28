@@ -5,24 +5,29 @@ const request = axios.create({
 })
 
 request.interceptors.request.use(
-  function (config){
+  function (config) {
     return config
   },
-  function (error){
+  function (error) {
     // return Promise.reject(error);
     return error
   }
 )
 
 request.interceptors.response.use(
-  function (res){
+  function (res) {
     return res
   },
-  function (error){
+  function (error) {
     // return Promise.reject(error);
     return error
   }
 )
 
+declare module "axios" {
+  interface AxiosInstance {
+    (config: AxiosRequestConfig): any;
+  }
+}
 
 export default request

@@ -39,6 +39,7 @@ import type {
 
 declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
+    '项目名': RouteRecordInfo<'项目名', '/_example', Record<never, never>, Record<never, never>>,
     'DateOperations': RouteRecordInfo<'DateOperations', '/DateOperations', Record<never, never>, Record<never, never>>,
     'Downloader': RouteRecordInfo<'Downloader', '/Downloader', Record<never, never>, Record<never, never>>,
     'FieldExtraction': RouteRecordInfo<'FieldExtraction', '/FieldExtraction', Record<never, never>, Record<never, never>>,
@@ -48,6 +49,7 @@ declare module 'vue-router/auto/routes' {
     'Phonearea': RouteRecordInfo<'Phonearea', '/Phonearea', Record<never, never>, Record<never, never>>,
     'PhoneticsMate': RouteRecordInfo<'PhoneticsMate', '/PhoneticsMate', Record<never, never>, Record<never, never>>,
     'QRCodeParser': RouteRecordInfo<'QRCodeParser', '/QRCodeParser', Record<never, never>, Record<never, never>>,
+    'RandomRecord': RouteRecordInfo<'RandomRecord', '/RandomRecord', Record<never, never>, Record<never, never>>,
     'TemplateRendering': RouteRecordInfo<'TemplateRendering', '/TemplateRendering', Record<never, never>, Record<never, never>>,
     'UrlToImg': RouteRecordInfo<'UrlToImg', '/UrlToImg', Record<never, never>, Record<never, never>>,
   }

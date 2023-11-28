@@ -14,7 +14,6 @@ meta:
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=06fj76e0-4524-4ec9-8d90-b9e85578d126
   tags:
     - Audit
-    - 重构中，不可用
   avatar: >-
     <svg xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 576 512"><path
@@ -33,52 +32,29 @@ meta:
   <Layout ref="layout">
     <form-select
       :msg="t('Select Data Table')"
-      v-model:value="formData.tableId"
-      :options="tableMetaList"
-      @update:value="getField"
-    />
+      v-model:value="store.tableId"
+      :options="store.tableMetaList"
+      @update:value="() => store.getField()" />
     <form-select
       :msg="t('Select ID field')"
-      v-model:value="formData.input"
-      :options="fieldMetaList.filter((item) => item.type == FieldType.Text)"
-    />
+      v-model:value="store.input"
+      :options="store.filterFields(FieldType.Text)" />
     <form-select
       :msg="t('Select Output Field')"
-      v-model:value="formData.output"
-      :options="
-        fieldMetaList.filter(
-          (item) => item.type == FieldType.Text || item.type == FieldType.Number
-        )
-      "
-    />
+      v-model:value="store.output"
+      :options="store.filterFields([FieldType.Text, FieldType.Number])" />
     <form-select
       :msg="t('Select output format')"
       v-model:value="formData.format"
       :options="outputFormat"
       multiple
-      v-if="
-        formData.output && fieldMap.IdToType[formData.output] == FieldType.Text
-      "
-    />
+      v-if="store.output && store.type(store.output) == FieldType.Text" />
     <form-select
       :msg="t('Select output format')"
       :value="t('age')"
       disabled
-      v-else-if="
-        formData.output &&
-        fieldMap.IdToType[formData.output] == FieldType.Number
-      "
-    />
-    <n-space>
-      <n-button
-        type="primary"
-        size="large"
-        @click="start"
-        :disabled="formData.input == '' || formData.output == ''"
-      >
-        {{ t("Start") }}
-      </n-button>
-    </n-space>
+      v-else-if="store.output && store.type(store.output) == FieldType.Number" />
+    <form-start @update:click="main" :disableds="disableds" />
   </Layout>
 </template>
 
@@ -86,12 +62,17 @@ meta:
 import idcard from "@fekit/idcard"
 
 import Layout from "@/components/layout.vue"
-import type {  Data,  FieldMaps } from "@/types"
-import { TextFieldToStr } from "@/utils"
+import {store} from "@/store.js"
+import {TextFieldToStr} from "@/utils"
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 const layout = ref<InstanceType<typeof Layout> | null>(null)
+
+const disableds = computed<Array<[boolean, string]>>(() => [
+  [!store.input, t("Input can not be empty")],
+  [!store.output, t("Output can not be empty")]
+])
 
 const InfoFields = [
   "gender", // 性别
@@ -106,29 +87,22 @@ const InfoFields = [
 ] as const
 
 type InfoField = (typeof InfoFields)[number]
-type FormData = Data<{ format?: InfoField[] }>
-const formData = reactive<FormData>({
-  "tableId": void 0,
-  "input": void 0,
-  "output": void 0,
-  "format": void 0
+
+const formData = reactive<{format?: InfoField[]}>({
+  "format": []
 })
 
-const outputFormat = InfoFields.map((item) => {
-  return { "name": t(item), "id": item }
+const outputFormat = InfoFields.map(item => {
+  return {"name": t(item), "id": item}
 })
 
-const tableMetaList = ref<ITableMeta[]>([])
-const fieldMetaList = ref<IFieldMeta[]>([])
-let fieldMap: FieldMaps = { "NameToId": {}, "IdToName": {}, "IdToType": {} }
-
-function main (recordId: string, val: IOpenCellValue): string | number | null{
+function start(recordId: string, val: IOpenCellValue): string | number | null {
   const text = TextFieldToStr(val as IOpenSegment[])
   const info = idcard(text)
   if (!info) {
     layout.value?.error(t("ID card format error"), {
-      "tableId": formData.tableId!,
-      "fieldId": formData.input!,
+      "tableId": store.tableId!,
+      "fieldId": store.input!,
       recordId
     })
     return null
@@ -142,70 +116,46 @@ function main (recordId: string, val: IOpenCellValue): string | number | null{
   }
 
   const res =
-    fieldMap.IdToType[formData.output!] === FieldType.Text
-      ? formData.format!.map((item) => getValueByField(item)).join(" ")
+    store.type(store.output) === FieldType.Text
+      ? formData.format!.map(item => getValueByField(item)).join(" ")
       : info.age
   return res
 }
 
-async function start (){
+async function main() {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
-  const tableId = formData.tableId
-  if (tableId) {
-    const table = await bitable.base.getTableById(tableId)
+  if (store.check()) {
+    const table = await bitable.base.getTableById(store.tableId)
     layout.value?.update(true, t("Step 2 - Getting Records"))
-    let records: IGetRecordsResponse = {
-      "total": 0,
-      "hasMore": true,
-      "records": []
-    }
-    const promise: any[] = []
-    const pr = layout.value?.spin(t("Record"), 0)
-    while (records.hasMore) {
-      records = await table.getRecords({
-        "pageSize": 1000,
-        "pageToken": records.pageToken
-      })
-      pr?.addTotal(records.records.length)
-      const newVals = records.records
-        .map((item) => {
-          // 检查字段是否存在且不为null
-          if (
-            !formData.input ||
-            !formData.output ||
-             !(formData.input in item.fields) ||
-            !(formData.output in item.fields) ||
-            item.fields[formData.input] === null
-          ) {
+    await layout.value?.getRecords(
+      table,
+      ({records, pr}) => {
+        const newVals = records.records
+          .map(item => {
+            pr.add()
+            if (
+              store.check() &&
+              store.input in item.fields &&
+              store.output in item.fields &&
+              item.fields[store.input]
+            ) {
+              const val = item.fields[store.input]
+              item.fields[store.output] = start(item.recordId, val)
+              return item
+            }
             return null
-          }
-          const val = item.fields[formData.input]
-          item.fields[formData.output] = main(item.recordId, val)
-          return item
-        })
-        .filter((item) => item !== null) as IRecord[] // 过滤掉未定义的项
-      promise.push(
-        table.setRecords(newVals).then((res) => {
-          pr?.add(res.length)
-        })
-      )
-    }
-    await Promise.all(promise)
-    layout.value?.finish()
+          })
+          .filter(item => item !== null) as IRecord[]
+        return table.setRecords(newVals)
+      },
+      1000
+    )
   }
-  layout.value?.update(false)
-}
-
-async function getField (){
-  const data = await layout.value!.getField(formData)
-  fieldMap = data.fieldMap
-  fieldMetaList.value = data.fieldMetaList
+  layout.value?.finish()
 }
 
 onMounted(async () => {
-  const data = await layout.value!.getTable(formData)
-  tableMetaList.value = data.tableMetaList
-  await getField()
+  store.init(layout.value!)
 })
 </script>

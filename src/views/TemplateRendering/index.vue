@@ -16,7 +16,6 @@ meta:
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=06fj76e0-4524-4ec9-8d90-b9e85578d126
   tags:
     - Audit
-    - 重构中，不可用
   avatar: >-
     <svg xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><g
@@ -31,89 +30,82 @@ meta:
   <Layout ref="layout">
     <form-select
       :msg="t('Select Data Table')"
-      v-model:value="formData.tableId"
-      :options="data.tableMetaList"
-      @update:value="() => data.getField()"
-    />
+      v-model:value="store.tableId"
+      :options="store.tableMetaList"
+      @update:value="() => store.getField()" />
     <form-select
       :msg="t('Select Source Field')"
-      v-model:value="formData.input"
-      :options="data.filterFields(FieldType.Text)"
-    />
+      v-model:value="store.input"
+      :options="store.filterFields(FieldType.Text)" />
     <form-select
       :msg="t('Select Output Field')"
-      v-model:value="formData.output"
-      :options="data.filterFields(FieldType.Text)"
-    />
-    <n-space>
-      <n-button
-        type="primary"
-        size="large"
-        @click="main"
-        :disabled="formData.input == '' || formData.output == ''"
-      >
-        {{ t("开始渲染") }}
-      </n-button>
-    </n-space>
+      v-model:value="store.output"
+      :options="store.filterFields(FieldType.Text)" />
+    <form-start @update:click="main" :disableds="disableds" />
   </Layout>
 </template>
 
 <script setup lang="ts">
-import { Liquid } from "liquidjs"
+import {Liquid} from "liquidjs"
 
 import Layout from "@/components/layout.vue"
-import { Data, Progress, TextFieldToStr } from "@/utils"
+import {store} from "@/store.js"
+import {Progress, TextFieldToStr} from "@/utils"
 
-const { t } = useI18n()
+const {t} = useI18n()
 const layout = ref<InstanceType<typeof Layout> | null>(null)
 const engine = new Liquid()
-const data = new Data()
 
-const formData = reactive<{
-  tableId: string | null
-  input: string | null
-  output: string | null
-}>({
-  "tableId": null,
-  "input": null,
-  "output": null
-})
+const disableds = computed<Array<[boolean, string]>>(() => [
+  [!store.input, t("Input can not be empty")],
+  [!store.output, t("Output can not be empty")]
+])
 
-async function start (records: IRecord[],pr?:Progress){
-  return records.map(record=>{
-    pr?.add()
-    if (!formData.input || !(formData.input in record.fields)) {
-      return null
-    }
-    const text = TextFieldToStr(record.fields[formData.input] as IOpenSegment[])
-    const engineData: any = {}
-    for (const field in record.fields) {
-      const name = data.name(field)
-      if (name) {
-        engineData[name] = record.fields[field]
+async function start(records: IRecord[], pr?: Progress) {
+  return records
+    .map(record => {
+      pr?.add()
+      if (!store.input || !(store.input in record.fields)) {
+        return null
       }
-    }
-    const res = engine.parseAndRenderSync(text, engineData)
-    record.fields[formData.output!] = res
-    return record
-  }).filter(record=>record!==null) as IRecord[]
+      const text = TextFieldToStr(record.fields[store.input] as IOpenSegment[])
+      const engineData: any = {}
+      for (const field in record.fields) {
+        const name = store.name(field)
+        if (name) {
+          engineData[name] = record.fields[field]
+          switch (store.type(field)) {
+            case FieldType.DateTime:
+              engineData[name] /= 1000
+              break
+          }
+        }
+      }
+      const res = engine.parseAndRenderSync(text, engineData)
+      record.fields[store.output!] = res
+      return record
+    })
+    .filter(record => record !== null) as IRecord[]
 }
 
-async function main (){
+async function main() {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
-  if (formData.tableId && formData.output && formData.input) {
-    const table = await bitable.base.getTableById(formData.tableId)
+  if (store.check()) {
+    const table = await bitable.base.getTableById(store.tableId)
     layout.value?.update(true, t("Step 2 - Getting Records"))
-    await layout.value?.getRecords(table,async ({records,pr})=>{
-      return table.setRecords(await start(records.records, pr)) 
-    },30)
-    layout.value?.finish()
+    await layout.value?.getRecords(
+      table,
+      async ({records, pr}) => {
+        return table.setRecords(await start(records.records, pr))
+      },
+      30
+    )
   }
-  layout.value?.update(false)
+  layout.value?.finish()
 }
 
 onMounted(() => {
-  data.init(formData,layout.value!)
+  store.init(layout.value!)
 })
 </script>

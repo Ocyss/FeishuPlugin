@@ -9,6 +9,7 @@
   "Web to Attachment": "网页转附件",
   "AriaLink Batch Downloader": "AriaLink 批量下载器",
   "PhoneticsMate": "音标伴侣",
+  "RandomRecord": "随机记录生成器",
   "This plugin offers convenient date and time manipulation functions, allowing flexible formatting, performing addition and subtraction operations with dates, and even converting text dates into date fields. It also allows direct setting of time attributes like hour, minute, and second, streamlining time handling for greater convenience and efficiency.": "这个插件提供了便捷的日期和时间操作功能，能够灵活地对日期进行格式化，执行加减操作，甚至将文本日期转换成日期字段。它还允许直接统一设置时分秒等时间属性，让时间处理更加方便和高效。",
   "This plugin easily extracts desired attributes from various fields—whether it's link fields for links/text, personnel fields for ID/name/email, or attachment fields for type/size—streamlining information processing workflows.": "这款插件让你轻松从不同字段中提取所需属性。无论是链接字段的链接/文本、人员字段的id/name/email还是附件字段的type/size，都能快速提取出来，简化了信息处理流程。",
   "By inputting an ID card number, this plugin intelligently extracts information such as age, gender, date of birth, zodiac sign, Chinese zodiac, and native place. This smart identification greatly simplifies the handling of ID card information.": "根据身份证号码，这个插件能够智能地提取出年龄、性别、出生年月、星座、生肖以及籍贯等信息。这种智能识别功能大大简化了对身份证信息的处理。",
@@ -19,6 +20,7 @@
   "This powerful plugin easily converts web pages into images and uploads them as preview images in attachments. This convenient conversion method provides users with more display options.": "这个功能强大的插件可以轻松将网页保存为图片，并作为预览图上传到附件中。这种便捷的转换方式为用户提供了更多的展示选择。",
   "AriaLink Batch Downloader is a powerful plugin that allows users to efficiently perform batch file downloads using Aria2. Leveraging the advantages of Aria2, users can download multiple files faster and more conveniently.": "AriaLink 批量下载器是一个强大的插件，允许用户使用 Aria2 来进行高效的批量文件下载操作。利用 Aria2 的优势，用户可以更快速、更便捷地下载多个文件。",
   "PhoneticsMate is a convenient tool that converts English text into phonetic symbols and provides pronunciation previews in both American and British phonetic notation. Users can click on the symbols to listen to their pronunciation, effectively enhancing accuracy in English learning and communication.": "PhoneticsMate（音标伴侣）是一个方便的工具，能够将英语文本转换为音标，并提供美式和英式音标的发音预览功能。用户可以通过点击音标来聆听其发音，有效提高英语学习和交流的准确性。",
+  "RandomRecord is a practical tool designed to test plugin performance, allowing bulk generation of random records containing data for various fields. Users can customize field types and quantities as needed, facilitating performance testing and data simulation.": "RandomRecord Generator（随机记录生成器）是一个旨在测试插件性能的实用工具，能够批量生成包含任意字段数据的随机记录。用户可根据需求自定义字段类型和数量，用于性能测试和数据模拟。",
   "NotSupport": "不支持",
   "Text": "文本",
   "Number": "数字",
@@ -151,5 +153,8 @@
   "file name": "文件名",
   "refresh": "刷新",
   "Invalid, refresh method not defined": "无效，刷新方法未定义",
-  "There is no data. There is a high probability that the field type has been filtered. Please check whether there are related types.": "没有数据，大概率对字段类型进行了筛选，请检查是否有相关类型"
+  "There is no data. There is a high probability that the field type has been filtered. Please check whether there are related types.": "没有数据，大概率对字段类型进行了筛选，请检查是否有相关类型",
+  "Input can not be empty": "输入不能为空",
+  "Output can not be empty": "输出不能为空",
+  "View can not be empty": "视图不能为空"
 }

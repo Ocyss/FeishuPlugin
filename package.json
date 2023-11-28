@@ -15,6 +15,7 @@
     "date-fns": "^2.30.0",
     "easy-speech": "^2.1.1",
     "liquidjs": "^10.9.4",
+    "random-ease": "^1.0.8",
     "reset-css": "^5.0.2",
     "sass": "^1.69.5",
     "vue": "^3.3.8",

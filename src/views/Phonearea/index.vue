@@ -14,7 +14,6 @@ meta:
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=964h4312-c75e-484d-86f9-6b082a1c899a
   tags:
     - Audit
-    - 重构中，不可用
   avatar: >-
     <svg xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 448 512"><path
@@ -30,73 +29,57 @@ meta:
   <Layout ref="layout">
     <form-select
       :msg="t('Select Data Table')"
-      v-model:value="formData.tableId"
-      :options="tableMetaList"
-      @update:value="getField"
-    />
+      v-model:value="store.tableId"
+      :options="store.tableMetaList"
+      @update:value="() => store.getField()" />
     <form-select
       :msg="t('Select PhoneNumber field')"
-      v-model:value="formData.input"
-      :options="fieldMetaList.filter((item) => item.type == FieldType.Text)"
-    />
+      v-model:value="store.input"
+      :options="store.filterFields(FieldType.Text)" />
     <form-select
       :msg="t('Select output format')"
       v-model:value="formData.format"
-      :options="formats"
-    />
+      :options="formats" />
     <form-select
       :msg="t('Select Output Field')"
-      v-model:value="formData.output"
-      :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
-    />
-    <n-space>
-      <n-button
-        type="primary"
-        size="large"
-        @click="main"
-        :disabled="formData.input == '' || formData.output == ''"
-      >
-        {{ t("Start") }}
-      </n-button>
-    </n-space>
+      v-model:value="store.output"
+      :options="store.filterFields(FieldType.Text)" />
+    <form-start @update:click="main" :disableds="disableds" />
   </Layout>
 </template>
 
 <script setup lang="ts">
 import axios from "axios"
-import { computed, onMounted, ref } from "vue"
-import { useI18n } from "vue-i18n"
+import {computed, onMounted, ref} from "vue"
+import {useI18n} from "vue-i18n"
 
 import Layout from "@/components/layout.vue"
+import {store} from "@/store.js"
+import {TextFieldToStr} from "@/utils"
 
 const layout = ref<InstanceType<typeof Layout> | null>(null)
 
-const { t } = useI18n()
+const {t} = useI18n()
 
-const formData = reactive<{
-  tableId: string | null
-  input: string | null
-  output: string | null
-  format: number
-}>({
-  "tableId": null,
-  "input": null,
-  "output": null,
+const formData = reactive({
   "format": 1
 })
 
-const tableMetaList = ref<ITableMeta[]>([])
-const fieldMetaList = ref<IFieldMeta[]>([])
-
 const formats = computed(() => [
-  { "label": t("Province/City (Carrier)"), "value": 1 },
-  { "label": t("Province/City"), "value": 2 },
-  { "label": t("Province"), "value": 3 },
-  { "label": t("City"), "value": 4 },
-  { "label": t("Carrier"), "value": 5 },
-  { "label": t("Card Type"), "value": 6 }
+  {"name": t("Province/City (Carrier)"), "id": 1},
+  {"name": t("Province/City"), "id": 2},
+  {"name": t("Province"), "id": 3},
+  {"name": t("City"), "id": 4},
+  {"name": t("Carrier"), "id": 5},
+  {"name": t("Card Type"), "id": 6}
 ])
-async function request (phone: string, err = 0): Promise<string>{
+
+const disableds = computed<Array<[boolean, string]>>(() => [
+  [!store.input, t("Input can not be empty")],
+  [!store.output, t("Output can not be empty")]
+])
+
+async function request(phone: string, err = 0) {
   if (err > 2) {
     return ""
   }
@@ -108,85 +91,81 @@ async function request (phone: string, err = 0): Promise<string>{
         phone
     )
     if (res.status !== 200 || res.data.code !== 200) {
-      if (res.data.code === 10001) {
-        return t("无效的手机号码")
+      if (res.data.code === 10001 || res.data.code === 500) {
+        return t("Wrong mobile number")
       }
       throw new Error("status error")
     }
-    const { province, city, carrier, simType } = res.data.data
+    const {province, city, carrier, simType} = res.data.data
     switch (formData.format) {
-    case 1:
-      return `${province}${city}(${carrier})`
-    case 2:
-      return `${province}${city}`
-    case 3:
-      return province
-    case 4:
-      return city
-    case 5:
-      return carrier
-    case 6:
-      return simType
+      case 1:
+        return `${province}${city}(${carrier})`
+      case 2:
+        return `${province}${city}`
+      case 3:
+        return province
+      case 4:
+        return city
+      case 5:
+        return carrier
+      case 6:
+        return simType
     }
   } catch {
-    await new Promise((resolve) => setTimeout(() => { resolve(void 0) }, 2000))
-    return await request(phone, err + 1)
+    await new Promise(resolve =>
+      setTimeout(() => {
+        resolve(void 0)
+      }, 2000)
+    )
+    return request(phone, err + 1)
   }
   return ""
 }
 
-async function start (record: IRecordType, pr: any){
-  const [srcCell, dstCell] = await Promise.all([
-    record.getCellByField(formData.input!),
-    record.getCellByField(formData.output!)
-  ])
-  const dstContent = await dstCell.getValue()
-  if (dstContent) {
-    return
-  }
-  const srcval = await srcCell.getValue()
-  if (!srcval) {
-    return
-  }
-  const phone = srcval.map((item: any) => item.text).join("")
-  const expression =
-    /^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$/
-  if (!expression.test(phone)) {
-    await dstCell.setValue(t("无效的手机号码"))
-    return
-  }
-  await dstCell.setValue(await request(phone))
-  pr.add()
+async function start(records: IRecord[], pr: any) {
+  const processedRecords = await Promise.all(
+    records.map(async record => {
+      pr.add()
+      if (store.check() && store.input in record.fields && store.output in record.fields) {
+        const phone = TextFieldToStr(record.fields[store.input] as IOpenSegment[])
+        const expression =
+          /^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$/
+        if (!expression.test(phone)) {
+          return null
+        }
+        record.fields[store.output] = await request(phone)
+        return record
+      }
+      return null
+    })
+  )
+  return processedRecords.filter(record => record !== null) as IRecord[]
 }
 
-async function main (){
+async function main() {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
-  const tableId = formData.tableId
-  if (tableId) {
-    const table = await bitable.base.getTableById(tableId)
+  if (store.check()) {
+    const table = await bitable.base.getTableById(store.tableId)
     layout.value?.update(true, t("Step 2 - Getting Records"))
-    const recordList = await table.getRecordList()
-    const pr = layout.value?.spin(t("Record"), 0)
-    const promises: Array<Promise<unknown>> = []
-    for (const record of recordList) {
-      pr?.addTotal()
-      promises.push(start(record, pr))
-    }
-    await Promise.all(promises)
-    layout.value?.finish()
+    await layout.value?.getRecords(
+      table,
+      async ({records, pr}) => {
+        return table.setRecords(await start(records.records, pr))
+      },
+      30
+    )
   }
-  layout.value?.update(false)
-}
-
-async function getField (){
-  const data = await layout.value!.getField(formData)
-  fieldMetaList.value = data.fieldMetaList
+  layout.value?.finish()
 }
 
 onMounted(async () => {
-  const data = await layout.value!.getTable(formData)
-  tableMetaList.value = data.tableMetaList
-  await getField()
+  store.init(layout.value!)
 })
 </script>
+
+<i18n locale="zh" lang="json">
+{
+  "Wrong mobile number": "无效的手机号码"
+}
+</i18n>

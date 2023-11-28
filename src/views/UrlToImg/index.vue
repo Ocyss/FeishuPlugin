@@ -13,7 +13,6 @@ meta:
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=ce0u68e4-9348-492a-b0f3-ed122c47aad7
   tags:
     - Audit
-    - 重构中，不可用
   avatar: >-
     <svg xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32"><path d="M26
@@ -28,116 +27,125 @@ meta:
   <Layout ref="layout">
     <form-select
       :msg="t('Select Data Table')"
-      v-model:value="formData.tableId"
-      :options="tableMetaList"
-      @update:value="() => data.getField()"
-    />
+      v-model:value="store.tableId"
+      :options="store.tableMetaList"
+      @update:value="() => store.getField()" />
     <form-select
       :msg="t('Select Url Field')"
-      v-model:value="formData.input"
-      :options="fieldMetaList.filter((item) => item.type === FieldType.Url)"
-    />
+      v-model:value="store.input"
+      :options="store.filterFields(FieldType.Url)" />
     <form-select
       :msg="t('Select Output Field')"
-      v-model:value="formData.input"
-      :options="
-        fieldMetaList.filter((item) => item.type === FieldType.Attachment)
-      "
-    />
-    <n-space>
-      <n-button
-        type="primary"
-        size="large"
-        @click="main"
-        :disabled="formData.input == '' || formData.output == ''"
-      >
-        {{ t("Start") }}
-      </n-button>
-    </n-space>
+      v-model:value="store.output"
+      :options="store.filterFields(FieldType.Attachment)" />
+    <form-start @update:click="main" :disableds="disableds" />
   </Layout>
 </template>
 
 <script setup lang="ts">
 import axios from "axios"
-import { reactive } from "vue"
 
 import Layout from "@/components/layout.vue"
-import { Data,Progress  } from "@/utils"
-
-
-
+import {store} from "@/store.js"
+import {Progress} from "@/utils"
 
 const layout = ref<InstanceType<typeof Layout> | null>(null)
-const { t } = useI18n()
-const data = new Data()
+const {t} = useI18n()
 
-const formData = reactive({
-  "tableId": "",
-  "input": null,
-  "output": null,
-  "action": 0,
-  "dateKey": null
-})
-const tableMetaList = ref<ITableMeta[]>([])
-const fieldMetaList = ref<IFieldMeta[]>([])
+const disableds = computed<Array<[boolean, string]>>(() => [
+  [!store.input, t("Input can not be empty")],
+  [!store.output, t("Output can not be empty")]
+])
 
-async function urlTofile (url: string, err = 0): Promise<File | undefined>{
+async function urlTofile(url: string, err = 0): Promise<File | undefined> {
   if (err > 5) {
     return undefined
   }
-  const res = await axios.get(
-    `https://s0.wp.com/mshots/v1/${url}?w=1024&h=768`,
-    { "responseType": "arraybuffer" }
-  )
-  if (res.headers["Content-Type"] === "image/gif") {
-    await new Promise((resolve) => setTimeout(() => { resolve(undefined) }, 2000))
+  let errFlag = false
+  const res = await axios
+    .get(`https://s0.wp.com/mshots/v1/${url}?w=1280&h=960`, {
+      "responseType": "arraybuffer",
+      "maxRedirects": 0
+    })
+    .catch(() => {
+      errFlag = true
+    })
+  if (
+    errFlag ||
+    res?.headers["Content-Type"] === "image/gif" ||
+    res?.headers["content-type"] === "image/gif"
+  ) {
+    await new Promise(resolve =>
+      setTimeout(() => {
+        resolve(undefined)
+      }, 3000)
+    )
     return await urlTofile(url, err + 1)
   }
-  const blob = new Blob([res.data], {
-    "type": res.headers["content-type"]
+  const blob = new Blob([res?.data], {
+    "type": res?.headers["content-type"]
   })
   const f = new File([blob], Date.now() + ".jpeg", {
-    "type": res.headers["content-type"]
+    "type": res?.headers["content-type"]
   })
   return f
 }
 
-async function start (field:IAttachmentField,records: IRecord[], pr: Progress|undefined){
-  records.forEach(async record=>{
-    if (formData.input && formData.input in record.fields && record.fields[formData.input]) {
-      const urls = record.fields[formData.input] as IOpenUrlSegment[]
-      const expression = /^http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?$/
-      const files: File[] = []
-      for (const url of urls) {
-        if (expression.test(url.link)) {
-          const f = await urlTofile(url.link)
-          if (f) {
-            files.push(f)
+function isValidHttpUrl(s: string) {
+  try {
+    const newUrl = new URL(s)
+    return newUrl.protocol === "http:" || newUrl.protocol === "https:"
+  } catch (err) {
+    return false
+  }
+}
+
+async function start(field: IAttachmentField, records: IRecord[], pr: Progress | undefined) {
+  await Promise.all(
+    records.map(async record => {
+      if (
+        store.check() &&
+        record.fields[store.input] &&
+        (!record.fields[store.output] ||
+          (record.fields[store.output] as IOpenAttachment[])?.length === 0)
+      ) {
+        const urls = record.fields[store.input] as IOpenUrlSegment[]
+        const files: File[] = []
+
+        for (const url of urls) {
+          if (isValidHttpUrl(url.link)) {
+            const f = await urlTofile(url.link)
+            if (f) {
+              files.push(f)
+            }
           }
         }
+        await field.setValue(record.recordId, files)
       }
-      await field.setValue(record.recordId,files)}
-    pr?.add()
-  })
+      pr?.add()
+    })
+  )
 }
 
-async function main (){
+async function main() {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
-  if (formData.tableId && formData.output && formData.input) {
-    const table = await bitable.base.getTableById(formData.tableId)
+  if (store.check()) {
+    const table = await bitable.base.getTableById(store.tableId)
     layout.value?.update(true, t("Step 2 - Getting Records"))
-    const field = await table.getFieldById<IAttachmentField>(formData.output)
-    await layout.value?.getRecords(table,({records,pr})=>{
-      return start(field,records.records, pr)
-    },30)
-    layout.value?.finish()
+    const field = await table.getFieldById<IAttachmentField>(store.output)
+    await layout.value?.getRecords(
+      table,
+      ({records, pr}) => {
+        return start(field, records.records, pr)
+      },
+      30
+    )
   }
-  layout.value?.update(false)
+  layout.value?.finish()
 }
 
-
 onMounted(() => {
-  data.init(formData,layout.value!)
+  store.init(layout.value!)
 })
 </script>

@@ -1,5 +1,6 @@
 /* eslint-env node */
 module.exports = {
+  "root": true,
   "env": {
     "browser": true,
     "es2021": true
@@ -11,6 +12,7 @@ module.exports = {
     ".eslintrc-auto-import.json",
     "prettier"
   ],
+  "parser": "vue-eslint-parser",
   "ignorePatterns": ["build/", "dist/", "*.md", "*.py", "*.json"],
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -29,7 +31,6 @@ module.exports = {
     "array-callback-return": ["error", {"checkForEach": true, "allowImplicit": true}],
     "quote-props": ["error", "always"],
     "lines-around-comment": ["error", {"beforeBlockComment": true}],
-    "linebreak-style": ["error", "unix"],
     "quotes": ["error", "double"],
     "no-new-native-nonconstructor": "error",
     "no-unmodified-loop-condition": "error",

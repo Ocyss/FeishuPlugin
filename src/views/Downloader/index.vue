@@ -23,14 +23,14 @@ meta:
   <Layout ref="layout">
     <form-select
       :msg="t('Select Data Table')"
-      v-model:value="formData.tableId"
-      :options="data.tableMetaList"
-      @update:value="() => data.getField()" />
+      v-model:value="store.tableId"
+      :options="store.tableMetaList"
+      @update:value="() => store.getField()" />
     <form-select
       :msg="t('Select Download file')"
-      v-model:value="formData.input"
+      v-model:value="store.input"
       :emptyMsg="FieldEmptyMsg([FieldType.Attachment, FieldType.Url])"
-      :options="data.filterFields([FieldType.Attachment, FieldType.Url])" />
+      :options="store.filterFields([FieldType.Attachment, FieldType.Url])" />
     <form-radios :msg="t('Select action')" v-model:value="formData.action" :datas="actions" />
     <div v-show="formData.action === 0">
       <n-blockquote>
@@ -58,13 +58,13 @@ meta:
         v-model:value="formData.fileName"
         input
         multiple
-        :render-tag="fileNameLabel"
-        :render-label="fileNameTag"
+        :render-tag="fileNameTag"
+        :render-label="fileNameLabel"
         :options="fileNameOptions"
         @create="fileNameCreate" />
       <n-form-item :label="'非法字符'">
         <n-switch :round="false" v-model:value="formData.illegal">
-          <template #checked>替换</template>
+          <template #checked>删除</template>
           <template #unchecked>报错</template>
         </n-switch>
         &lt;>:"/\|?*
@@ -78,10 +78,10 @@ meta:
       </div>
     </div>
     <div v-show="formData.action === 1">
-      <Input :data="formData.DownloadConf" />
+      <form-input :data="formData.DownloadConf" />
     </div>
     <div v-show="formData.action === 2">
-      <Input :data="formData.AriaConf" />
+      <form-input :data="formData.AriaConf" />
     </div>
     <form-start @update:click="main" :disableds="disableds">
       <n-button
@@ -96,34 +96,32 @@ meta:
 </template>
 
 <script setup lang="ts">
+import {AxiosRequestConfig} from "axios"
 import format from "date-fns/format"
 import {NTag, type SelectRenderTag} from "naive-ui"
 import {type VNodeChild} from "vue"
 
 import Layout from "@/components/layout.vue"
-import {Data, FieldEmptyMsg, TextFieldToStr} from "@/utils"
+import {store} from "@/store.js"
+import {FieldEmptyMsg, TextFieldToStr} from "@/utils"
 import request from "@/utils/request"
-
 const {t} = useI18n()
 const now = new Date()
-const data = reactive(new Data())
+
 const message = useMessage()
 const layout = ref<InstanceType<typeof Layout>>()
 const aria = ref(false)
 const ariaDisabled = ref(false)
 const formData = reactive({
-  "tableId": "",
-  "viewId": "",
-  "input": null,
   "action": -1,
   "dateKey": null,
   "fileName": [],
   "illegal": false,
   "DownloadConf": {
     "dir": undefined,
+    "user-agent": "",
     "size": 0,
-    "maxSize": 0,
-    "user-agent": ""
+    "maxSize": 0
   },
   "AriaConf": {
     "aria2Url": "http://localhost:6800/jsonrpc",
@@ -132,8 +130,8 @@ const formData = reactive({
 })
 const tempRecords = ref<IRecord[]>([])
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, "输入不能为空"],
-  [!aria.value, "Aria 未连接成功"]
+  [!store.input, t("Input can not be empty")],
+  [!aria.value, t("Aria connection failed!")]
 ])
 let count = 0
 const actions = [
@@ -151,16 +149,16 @@ const fileNameType = {
 }
 
 const fileNameOptions = computed(() => {
-  const textFields = data.filterFields(FieldType.Text) || []
+  const textFields = store.filterFields(FieldType.Text) ?? []
   return [
     ...textFields.map(item => {
       return {...item, "tag": "error"}
     }),
-    {"name": "递增数字(0)", "id": "num0", "tag": "success"},
-    {"name": "递增数字(1)", "id": "num1", "tag": "success"},
-    {"name": "记录ID", "id": "recordID", "tag": "success"},
-    {"name": "字段ID", "id": "fieldID", "tag": "success"},
-    {"name": "时间戳(秒)", "id": "date0", "tag": "success"},
+    {"name": t("AscendingNumbers(0)"), "id": "num0", "tag": "success"},
+    {"name": t("AscendingNumbers(1)"), "id": "num1", "tag": "success"},
+    {"name": t("RecordID"), "id": "recordID", "tag": "success"},
+    {"name": t("FieldID"), "id": "fieldID", "tag": "success"},
+    {"name": t("Timestamp(Seconds)"), "id": "date0", "tag": "success"},
     {"name": "yyyy-MM-dd_HH-mm-ss-SSS", "id": "date1", "tag": "success"},
     {"name": "HH-mm-ss-SSS", "id": "date2", "tag": "success"},
     {"name": "yyMMddHHmmss", "id": "date3", "tag": "success"}
@@ -169,7 +167,6 @@ const fileNameOptions = computed(() => {
 
 const fileNameCreate = (name: string, f: (v: {name: string; id: string; tag: string}) => void) => {
   const [id, tag] = name.startsWith(".") ? ["$ESUF$", "warning"] : ["$BDAT$", "info"]
-
   const res = {name, "id": id + name, tag}
   f(res)
 }
@@ -189,9 +186,10 @@ const fileNameLabel = (option: {
       },
       fileNameType[option.tag]
     ),
-    t(option.name)
+    option.name
   ]
 }
+
 const fileNameTag: SelectRenderTag = ({option, handleClose}) => {
   return h(
     NTag,
@@ -222,7 +220,7 @@ function generateFileName(index: number, record: IRecord, item: string): string 
     case "recordID":
       return record.recordId
     case "fieldID":
-      return formData.input || ""
+      return store.input || ""
     case "date0":
       return now.getTime().toString()
     case "date1":
@@ -240,6 +238,7 @@ function generateFileName(index: number, record: IRecord, item: string): string 
 
 function generate(url: string, record: IRecord, index = 0) {
   count++
+  let errFlag = false
   const out =
     formData.fileName
       .map(item => {
@@ -249,17 +248,27 @@ function generate(url: string, record: IRecord, index = 0) {
           if (formData.illegal) {
             name = name.replace(invalidFileNameRegex, "")
           } else {
-            throw new Error("File names do not allow illegal characters")
+            // throw new Error("File names do not allow illegal characters")
+            layout.value?.error(t("File names do not allow illegal characters"), {
+              "tableId": store.tableId,
+              "recordId": record.recordId,
+              "fieldId": item
+            })
+            errFlag = true
           }
         }
         return name
       })
       .join("") || undefined
+  if (errFlag) {
+    return
+  }
   return {
     "jsonrpc": "2.0",
     "method": "aria2.addUri",
-    "id": record.recordId + formData.input + index,
+    "id": record.recordId + store.input + index,
     "params": [
+      ["token:" + formData.AriaConf.secret],
       [url],
       {
         out,
@@ -274,62 +283,69 @@ async function startAttachment(field: IAttachmentField, records: IRecord[]) {
   const res: any = []
   await Promise.all(
     records.map(async record => {
-      const val = record.fields[formData.input!]
-      if (!val || !Array.isArray(val) || val.length === 0) {
-        return
-      }
-      const urls = await field.getAttachmentUrls(record.recordId)
-      if (urls && Array.isArray(urls)) {
-        res.push(...urls.map((v, index) => generate(v, record, index)))
+      if (store.check(false)) {
+        const val = record.fields[store.input]
+        if (!val || !Array.isArray(val) || val.length === 0) {
+          return
+        }
+        const urls = await field.getAttachmentUrls(record.recordId)
+        if (urls && Array.isArray(urls)) {
+          res.push(...urls.map((v, index) => generate(v, record, index)))
+        }
       }
     })
   )
-  return await request.post(formData.AriaConf.aria2Url, res)
+  return await port(formData.AriaConf.aria2Url, res)
 }
 
 async function startUrl(records: IRecord[]) {
   const res = records
     .map(record => {
-      if (
-        !formData.input ||
-        !(formData.input in record.fields) ||
-        record.fields[formData.input] === null
-      ) {
+      if (store.check(false) && store.input in record.fields && record.fields[store.input]) {
+        const val = record.fields[store.input]
+        if (
+          Array.isArray(val) &&
+          val.length > 0 &&
+          typeof val[0] === "object" &&
+          "link" in val[0]
+        ) {
+          return generate(val[0].link, record)
+        }
         return null
-      }
-      const val = record.fields[formData.input]
-      if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object" && "link" in val[0]) {
-        return generate(val[0].link, record)
       }
       return null
     })
     .filter(v => v !== null)
-  return await request.post(formData.AriaConf.aria2Url, res)
+  return await port(formData.AriaConf.aria2Url, res)
 }
 
 async function main() {
   layout.value?.update(true, t("Step 1 - Verification Aria2 status"))
   await aria2Stat()
-  const tableId = formData.tableId
-  if (tableId && aria.value && formData.input) {
+  if (store.check(false)) {
     layout.value?.update(true, t("Step 2 - Getting Table"))
     layout.value?.init()
     count = 0
-    const table = await bitable.base.getTableById(tableId)
+    const table = await bitable.base.getTableById(store.tableId)
     layout.value?.update(true, t("Step 3 - Getting Records"))
     let field: IAttachmentField // 性能优化，只在需要时取一次
+
     await layout.value?.getRecords(
       table,
       async ({records, pr}) => {
-        switch (data.type(formData.input)) {
+        switch (store.type(store.input)) {
           case FieldType.Url:
-            await startUrl(records.records)
+            await startUrl(records.records).catch(err => {
+              message.error(err)
+            })
             break
           case FieldType.Attachment:
             if (!field) {
-              field = await table.getField<IAttachmentField>(formData.input!)
+              field = await table.getField<IAttachmentField>(store.input!)
             }
-            await startAttachment(field, records.records)
+            await startAttachment(field, records.records).catch(err => {
+              message.error(err)
+            })
             break
         }
         pr.add(records.records.length)
@@ -343,49 +359,51 @@ async function main() {
 
 async function aria2Stat(msg = false, url = "") {
   ariaDisabled.value = msg
-  url = url ?? formData.AriaConf.aria2Url
-  return await request
-    .post(
-      url,
-      {
-        "jsonrpc": "2.0",
-        "method": "aria2.getGlobalStat",
-        "id": 1,
-        "params": []
-      },
-      {"timeout": 2000}
+  url = url === "" ? formData.AriaConf.aria2Url : url
+  const res = await port(
+    url,
+    {
+      "jsonrpc": "2.0",
+      "method": "aria2.getGlobalStat",
+      "id": 1,
+      "params": ["token:" + formData.AriaConf.secret]
+    },
+    {"timeout": 3000}
+  )
+
+  aria.value = !!res.data?.result
+  if (msg) {
+    ariaDisabled.value = false
+    message[!res.data ? "error" : "success"](
+      t(`Aria connection ${!res.data ? "failed" : "successful"}!`)
     )
-    .then(res => {
-      aria.value = !!res.data
-      if (msg) {
-        ariaDisabled.value = false
-        message[!res.data ? "error" : "success"](
-          t(`Aria connection ${!res.data ? "failed" : "successful"}!`)
-        )
-      }
-      if (res.data) {
-        return url
-      }
-    })
-    .catch(error => {
-      message.error(t("Aria connection failed!"))
-      return Promise.reject(error)
-    })
+  }
+  return aria.value || !!res?.response?.data?.error
+}
+
+async function port(url: string, data: any, config?: AxiosRequestConfig) {
+  const res: any = await request.post(url, data, config)
+
+  if (res?.response?.data?.error?.message) {
+    message.error(t(res.response.data.error.message))
+  }
+  return res
 }
 
 onMounted(async () => {
-  const {table} = await data.init(formData, layout.value!)
+  const {table} = await store.init(layout.value!)
   table.getRecords({"pageSize": 5}).then(res => {
     tempRecords.value = res.records
   })
   await aria2Stat()
   if (!aria.value) {
     const urls = ["http://localhost:16800/jsonrpc", "http://localhost:6800/rpc"]
-    Promise.race(urls.map(url => aria2Stat(false, url))).then(url => {
-      if (url) {
+    for (const url of urls) {
+      if (await aria2Stat(false, url)) {
         formData.AriaConf.aria2Url = url
+        break
       }
-    })
+    }
   }
   const timer = setInterval(() => {
     aria2Stat
@@ -402,7 +420,14 @@ onMounted(async () => {
   "Step 2 - Getting Table": "第二步·获取数据表",
   "Step 3 - Getting Records": "第三部·获取记录",
   "Aria connection failed!": "Aria 连接失败~",
-  "Aria connection successful!": "Aria 连接成功!"
+  "Aria connection successful!": "Aria 连接成功!",
+  "File names do not allow illegal characters": "文件名不允许包含非法字符",
+  "AscendingNumbers(0)": "递增数字(0)",
+  "AscendingNumbers(1)": "递增数字(1)",
+  "RecordID": "记录ID",
+  "FieldID": "字段ID",
+  "Timestamp(Seconds)": "时间戳(秒)",
+  "Unauthorized": "未经授权, 需要Token(secret)鉴权"
 }
 </i18n>
 

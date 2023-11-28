@@ -28,22 +28,24 @@ meta:
   <Layout ref="layout">
     <form-select
       :msg="t('Select Data Table')"
-      v-model:value="formData.tableId"
-      :options="data.tableMetaList"
-      @update:value="() => data.getField()" />
+      v-model:value="store.tableId"
+      :options="store.tableMetaList"
+      @update:value="() => store.getField()" />
     <form-radios
       :msg="t('Select action')"
       v-model:value="formData.action"
-      @update-value="
-        formData.output = null
-        formData.input = null
+      @update:value="
+        () => {
+          store.output = null
+          store.input = null
+        }
       "
       :datas="radios" />
     <form-select
       :msg="t('Select action field')"
-      v-model:value="formData.input"
+      v-model:value="store.input"
       :options="
-        data.filterFields(formData.action, {
+        store.filterFields(formData.action, {
           [FieldType.DateTime]: [0, 1, 3],
           [FieldType.Text]: [2]
         })
@@ -71,23 +73,15 @@ meta:
       :data="dateSet" />
     <form-select
       :msg="t('Select Output Field')"
-      v-model:value="formData.output"
+      v-model:value="store.output"
       :options="
-        data.filterFields(formData.action, {
+        store.filterFields(formData.action, {
           [FieldType.DateTime]: [1, 2, 3],
           [FieldType.Text]: [0]
         })
       "
       @update:value="updateOutput" />
-    <n-space>
-      <n-button
-        type="primary"
-        size="large"
-        @click="main"
-        :disabled="formData.input == '' || formData.output == ''">
-        {{ t("Start") }}
-      </n-button>
-    </n-space>
+    <form-start @update:click="main" :disableds="disableds" />
   </Layout>
 </template>
 
@@ -100,21 +94,17 @@ import {NTime, type SelectOption} from "naive-ui"
 import {type VNodeChild} from "vue"
 
 import Layout from "@/components/layout.vue"
-import {Data, dateFormatterList, TextFieldToStr} from "@/utils"
+import {store} from "@/store.js"
+import {dateFormatterList, Progress, TextFieldToStr} from "@/utils"
 
 const {t} = useI18n()
 
 const layout = ref<InstanceType<typeof Layout>>()
 
 const formData = reactive({
-  "tableId": "",
-  "input": null,
-  "output": null,
   "action": 0,
   "dateKey": null
 })
-
-const data = reactive(new Data())
 
 const radios = [
   {"label": "format", "value": 0},
@@ -131,6 +121,12 @@ const dateAdd = reactive({
   "minutes": 0,
   "seconds": 0
 })
+
+const disableds = computed<Array<[boolean, string]>>(() => [
+  [!store.input, t("Input can not be empty")],
+  [!store.output, t("Output can not be empty")]
+])
+
 const dateSet = reactive<{
   year?: number
   month?: number
@@ -152,68 +148,62 @@ const dateRenderLabel = (option: SelectOption): VNodeChild => [
   option.label as string
 ]
 
-function start(records: IRecord[]): IRecord[] {
+function start(records: IRecord[], pr: Progress): IRecord[] {
   return records
     .map(item => {
-      // 检查字段是否存在且不为null
+      pr.add()
       if (
-        !formData.input ||
-        !formData.output ||
-        !(formData.input in item.fields) ||
-        !(formData.output in item.fields) ||
-        item.fields[formData.input] === null
+        store.check() &&
+        store.input in item.fields &&
+        store.output in item.fields &&
+        item.fields[store.input]
       ) {
-        return null
+        const val = item.fields[store.input]
+        let res: any
+        switch (formData.action) {
+          case 0:
+            res = format(val as number, formData.dateKey!)
+            break
+          case 1:
+            res = add(val as number, dateAdd).getTime()
+            break
+          case 2:
+            for (const f of dateFormatterList) {
+              res = parse(TextFieldToStr(val as IOpenSegment[]), f, 0).getTime()
+              if (!isNaN(res)) break
+            }
+            if (typeof res !== "number" || isNaN(res)) {
+              return null
+            }
+            break
+          case 3:
+            res = set(val as number, dateSet).getTime()
+            break
+        }
+        item.fields[store.output] = res
+        return item
       }
-
-      const val = item.fields[formData.input]
-      let res: any
-      switch (formData.action) {
-        case 0:
-          res = format(val as number, formData.dateKey!)
-          break
-        case 1:
-          res = add(val as number, dateAdd).getTime()
-          break
-        case 2:
-          for (const f of dateFormatterList) {
-            res = parse(TextFieldToStr(val as IOpenSegment[]), f, 0).getTime()
-            if (!isNaN(res)) break
-          }
-          if (typeof res !== "number" || isNaN(res)) {
-            return null
-          }
-          break
-        case 3:
-          res = set(val as number, dateSet).getTime()
-          break
-      }
-      item.fields[formData.output] = res
-      return item
+      return null
     })
-    .filter(item => item !== null) as IRecord[] // 过滤掉未定义的项
+    .filter(item => item !== null) as IRecord[]
 }
 
 async function main() {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
-  const tableId = formData.tableId
-  if (tableId) {
-    const table = await bitable.base.getTableById(tableId)
+  if (store.check()) {
+    const table = await bitable.base.getTableById(store.tableId)
     layout.value?.update(true, t("Step 2 - Getting Records"))
-    await layout.value?.getRecords(table, async ({records, pr}) => {
-      await table.setRecords(start(records.records)).then(res => {
-        pr.add(res.length)
-      })
+    await layout.value?.getRecords(table, ({records, pr}) => {
+      return table.setRecords(start(records.records, pr))
     })
-    layout.value?.finish()
   }
-  layout.value?.update(false)
+  layout.value?.finish()
 }
 
 function updateOutput() {}
 
 onMounted(async () => {
-  await data.init(formData, layout.value!)
+  store.init(layout.value!)
 })
 </script>
