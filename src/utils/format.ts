@@ -20,28 +20,28 @@ export const dateFormatterList = [
   "K:mm a, z",
   "yyyyy.MMMMM.dd GGG hh:mm aaa",
   "yyMMddHHmmss",
-  "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
-];
+  "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+]
 
 export const delimiterList = [
   {
-    name: "Line Break",
-    id: "\n",
+    "name": "Line Break",
+    "id": "\n"
   },
   {
-    name: "Space",
-    id: " ",
+    "name": "Space",
+    "id": " "
   },
   {
-    name: "Tab",
-    id: "\t",
+    "name": "Tab",
+    "id": "\t"
   },
   {
-    name: ",",
-    id: ",",
+    "name": ",",
+    "id": ","
   },
   {
-    name: ";",
-    id: ";",
-  },
-];
+    "name": ";",
+    "id": ";"
+  }
+]

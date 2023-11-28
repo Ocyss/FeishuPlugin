@@ -21,30 +21,31 @@
 </template>
 
 <script lang="ts" setup>
-import DevTool from "@/components/DevTool.vue";
-import { NConfigProvider, darkTheme } from "naive-ui";
-import type { GlobalTheme, GlobalThemeOverrides } from "naive-ui";
-import { ThemeModeType, Language } from "@lark-base-open/js-sdk";
-const { t } = useI18n();
-const props = defineProps<{ lang: Language; theme: ThemeModeType }>();
+import { type Language, ThemeModeType } from "@lark-base-open/js-sdk"
+import { darkTheme,GlobalTheme, GlobalThemeOverrides,NConfigProvider } from "naive-ui"
+
+import DevTool from "@/components/DevTool.vue"
+
+const { t } = useI18n()
+const props = defineProps<{ lang: Language, theme: ThemeModeType }>()
 const darkThemeOverrides: GlobalThemeOverrides = {
-  common: {
-    bodyColor: "#1a1a1a",
-  },
-};
-const lightThemeOverrides: GlobalThemeOverrides = {};
+  "common": {
+    "bodyColor": "#1a1a1a"
+  }
+}
+const lightThemeOverrides: GlobalThemeOverrides = {}
 const themes = ref<GlobalTheme | null>(
   props.theme === ThemeModeType.DARK ? darkTheme : null
-);
+)
 onMounted(() => {
-  window.$t = t;
+  window.$t = t
   const themeOff = bitable.bridge.onThemeChange((event) => {
-    themes.value = event.data.theme === ThemeModeType.DARK ? darkTheme : null;
-  });
+    themes.value = event.data.theme === ThemeModeType.DARK ? darkTheme : null
+  })
   onBeforeUnmount(() => {
-    themeOff();
-  });
-});
+    themeOff()
+  })
+})
 </script>
 
 <style>

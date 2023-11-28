@@ -1,15 +1,16 @@
-import path from "path";
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
-import AutoImport from "unplugin-auto-import/vite";
-import Components from "unplugin-vue-components/vite";
-import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
-import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
-import VueRouter from "unplugin-vue-router/vite";
-import { VueRouterAutoImports } from "unplugin-vue-router";
+import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite"
+import vue from "@vitejs/plugin-vue"
+import path from "path"
+import AutoImport from "unplugin-auto-import/vite"
+import { NaiveUiResolver } from "unplugin-vue-components/resolvers"
+import Components from "unplugin-vue-components/vite"
+import { VueRouterAutoImports } from "unplugin-vue-router"
+import VueRouter from "unplugin-vue-router/vite"
+import { defineConfig } from "vite"
 
-const pathSrc = path.resolve(__dirname, "src");
-const basePkg = ["bitable", "FieldType", ["*", "base"]];
+
+const pathSrc = path.resolve(__dirname, "src")
+const basePkg = ["bitable", "FieldType", ["*", "base"]]
 const baseType = [
   "ITableMeta",
   "IOpenCellValue",
@@ -30,17 +31,17 @@ const baseType = [
   "ICell",
   "IViewMeta",
   "IView",
-];
+]
 // https://vitejs.dev/config/
 export default defineConfig({
-  server: {
-    host: true,
+  "server": {
+    "host": true,
   },
-  plugins: [
-    VueRouter({ routesFolder: "src/views" }),
+  "plugins": [
+    VueRouter({ "routesFolder": "src/views" }),
     vue(),
     AutoImport({
-      imports: [
+      "imports": [
         "vue",
         VueRouterAutoImports,
         {
@@ -54,29 +55,29 @@ export default defineConfig({
           "vue-i18n": ["useI18n"],
         },
         {
-          from: "@lark-base-open/js-sdk",
-          imports: baseType,
-          type: true,
+          "from": "@lark-base-open/js-sdk",
+          "imports": baseType,
+          "type": true,
         },
       ],
-      eslintrc: {
-        enabled: true,
+      "eslintrc": {
+        "enabled": true,
       },
-      vueTemplate: true,
-      dts: path.resolve(pathSrc, "auto-imports.d.ts"),
+      "vueTemplate": true,
+      "dts": path.resolve(pathSrc, "auto-imports.d.ts"),
     }),
     Components({
-      resolvers: [NaiveUiResolver()],
-      dts: path.resolve(pathSrc, "components.d.ts"),
+      "resolvers": [NaiveUiResolver()],
+      "dts": path.resolve(pathSrc, "components.d.ts"),
     }),
     VueI18nPlugin({
-      include: [path.resolve(__dirname, "./src/locales/**")],
-      strictMessage: false,
+      "include": [path.resolve(__dirname, "./src/locales/**")],
+      "strictMessage": false,
     }),
   ],
-  resolve: {
-    alias: {
+  "resolve": {
+    "alias": {
       "@": pathSrc,
     },
   },
-});
+})

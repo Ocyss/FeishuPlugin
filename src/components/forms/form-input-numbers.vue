@@ -1,8 +1,10 @@
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
   <n-form-item :label="msg">
     <n-space>
       <n-input-number
         v-for="(_, key) in data"
+        :key="key"
         v-model:value="data[key]"
         style="width: 160px"
         placeholder=""
@@ -14,8 +16,8 @@
 </template>
 
 <script lang="ts" setup>
-const { t } = useI18n();
-defineProps<{ msg: string; data: Record<string, number | null | undefined> }>();
+const { t } = useI18n()
+defineProps<{ msg: string, data: Record<string, number | null | undefined> }>()
 </script>
 
 <style lang="scss" scoped></style>

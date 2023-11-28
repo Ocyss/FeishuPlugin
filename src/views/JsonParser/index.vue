@@ -30,25 +30,25 @@ meta:
 </route>
 <template>
   <Layout ref="layout">
-    <Select
+    <form-select
       :msg="t('Select Data Table')"
       v-model:value="formData.tableId"
       :options="tableMetaList"
       @update:value="getView"
     />
-    <Select
+    <form-select
       :msg="t('Select View')"
       v-model:value="formData.viewId"
       :options="viewMetaList"
       @update:value="getField"
     />
-    <Select
+    <form-select
       :msg="t('Select Input Field')"
       v-model:value="formData.input"
       :options="fieldMetaList?.filter((item) => item.type === FieldType.Text)"
       @update:value="inputUpdate"
     />
-    <Select
+    <form-select
       :msg="t('Select Output Field')"
       v-model:value="formData.fieldList"
       :options="
@@ -88,100 +88,100 @@ meta:
 </template>
 
 <script lang="ts" setup>
-import useClipboard from "vue-clipboard3";
-import { useI18n } from "vue-i18n";
-import { SelectOption } from "naive-ui";
-import { TextFieldToStr, fieldDefault } from "@/utils";
-import { Progress } from "@/utils";
-import type { Data, FieldMaps } from "@/types";
-import Layout from "@/components/layout.vue";
+import { type SelectOption } from "naive-ui"
+import useClipboard from "vue-clipboard3"
+import { useI18n } from "vue-i18n"
 
-const { t } = useI18n();
-const layout = ref<InstanceType<typeof Layout> | null>(null);
+import Layout from "@/components/layout.vue"
+import type { Data, FieldMaps } from "@/types"
+import { fieldDefault,type Progress,TextFieldToStr } from "@/utils"
 
-const { toClipboard } = useClipboard();
+const { t } = useI18n()
+const layout = ref<InstanceType<typeof Layout> | null>(null)
+
+const { toClipboard } = useClipboard()
 
 const formData = reactive<
-  Data<{
-    fieldList: string[];
-  }>
+Data<{
+  fieldList: string[]
+}>
 >({
-  tableId: "",
-  viewId: "",
-  input: "",
-  fieldList: [],
-});
+  "tableId": "",
+  "viewId": "",
+  "input": "",
+  "fieldList": []
+})
 
-const tableMetaList = ref<Array<ITableMeta>>([]);
-const viewMetaList = ref<Array<IViewMeta>>([]);
-const fieldMetaList = ref<Array<IFieldMeta>>([]);
+const tableMetaList = ref<ITableMeta[]>([])
+const viewMetaList = ref<IViewMeta[]>([])
+const fieldMetaList = ref<IFieldMeta[]>([])
 
-let fieldMap: FieldMaps = { NameToId: {}, IdToName: {}, IdToType: {} };
+let fieldMap: FieldMaps = { "NameToId": {}, "IdToName": {}, "IdToType": {} }
 
 const main = async () => {
-  layout.value?.update(true, t("Step 1 - Get the data table"));
-  layout.value?.init();
-  const tableId = formData.tableId;
+  layout.value?.update(true, t("Step 1 - Get the data table"))
+  layout.value?.init()
+  const tableId = formData.tableId
   if (tableId) {
-    const table = await bitable.base.getTableById(tableId);
-    layout.value?.update(true, t("Step 2 - Get the record list"));
-    const recordList = await table.getRecordList();
-    const promises = [];
-    const pr = layout.value?.spin(t("Record"), 0);
-    const pc = layout.value?.spin(t("Cell"), 0);
+    const table = await bitable.base.getTableById(tableId)
+    layout.value?.update(true, t("Step 2 - Get the record list"))
+    const recordList = await table.getRecordList()
+    const promises = []
+    const pr = layout.value?.spin(t("Record"), 0)
+    const pc = layout.value?.spin(t("Cell"), 0)
     if (!pr || !pc) {
-      return;
+      return
     }
     for (const record of recordList) {
-      pr?.addTotal();
-      promises.push(start(record, pr, pc));
+      pr?.addTotal()
+      promises.push(start(record, pr, pc))
     }
-    await Promise.all(promises);
-    layout.value?.finish();
+    await Promise.all(promises)
+    layout.value?.finish()
   }
-  layout.value?.update(false);
-};
+  layout.value?.update(false)
+}
 
 const start = async (record: IRecordType, pr: Progress, pc: Progress) => {
-  const inputCell = await record.getCellByField(formData.input as string);
-  const val = await inputCell.getValue();
+  const inputCell = await record.getCellByField(formData.input as string)
+  const val = await inputCell.getValue()
   if (!val) {
-    return;
+    return
   }
-  const text = TextFieldToStr(val);
+  const text = TextFieldToStr(val)
   const track = {
-    tableId: formData.tableId,
-    viewId: formData.viewId,
-    recordId: record.id,
-  };
+    "tableId": formData.tableId,
+    "viewId": formData.viewId,
+    "recordId": record.id
+  }
   try {
-    const obj = JSON.parse(text);
-    const temp = [];
+    const obj = JSON.parse(text)
+    const temp = []
     if (Array.isArray(obj)) {
       if (formData.fieldList.length === obj.length) {
         obj.forEach((value: any, index: number) => {
-          pc.addTotal();
-          temp.push(setValue(record, formData.fieldList[index], value, pc));
-        });
+          pc.addTotal()
+          temp.push(setValue(record, formData.fieldList[index], value, pc))
+        })
       } else {
-        layout.value?.error(t("Array Length Error"), track);
+        layout.value?.error(t("Array Length Error"), track)
       }
     } else if (typeof obj === "object" && obj !== null) {
       for (const key in obj) {
-        pc.addTotal();
-        const fieldId = fieldMap.NameToId[key];
-        if (formData.fieldList.some((item) => item == fieldId)) {
-          temp.push(setValue(record, fieldId, obj[key], pc));
+        pc.addTotal()
+        const fieldId = fieldMap.NameToId[key]
+        if (formData.fieldList.some((item) => item === fieldId)) {
+          temp.push(setValue(record, fieldId, obj[key], pc))
         }
       }
     }
-    await Promise.all(temp);
+    await Promise.all(temp)
   } catch (e) {
-    layout.value?.error(t("Not in JSON Format"), track);
+    layout.value?.error(t("Not in JSON Format"), track)
   } finally {
-    pr.add();
+    pr.add()
   }
-};
+}
 
 const setValue = async (
   record: IRecordType,
@@ -189,73 +189,73 @@ const setValue = async (
   value: any,
   pc: Progress
 ) => {
-  const cell = await record.getCellByField(fieldId);
+  const cell = await record.getCellByField(fieldId)
   const track = {
-    tableId: formData.tableId,
-    viewId: formData.viewId,
-    recordId: record.id,
-    fieldId,
-  };
+    "tableId": formData.tableId,
+    "viewId": formData.viewId,
+    "recordId": record.id,
+    fieldId
+  }
   if (cell.editable) {
     try {
-      const res = await cell.setValue(value);
+      const res = await cell.setValue(value)
       if (!res) {
-        layout.value?.error(t("Unknown Cell Error"), track);
+        layout.value?.error(t("Unknown Cell Error"), track)
       }
     } catch (e) {
-      layout.value?.error(t("Cell Type Error"), track);
+      layout.value?.error(t("Cell Type Error"), track)
     }
   } else {
-    layout.value?.error(t("Cell Not Editable"), track);
+    layout.value?.error(t("Cell Not Editable"), track)
   }
-  pc.add();
-};
+  pc.add()
+}
 
-function inputUpdate() {
+function inputUpdate (){
   formData.fieldList = fieldMetaList.value
     ?.map((item) => item.id)
-    .filter((item) => item !== formData.input) as string[];
+    .filter((item) => item !== formData.input)
 }
 
-function fieldUpdate() {
-  const orderMap: any = {};
+function fieldUpdate (){
+  const orderMap: any = {}
   fieldMetaList.value?.forEach((element, index) => {
-    orderMap[element.id] = index;
-  });
+    orderMap[element.id] = index
+  })
   formData.fieldList.sort((a, b) => {
-    return orderMap[a] - orderMap[b];
-  });
+    return orderMap[a] - orderMap[b]
+  })
 }
 
-async function toCopy(flag = true) {
-  const res: Record<string, any> = {};
+async function toCopy (flag = true){
+  const res: Record<string, any> = {}
   for (const field of formData.fieldList) {
-    res[fieldMap.IdToName[field]] = fieldDefault(fieldMap.IdToType[field]);
+    res[fieldMap.IdToName[field]] = fieldDefault(fieldMap.IdToType[field])
   }
   if (flag) {
-    await toClipboard(JSON.stringify(res, null, "  "));
+    await toClipboard(JSON.stringify(res, null, "  "))
   } else {
-    await toClipboard(JSON.stringify(Object.values(res), null, "  "));
+    await toClipboard(JSON.stringify(Object.values(res), null, "  "))
   }
-  alert(t("Copy Successful"));
+  alert(t("Copy Successful"))
 }
 
-async function getField(table?: ITable) {
-  const data = await layout.value!.getViewField(formData, table);
-  fieldMap = data.fieldMap;
-  fieldMetaList.value = data.fieldMetaList;
-  formData.fieldList = data.fieldMetaList.map((item) => item.id);
+async function getField (table?: ITable){
+  const data = await layout.value!.getViewField(formData, table)
+  fieldMap = data.fieldMap
+  fieldMetaList.value = data.fieldMetaList
+  formData.fieldList = data.fieldMetaList.map((item) => item.id)
 }
 
-async function getView() {
-  const data = await layout.value!.getView(formData);
-  viewMetaList.value = data.viewMetaList;
-  await getField(data.table);
+async function getView (){
+  const data = await layout.value!.getView(formData)
+  viewMetaList.value = data.viewMetaList
+  await getField(data.table)
 }
 
 onMounted(async () => {
-  const data = await layout.value!.getTable(formData);
-  tableMetaList.value = data.tableMetaList;
-  await getView();
-});
+  const data = await layout.value!.getTable(formData)
+  tableMetaList.value = data.tableMetaList
+  await getView()
+})
 </script>

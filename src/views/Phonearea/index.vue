@@ -28,23 +28,23 @@ meta:
 </route>
 <template>
   <Layout ref="layout">
-    <Select
+    <form-select
       :msg="t('Select Data Table')"
       v-model:value="formData.tableId"
       :options="tableMetaList"
       @update:value="getField"
     />
-    <Select
+    <form-select
       :msg="t('Select PhoneNumber field')"
       v-model:value="formData.input"
       :options="fieldMetaList.filter((item) => item.type == FieldType.Text)"
     />
-    <Select
+    <form-select
       :msg="t('Select output format')"
       v-model:value="formData.format"
       :options="formats"
     />
-    <Select
+    <form-select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
       :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
@@ -63,129 +63,130 @@ meta:
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
-import { useI18n } from "vue-i18n";
-import axios from "axios";
-import Layout from "@/components/layout.vue";
+import axios from "axios"
+import { computed, onMounted, ref } from "vue"
+import { useI18n } from "vue-i18n"
 
-const layout = ref<InstanceType<typeof Layout> | null>(null);
+import Layout from "@/components/layout.vue"
 
-const { t } = useI18n();
+const layout = ref<InstanceType<typeof Layout> | null>(null)
+
+const { t } = useI18n()
 
 const formData = reactive<{
-  tableId: string | null;
-  input: string | null;
-  output: string | null;
-  format: number;
+  tableId: string | null
+  input: string | null
+  output: string | null
+  format: number
 }>({
-  tableId: null,
-  input: null,
-  output: null,
-  format: 1,
-});
+  "tableId": null,
+  "input": null,
+  "output": null,
+  "format": 1
+})
 
-const tableMetaList = ref<ITableMeta[]>([]);
-const fieldMetaList = ref<IFieldMeta[]>([]);
+const tableMetaList = ref<ITableMeta[]>([])
+const fieldMetaList = ref<IFieldMeta[]>([])
 
 const formats = computed(() => [
-  { label: t("Province/City (Carrier)"), value: 1 },
-  { label: t("Province/City"), value: 2 },
-  { label: t("Province"), value: 3 },
-  { label: t("City"), value: 4 },
-  { label: t("Carrier"), value: 5 },
-  { label: t("Card Type"), value: 6 },
-]);
-async function request(phone: string, err = 0): Promise<string> {
+  { "label": t("Province/City (Carrier)"), "value": 1 },
+  { "label": t("Province/City"), "value": 2 },
+  { "label": t("Province"), "value": 3 },
+  { "label": t("City"), "value": 4 },
+  { "label": t("Carrier"), "value": 5 },
+  { "label": t("Card Type"), "value": 6 }
+])
+async function request (phone: string, err = 0): Promise<string>{
   if (err > 2) {
-    return "";
+    return ""
   }
   try {
     // 来源： https://api.aa1.cn/doc/phone-location-songzixian.html
     // ICP备2022049398号-1
     const res = await axios.get(
-      `https://api.songzixian.com/api/phone-location?dataSource=PHONE_NUMBER_LOCATION&phoneNumber=` +
+      "https://api.songzixian.com/api/phone-location?dataSource=PHONE_NUMBER_LOCATION&phoneNumber=" +
         phone
-    );
-    if (res.status != 200 || res.data.code != 200) {
-      if (res.data.code == 10001) {
-        return t("无效的手机号码");
+    )
+    if (res.status !== 200 || res.data.code !== 200) {
+      if (res.data.code === 10001) {
+        return t("无效的手机号码")
       }
-      throw new Error("status error");
+      throw new Error("status error")
     }
-    const { province, city, carrier, simType } = res.data.data;
+    const { province, city, carrier, simType } = res.data.data
     switch (formData.format) {
-      case 1:
-        return `${province}${city}(${carrier})`;
-      case 2:
-        return `${province}${city}`;
-      case 3:
-        return province;
-      case 4:
-        return city;
-      case 5:
-        return carrier;
-      case 6:
-        return simType;
+    case 1:
+      return `${province}${city}(${carrier})`
+    case 2:
+      return `${province}${city}`
+    case 3:
+      return province
+    case 4:
+      return city
+    case 5:
+      return carrier
+    case 6:
+      return simType
     }
   } catch {
-    await new Promise((resolve) => setTimeout(() => resolve(void 0), 2000));
-    return await request(phone, err + 1);
+    await new Promise((resolve) => setTimeout(() => { resolve(void 0) }, 2000))
+    return await request(phone, err + 1)
   }
-  return "";
+  return ""
 }
 
-async function start(record: IRecordType, pr: any) {
+async function start (record: IRecordType, pr: any){
   const [srcCell, dstCell] = await Promise.all([
     record.getCellByField(formData.input!),
-    record.getCellByField(formData.output!),
-  ]);
-  const dstContent = await dstCell.getValue();
+    record.getCellByField(formData.output!)
+  ])
+  const dstContent = await dstCell.getValue()
   if (dstContent) {
-    return;
+    return
   }
-  const srcval = await srcCell.getValue();
+  const srcval = await srcCell.getValue()
   if (!srcval) {
-    return;
+    return
   }
-  const phone = srcval.map((item: any) => item.text).join("");
+  const phone = srcval.map((item: any) => item.text).join("")
   const expression =
-    /^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$/;
+    /^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$/
   if (!expression.test(phone)) {
-    await dstCell.setValue(t("无效的手机号码"));
-    return;
+    await dstCell.setValue(t("无效的手机号码"))
+    return
   }
-  await dstCell.setValue(await request(phone));
-  pr.add();
+  await dstCell.setValue(await request(phone))
+  pr.add()
 }
 
-async function main() {
-  layout.value?.update(true, t("Step 1 - Getting Table"));
-  layout.value?.init();
-  const tableId = formData.tableId;
+async function main (){
+  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.init()
+  const tableId = formData.tableId
   if (tableId) {
-    const table = await bitable.base.getTableById(tableId);
-    layout.value?.update(true, t("Step 2 - Getting Records"));
-    const recordList = await table.getRecordList();
-    const pr = layout.value?.spin(t("Record"), 0)!;
-    const promises: Promise<unknown>[] = [];
+    const table = await bitable.base.getTableById(tableId)
+    layout.value?.update(true, t("Step 2 - Getting Records"))
+    const recordList = await table.getRecordList()
+    const pr = layout.value?.spin(t("Record"), 0)
+    const promises: Array<Promise<unknown>> = []
     for (const record of recordList) {
-      pr.addTotal();
-      promises.push(start(record, pr));
+      pr?.addTotal()
+      promises.push(start(record, pr))
     }
-    await Promise.all(promises);
-    layout.value?.finish();
+    await Promise.all(promises)
+    layout.value?.finish()
   }
-  layout.value?.update(false);
+  layout.value?.update(false)
 }
 
-async function getField() {
-  const data = await layout.value!.getField(formData);
-  fieldMetaList.value = data.fieldMetaList;
+async function getField (){
+  const data = await layout.value!.getField(formData)
+  fieldMetaList.value = data.fieldMetaList
 }
 
 onMounted(async () => {
-  const data = await layout.value!.getTable(formData);
-  tableMetaList.value = data.tableMetaList;
-  await getField();
-});
+  const data = await layout.value!.getTable(formData)
+  tableMetaList.value = data.tableMetaList
+  await getField()
+})
 </script>

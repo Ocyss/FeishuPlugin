@@ -38,7 +38,7 @@
       <div v-if="progress.length === 0">
         {{ message }}
       </div>
-      <div v-else v-for="item in progress">
+      <div v-else v-for="item in progress" :key="item.message">
         {{ `${item.message}: ${item.completed}/${item.total}` }}
       </div>
     </template>
@@ -61,149 +61,153 @@
 </template>
 
 <script lang="ts" setup>
-import { Progress } from "@/utils";
-import type { DataTableColumns } from "naive-ui";
-import { NTag } from "naive-ui";
-import { LogType, LogRowData, Track, Data } from "@/types";
-import { fieldMaps } from "@/utils";
-const router = useRouter();
-const { t } = useI18n();
+import { DataTableColumns,NTag } from "naive-ui"
+
+import { type Data, type LogRowData, LogType, type Track } from "@/types"
+import { fieldMaps,Progress } from "@/utils"
+
+const router = useRouter()
+const { t } = useI18n()
 const columns: DataTableColumns<LogRowData> = [
   {
-    type: "selection",
+    "type": "selection"
   },
   {
-    title: "Type",
-    key: "type",
-    render(row) {
+    "title": "Type",
+    "key": "type",
+    render (row){
       return h(
         NTag,
         {
-          type: row.type,
-          bordered: false,
+          "type": row.type,
+          "bordered": false
         },
         {
-          default: () => row.type,
+          "default": () => row.type
         }
-      );
-    },
+      )
+    }
   },
   {
-    title: "Log",
-    key: "log",
-  },
-];
+    "title": "Log",
+    "key": "log"
+  }
+]
 // 错误日志等信息，等后续UI模块完善，再实现右键选中错误的单元格，方便查找问题
-const data = ref<Array<LogRowData>>([]);
-const lock = ref(true);
-const message = ref("");
-const progress = ref<Array<Progress>>([]);
-const route = useRoute();
+const data = ref<LogRowData[]>([])
+const lock = ref(true)
+const message = ref("")
+const progress = ref<Progress[]>([])
+const route = useRoute()
 
-function _log(type: LogType, log: string, track?: Track) {
+function _log (type: LogType, log: string, track?: Track){
   data.value.push({
     type,
     log,
-    track,
-  });
+    track
+  })
 }
 
-async function getField(formData: Data, table?: ITable) {
-  formData.input = null;
-  formData.output = null;
-  update(true, t("Update field data"));
+async function getField (formData: Data, table?: ITable){
+  formData.input = null
+  formData.output = null
+  update(true, t("Update field data"))
   if (!table) {
-    table = await bitable.base.getTableById(formData.tableId!);
+    table = await bitable.base.getTableById(formData.tableId!)
   }
-  const fieldMetaList = await table.getFieldMetaList();
-  const fieldMap = fieldMaps(fieldMetaList);
-  update(false);
-  return { fieldMetaList, fieldMap, table };
+  const fieldMetaList = await table.getFieldMetaList()
+  const fieldMap = fieldMaps(fieldMetaList)
+  update(false)
+  return { fieldMetaList, fieldMap, table }
 }
 
-async function getViewField(formData: Data, table?: ITable) {
-  formData.input = null;
-  formData.output = null;
-  update(true, t("Update field data"));
+async function getViewField (formData: Data, table?: ITable){
+  formData.input = null
+  formData.output = null
+  update(true, t("Update field data"))
   if (!table) {
-    table = await bitable.base.getTableById(formData.tableId!);
+    table = await bitable.base.getTableById(formData.tableId!)
   }
-  const view = await table.getViewById(formData.viewId!);
-  const fieldMetaList = await view.getFieldMetaList();
-  const fieldMap = fieldMaps(fieldMetaList);
-  update(false);
-  return { fieldMap, fieldMetaList, view, table };
+  const view = await table.getViewById(formData.viewId!)
+  const fieldMetaList = await view.getFieldMetaList()
+  const fieldMap = fieldMaps(fieldMetaList)
+  update(false)
+  return { fieldMap, fieldMetaList, view, table }
 }
 
-async function getView(formData: Data, table?: ITable) {
-  update(true, t("Update view data"));
+async function getView (formData: Data, table?: ITable){
+  update(true, t("Update view data"))
   if (!table) {
-    table = await bitable.base.getTableById(formData.tableId!);
+    table = await bitable.base.getTableById(formData.tableId!)
   }
-  const views = await table.getViewMetaList();
-  const viewMetaList = views.filter((item) => item.type == base.ViewType.Grid);
-  formData.viewId = viewMetaList[0].id;
-  return { viewId: viewMetaList[0].id, viewMetaList, table, views };
+  const views = await table.getViewMetaList()
+  const viewMetaList = views.filter((item) => item.type === base.ViewType.Grid)
+  let viewId = undefined
+  if (viewMetaList.length>0) {
+    viewId = viewMetaList[0].id
+    formData.viewId = viewId
+  }
+  return { "viewId": viewId, viewMetaList, table, views }
 }
 
-async function getTable(formData: Data) {
-  update(true, t("initializing"));
+async function getTable (formData: Data){
+  update(true, t("initializing"))
   const [tableMetaList, selection] = await Promise.all([
     bitable.base.getTableMetaList(),
-    bitable.base.getSelection(),
-  ]);
-  formData.tableId = selection.tableId;
-  const table = await bitable.base.getTableById(formData.tableId!);
-  return { ...selection, tableMetaList, table };
+    bitable.base.getSelection()
+  ])
+  formData.tableId = selection.tableId
+  const table = await bitable.base.getTableById(formData.tableId!)
+  return { ...selection, tableMetaList, table }
 }
 
-async function getRecords(
+async function getRecords (
   table: ITable,
-  f: (val: { records: IGetRecordsResponse; pr: Progress }) => Promise<any>,
+  f: (val: { records: IGetRecordsResponse, pr: Progress }) => Promise<any>,
   pageSize = 1000
-) {
+){
   let records: IGetRecordsResponse = {
-    total: 0,
-    hasMore: true,
-    records: [],
-  };
-  const promise: any[] = [];
-  const pr = spin(t("Record"), 0)!;
+    "total": 0,
+    "hasMore": true,
+    "records": []
+  }
+  const promise: any[] = []
+  const pr = spin(t("Record"), 0)!
   while (records.hasMore) {
     records = await table.getRecords({
       pageSize,
-      pageToken: records.pageToken,
-    });
-    pr.addTotal(records.records.length);
-    promise.push(f({ records, pr }));
+      "pageToken": records.pageToken
+    })
+    pr.addTotal(records.records.length)
+    promise.push(f({ records, pr }))
   }
-  await Promise.all(promise);
+  await Promise.all(promise)
 }
 
 // 更新加载状态
 const update = (lk: boolean, text = "") => {
-  message.value = text;
-  lock.value = lk;
-};
+  message.value = text
+  lock.value = lk
+}
 
 // 清楚加载状态
 const finish = () => {
-  progress.value = [];
-  lock.value = false;
-};
+  progress.value = []
+  lock.value = false
+}
 
 // 日志初始化
 const init = () => {
-  data.value = [];
-};
+  data.value = []
+}
 
 // 新建一个加载进度
 const spin = (message: string, n: number) => {
-  lock.value = true;
-  const p = reactive(new Progress(message, n));
-  progress.value.push(p);
-  return p;
-};
+  lock.value = true
+  const p = reactive(new Progress(message, n))
+  progress.value.push(p)
+  return p
+}
 
 defineExpose({
   update,
@@ -216,16 +220,16 @@ defineExpose({
   getTable,
   getRecords,
   // 日志记录
-  send: (log: string, track?: Track) => _log(LogType.Default, log, track),
-  primary: (log: string, track?: Track) => _log(LogType.Primary, log, track),
-  info: (log: string, track?: Track) => _log(LogType.Info, log, track),
-  success: (log: string, track?: Track) => _log(LogType.Success, log, track),
-  warning: (log: string, track?: Track) => _log(LogType.Warning, log, track),
-  error: (log: string, track?: Track) => _log(LogType.Error, log, track),
-});
+  "send": (log: string, track?: Track) => { _log(LogType.Default, log, track) },
+  "primary": (log: string, track?: Track) => { _log(LogType.Primary, log, track) },
+  "info": (log: string, track?: Track) => { _log(LogType.Info, log, track) },
+  "success": (log: string, track?: Track) => { _log(LogType.Success, log, track) },
+  "warning": (log: string, track?: Track) => { _log(LogType.Warning, log, track) },
+  "error": (log: string, track?: Track) => { _log(LogType.Error, log, track) }
+})
 onMounted(() => {
-  window.$message = useMessage();
-});
+  window.$message = useMessage()
+})
 </script>
 
 <style lang="scss" scoped>

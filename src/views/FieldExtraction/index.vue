@@ -23,18 +23,18 @@ meta:
 </route>
 <template>
   <Layout ref="spin">
-    <Select
+    <form-select
       :msg="t('Select Data Table')"
       v-model:value="formData.tableId"
       :options="tableMetaList"
       @update:value="getField"
     />
-    <Select
+    <form-select
       :msg="t('Select Extraction Field')"
       v-model:value="formData.input"
       :options="fieldMetaList"
     />
-    <Select
+    <form-select
       :msg="t('Select Extraction Attribute')"
       v-model:value="formData.key"
       input
@@ -49,7 +49,7 @@ meta:
       "
       :options="fieldInfos"
     />
-    <Select
+    <form-select
       :msg="t('Select date format')"
       v-model:value="formData.dateKey"
       input
@@ -63,7 +63,7 @@ meta:
       :options="dateFormatter"
       :render-label="dateRenderLabel"
     />
-    <Select
+    <form-select
       :msg="t('Select Separator')"
       v-model:value="formData.delimiter"
       input
@@ -74,7 +74,7 @@ meta:
       "
       :options="delimiter"
     />
-    <Select
+    <form-select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
       :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
@@ -93,137 +93,137 @@ meta:
 </template>
 
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
-import { delimiterList, FieldInfos, dateFormatterList } from "@/utils";
-import type { FieldMaps } from "@/types";
-import Layout from "@/components/layout.vue";
+import format from "date-fns/format"
+import { NTime, type SelectOption } from "naive-ui"
+import { type VNodeChild } from "vue"
+import { useI18n } from "vue-i18n"
 
-import { SelectOption, NTime } from "naive-ui";
-import format from "date-fns/format";
-import { VNodeChild } from "vue";
+import Layout from "@/components/layout.vue"
+import type { FieldMaps } from "@/types"
+import { dateFormatterList,delimiterList,FieldInfos } from "@/utils"
 
-const { t } = useI18n();
-const layout = ref<InstanceType<typeof Layout> | null>(null);
+const { t } = useI18n()
+const layout = ref<InstanceType<typeof Layout> | null>(null)
 
 const formData = reactive({
-  tableId: "",
-  input: "",
-  output: "",
-  delimiter: "\n",
-  key: "",
-  dateKey: "",
-});
+  "tableId": "",
+  "input": "",
+  "output": "",
+  "delimiter": "\n",
+  "key": "",
+  "dateKey": ""
+})
 
-const tableMetaList = ref<ITableMeta[]>([]);
-const fieldMetaList = ref<IFieldMeta[]>([]);
+const tableMetaList = ref<ITableMeta[]>([])
+const fieldMetaList = ref<IFieldMeta[]>([])
 const delimiter = computed(() =>
   delimiterList.map((item) => {
-    item.name = t(item.name);
-    return item;
+    item.name = t(item.name)
+    return item
   })
-);
+)
 
 const fieldInfos = computed(() =>
   FieldInfos(fieldMap.IdToType[formData.input]).map((item) => {
-    item.name = t(item.id);
-    return item;
+    item.name = t(item.id)
+    return item
   })
-);
+)
 
 const dateFormatter = computed(() =>
   dateFormatterList.map((item) => {
-    return { name: item, id: item };
+    return { "name": item, "id": item }
   })
-);
+)
 const dateRenderLabel = (option: SelectOption): VNodeChild => [
-  h(NTime, { format: option.name as string, timeZone: "UTC" }),
-  option.label as string,
-];
+  h(NTime, { "format": option.name as string, "timeZone": "UTC" }),
+  option.label as string
+]
 
-let fieldMap: FieldMaps = { NameToId: {}, IdToName: {}, IdToType: {} };
+let fieldMap: FieldMaps = { "NameToId": {}, "IdToName": {}, "IdToType": {} }
 
-function start(records: IRecord[]): IRecord[] {
+function start (records: IRecord[]): IRecord[]{
   return records
     .map((item) => {
       // 检查字段是否存在且不为null
       if (
-        !item.fields.hasOwnProperty(formData.input) ||
-        !item.fields.hasOwnProperty(formData.output) ||
-        item.fields[formData.input] == null
+        !(formData.input in item.fields) ||
+        !(formData.output in item.fields) ||
+        item.fields[formData.input] === null
       ) {
-        return null;
+        return null
       }
 
-      const val = item.fields[formData.input];
-      let res = "";
+      const val = item.fields[formData.input]
+      let res = ""
 
       if (fieldMap.IdToType[formData.input] === FieldType.DateTime) {
-        res = format(val as number, formData.dateKey);
+        res = format(val as number, formData.dateKey)
       } else {
-        res = processValue(val);
+        res = processValue(val)
       }
 
-      item.fields[formData.output] = res;
-      return item;
+      item.fields[formData.output] = res
+      return item
     })
-    .filter((item) => item !== null) as IRecord[]; // 过滤掉未定义的项
+    .filter((item) => item !== null) as IRecord[] // 过滤掉未定义的项
 }
 
-function processValue(val: any): string {
+function processValue (val: any): string{
   if (Array.isArray(val)) {
     return val
       .map((item) => (formData.key in item ? item[formData.key] : ""))
-      .join(formData.delimiter);
+      .join(formData.delimiter)
   } else {
     return formData.key === ""
       ? String(val)
       : formData.key in val
-      ? val[formData.key]
-      : "";
+        ? val[formData.key]
+        : ""
   }
 }
 
-async function main() {
-  layout.value?.update(true, t("Step 1 - Getting Table"));
-  layout.value?.init();
-  const tableId = formData.tableId;
+async function main (){
+  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.init()
+  const tableId = formData.tableId
   if (tableId) {
-    const table = await bitable.base.getTableById(tableId);
-    layout.value?.update(true, t("Step 2 - Getting Records"));
+    const table = await bitable.base.getTableById(tableId)
+    layout.value?.update(true, t("Step 2 - Getting Records"))
     let records: IGetRecordsResponse = {
-      total: 0,
-      hasMore: true,
-      records: [],
-    };
-    const promise: any[] = [];
-    const pr = layout.value?.spin(t("Record"), 0)!;
+      "total": 0,
+      "hasMore": true,
+      "records": []
+    }
+    const promise: any[] = []
+    const pr = layout.value?.spin(t("Record"), 0)
     while (records.hasMore) {
       records = await table.getRecords({
-        pageSize: 1000,
-        pageToken: records.pageToken,
-      });
-      pr.addTotal(records.total);
+        "pageSize": 1000,
+        "pageToken": records.pageToken
+      })
+      pr?.addTotal(records.total)
       promise.push(
         table.setRecords(start(records.records)).then((res) => {
-          pr.add(res.length);
+          pr?.add(res.length)
         })
-      );
+      )
     }
-    await Promise.all(promise);
-    layout.value?.finish();
+    await Promise.all(promise)
+    layout.value?.finish()
   }
-  layout.value?.update(false);
+  layout.value?.update(false)
 }
 
-async function getField() {
-  const data = await layout.value!.getField(formData);
-  fieldMap = data.fieldMap;
-  fieldMetaList.value = data.fieldMetaList;
+async function getField (){
+  const data = await layout.value!.getField(formData)
+  fieldMap = data.fieldMap
+  fieldMetaList.value = data.fieldMetaList
 }
 
 onMounted(async () => {
-  const data = await layout.value!.getTable(formData);
-  tableMetaList.value = data.tableMetaList;
-  await getField();
-});
+  const data = await layout.value!.getTable(formData)
+  tableMetaList.value = data.tableMetaList
+  await getField()
+})
 </script>

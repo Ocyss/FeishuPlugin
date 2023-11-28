@@ -11,6 +11,7 @@ name: home
   <n-list hoverable bordered clickable style="--n-color: none">
     <n-list-item
       v-for="route in routes"
+      :key="route.name"
       @click="router.push({ name: route.name as keyof RouteNamedMap })"
     >
       <n-thing>
@@ -21,13 +22,14 @@ name: home
         </template>
         <template v-if="route.meta?.avatar" #avatar>
           <n-avatar>
-            <n-icon size="28" v-html="route.meta?.avatar" />
+            <n-icon size="28" v-html="route.meta?.avatar"/>
           </n-avatar>
         </template>
         <template #description>
           <n-space size="small" style="margin-top: 4px">
             <n-tag
               v-for="tag in route.meta?.tags"
+              :key="tag"
               :bordered="false"
               type="info"
               size="small"
@@ -43,13 +45,13 @@ name: home
 </template>
 
 <script lang="ts" setup>
-import { routes as _routes } from "vue-router/auto/routes";
-import { getRoutes } from "@/utils";
-import type { RouteNamedMap } from "vue-router/auto/routes";
-const { t } = useI18n();
-const router = useRouter();
+import { RouteNamedMap,routes as _routes } from "vue-router/auto/routes"
 
-const routes = getRoutes(_routes);
+import { getRoutes } from "@/utils"
+const { t } = useI18n()
+const router = useRouter()
+
+const routes = getRoutes(_routes)
 </script>
 
 <style lang="scss" scoped></style>

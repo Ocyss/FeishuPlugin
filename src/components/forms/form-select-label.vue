@@ -20,14 +20,14 @@
 </template>
 
 <script lang="ts" setup>
-type Props = {
-  msg: string;
-  tooltip?: string;
-};
+interface Props {
+  msg: string
+  tooltip?: string
+}
 
 const props = withDefaults(defineProps<Props>(), {
-  msg: "",
-});
+  "msg": ""
+})
 </script>
 
 <style lang="scss" scoped></style>

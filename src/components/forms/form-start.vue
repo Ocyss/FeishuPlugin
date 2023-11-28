@@ -17,7 +17,7 @@
         </n-button>
       </template>
       <n-list clickable>
-        <n-list-item v-for="item in disabled.reasons">
+        <n-list-item v-for="item in disabled.reasons" :key="item">
           {{ t(item) }}
         </n-list-item>
       </n-list>
@@ -27,27 +27,27 @@
 </template>
 
 <script lang="ts" setup>
-const { t } = useI18n();
+const { t } = useI18n()
 
-type Props = {
-  msg: string;
-  disableds: [boolean, string][];
-};
+interface Props {
+  msg: string
+  disableds: Array<[boolean, string]>
+}
 
 const props = withDefaults(defineProps<Props>(), {
-  msg: "Start",
-});
+  "msg": "Start"
+})
 
 const disabled = computed(() => {
-  const isDisabled = props.disableds.some((disabled) => disabled[0]);
+  const isDisabled = props.disableds?.some((disabled) => disabled[0])
   const reasons = props.disableds
-    .filter((disabled) => disabled[0])
-    .map((disabled) => disabled[1]);
+    ?.filter((disabled) => disabled[0])
+    ?.map((disabled) => disabled[1])
   return {
     isDisabled,
-    reasons,
-  };
-});
+    reasons
+  }
+})
 </script>
 
 <style lang="scss" scoped></style>

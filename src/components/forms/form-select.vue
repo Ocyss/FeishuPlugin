@@ -1,7 +1,7 @@
 <template>
   <n-form-item :label="props.msg" size="large">
     <template #label>
-      <labelVue :msg="msg" :tooltip="tooltip" />
+      <form-select-label :msg="msg" :tooltip="tooltip" />
     </template>
     <n-select
       :value="value"
@@ -34,56 +34,55 @@
 </template>
 
 <script lang="ts" setup>
-import labelVue from "./label.vue";
-const { t } = useI18n();
+const { t } = useI18n()
 
-type Props = {
-  msg: string;
-  value: any;
-  options?: Array<any>;
-  multiple?: boolean;
-  labelField?: string;
-  valueField?: string;
-  input?: boolean;
-  tooltip?: string;
-  clearable?: boolean;
-  disabled?: boolean;
-  renderTag?: any;
-  renderLabel?: any;
-  emptyMsg?: string;
-  emptyRefresh?: () => void;
-};
+interface Props {
+  msg: string
+  value: any
+  options?: any[]
+  multiple?: boolean
+  labelField?: string
+  valueField?: string
+  input?: boolean
+  tooltip?: string
+  clearable?: boolean
+  disabled?: boolean
+  renderTag?: any
+  renderLabel?: any
+  emptyMsg?: string
+  emptyRefresh?: () => void
+}
 
 const props = withDefaults(defineProps<Props>(), {
-  msg: "",
-  multiple: false,
-  labelField: "name",
-  valueField: "id",
-  clearable: true,
-  emptyRefresh: () => {
-    window.$message?.info(window.$t("Invalid, refresh method not defined"));
+  "msg": "",
+  "multiple": false,
+  "labelField": "name",
+  "valueField": "id",
+  "clearable": true,
+  "emptyRefresh": () => {
+    window.$message?.info(window.$t("Invalid, refresh method not defined"))
   },
-  emptyMsg: window.$t(
+  "emptyMsg": window.$t(
     "There is no data. There is a high probability that the field type has been filtered. Please check whether there are related types."
-  ),
-});
+  )
+})
 
 const emit = defineEmits<{
-  (e: "update:value", value: any, option: any): void;
-  (e: "create", label: string, f: (v: any) => void): void;
-}>();
+  (e: "update:value", value: any, option: any): void
+  (e: "create", label: string, f: (v: any) => void): void
+}>()
 
 const emitUpdate = (value: any, option: any) => {
-  emit("update:value", value, option);
-};
+  emit("update:value", value, option)
+}
 
 const emitCreate = (label: string) => {
-  let res: any;
+  let res: any
   emit("create", label, (v: any) => {
-    res = v;
-  });
-  return res;
-};
+    res = v
+  })
+  return res
+}
 </script>
 
 <style lang="scss" scoped>

@@ -1,33 +1,28 @@
-import axios from "axios";
+import axios from "axios"
 
-let request = axios.create({
-  timeout: 2000,
-});
+const request = axios.create({
+  "timeout": 2000
+})
 
 request.interceptors.request.use(
-  function (config) {
-    return config;
+  function (config){
+    return config
   },
-  function (error) {
+  function (error){
     // return Promise.reject(error);
-    return error;
+    return error
   }
-);
+)
 
 request.interceptors.response.use(
-  function (res) {
-    return res;
+  function (res){
+    return res
   },
-  function (error) {
+  function (error){
     // return Promise.reject(error);
-    return error;
+    return error
   }
-);
+)
 
-declare module "axios" {
-  interface AxiosInstance {
-    (config: AxiosRequestConfig): any;
-  }
-}
 
-export default request;
+export default request

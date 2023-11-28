@@ -29,21 +29,21 @@ meta:
 
 <template>
   <Layout ref="layout">
-    <Select
+    <form-select
       :msg="t('Select Data Table')"
       v-model:value="formData.tableId"
-      :options="tableMetaList"
-      @update:value="getField"
+      :options="data.tableMetaList"
+      @update:value="() => data.getField()"
     />
-    <Select
+    <form-select
       :msg="t('Select Source Field')"
       v-model:value="formData.input"
-      :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
+      :options="data.filterFields(FieldType.Text)"
     />
-    <Select
+    <form-select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
-      :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
+      :options="data.filterFields(FieldType.Text)"
     />
     <n-space>
       <n-button
@@ -59,76 +59,61 @@ meta:
 </template>
 
 <script setup lang="ts">
-import { Liquid } from "liquidjs";
-import Layout from "@/components/layout.vue";
-import { FieldMaps } from "@/types";
+import { Liquid } from "liquidjs"
 
-const { t } = useI18n();
-const layout = ref<InstanceType<typeof Layout> | null>(null);
-const engine = new Liquid();
-const lock = ref(true);
+import Layout from "@/components/layout.vue"
+import { Data, Progress, TextFieldToStr } from "@/utils"
+
+const { t } = useI18n()
+const layout = ref<InstanceType<typeof Layout> | null>(null)
+const engine = new Liquid()
+const data = new Data()
+
 const formData = reactive<{
-  tableId: string | null;
-  input: string | null;
-  output: string | null;
+  tableId: string | null
+  input: string | null
+  output: string | null
 }>({
-  tableId: null,
-  input: null,
-  output: null,
-});
-const tableMetaList = ref<ITableMeta[]>([]);
-const fieldMetaList = ref<IFieldMeta[]>([]);
-const spinContent = ref(t("正在初始化~~"));
-let fieldMap: FieldMaps = { NameToId: {}, IdToName: {}, IdToType: {} };
+  "tableId": null,
+  "input": null,
+  "output": null
+})
 
-function start(record: IRecordType) {
-  return new Promise(async (resolve) => {
-    const [srcCell, dstCell, cellList] = await Promise.all([
-      record.getCellByField(formData.input!),
-      record.getCellByField(formData.output!),
-      record.getCellList(),
-    ]);
-    const src = await srcCell.getValue();
-    if (src != null) {
-      const text = src.map((item: any) => item.text).join("");
-      const data: any = {};
-      for (const cell of cellList) {
-        data[fieldMap.IdToName[cell.getFieldId()]] = await cell.getValue();
+async function start (records: IRecord[],pr?:Progress){
+  return records.map(record=>{
+    pr?.add()
+    if (!formData.input || !(formData.input in record.fields)) {
+      return null
+    }
+    const text = TextFieldToStr(record.fields[formData.input] as IOpenSegment[])
+    const engineData: any = {}
+    for (const field in record.fields) {
+      const name = data.name(field)
+      if (name) {
+        engineData[name] = record.fields[field]
       }
-      const res = engine.parseAndRenderSync(text, data);
-      dstCell.setValue(res);
     }
-    resolve(void 0);
-  });
+    const res = engine.parseAndRenderSync(text, engineData)
+    record.fields[formData.output!] = res
+    return record
+  }).filter(record=>record!==null) as IRecord[]
 }
 
-async function main() {
-  lock.value = true;
-  spinContent.value = t("第一步-获取表格中");
-  const tableId = formData.tableId;
-  if (tableId) {
-    const table = await bitable.base.getTableById(tableId);
-    spinContent.value = t("第二步-获取记录中");
-    const recordList = await table.getRecordList();
-    spinContent.value = t("第三步-开始渲染，请耐心等待");
-    const promises: Promise<unknown>[] = [];
-    for (const record of recordList) {
-      promises.push(start(record));
-    }
-    await Promise.all(promises);
+async function main (){
+  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.init()
+  if (formData.tableId && formData.output && formData.input) {
+    const table = await bitable.base.getTableById(formData.tableId)
+    layout.value?.update(true, t("Step 2 - Getting Records"))
+    await layout.value?.getRecords(table,async ({records,pr})=>{
+      return table.setRecords(await start(records.records, pr)) 
+    },30)
+    layout.value?.finish()
   }
-  lock.value = false;
+  layout.value?.update(false)
 }
 
-async function getField() {
-  const data = await layout.value!.getField(formData);
-  fieldMetaList.value = data.fieldMetaList;
-  fieldMap = data.fieldMap;
-}
-
-onMounted(async () => {
-  const data = await layout.value!.getTable(formData);
-  tableMetaList.value = data.tableMetaList;
-  await getField();
-});
+onMounted(() => {
+  data.init(formData,layout.value!)
+})
 </script>

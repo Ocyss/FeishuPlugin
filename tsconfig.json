@@ -32,7 +32,9 @@
     "src/**/*.json",
     "./env.d.ts",
     "./typed-router.d.ts",
-    "./auto-imports.d.ts"
+    "./auto-imports.d.ts",
+    ".eslintrc.js",
+    "vite.config.ts"
   ],
   "exclude": ["node_modules", "build", "dist"],
   "references": [

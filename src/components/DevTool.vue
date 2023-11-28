@@ -58,23 +58,24 @@
 </template>
 
 <script lang="ts" setup>
-import { getRoutes } from "@/utils";
-import { bitable, ThemeModeType } from "@lark-base-open/js-sdk";
-import type { DropdownOption } from "naive-ui";
-import { useI18n } from "vue-i18n";
-import { routes as _routes, RouteNamedMap } from "vue-router/auto/routes";
-const { locale } = useI18n();
-const router = useRouter();
-const show = ref(false);
-const routes = [{ name: "home" }, ...getRoutes(_routes)];
+import { bitable,ThemeModeType } from "@lark-base-open/js-sdk"
+import type { DropdownOption } from "naive-ui"
+import { useI18n } from "vue-i18n"
+import { type RouteNamedMap, routes as _routes } from "vue-router/auto/routes"
+
+import { getRoutes } from "@/utils"
+const { locale } = useI18n()
+const router = useRouter()
+const show = ref(false)
+const routes = [{ "name": "home" }, ...getRoutes(_routes)]
 
 const apis: DropdownOption[] = [
   {
-    label: "alert",
-    f: () => {
-      alert("Test!");
-    },
-  },
+    "label": "alert",
+    "f": () => {
+      alert("Test!")
+    }
+  }
   //   {
   //     label: "showToast",
   //     f: () => {
@@ -84,54 +85,54 @@ const apis: DropdownOption[] = [
   //       });
   //     },
   //   },
-];
+]
 const state = reactive({
-  theme: "",
-  lang: "",
-  bridge: {
-    userId: "",
-    theme: "",
-    lang: "",
-    locale: "",
-    tenantKey: "",
-  },
-});
+  "theme": "",
+  "lang": "",
+  "bridge": {
+    "userId": "",
+    "theme": "",
+    "lang": "",
+    "locale": "",
+    "tenantKey": ""
+  }
+})
 const themes = ref<DropdownOption[]>([
-  { label: state.bridge.theme, disabled: true },
-  { label: "浅色", key: 0 },
-  { label: "深色", key: 1 },
-]);
+  { "label": state.bridge.theme, "disabled": true },
+  { "label": "浅色", "key": 0 },
+  { "label": "深色", "key": 1 }
+])
 
 const lang = ref<DropdownOption[]>([
-  { label: state.bridge.lang, disabled: true },
-  { label: state.bridge.locale, disabled: true },
-  { label: "zh" },
-  { label: "en" },
-  { label: "jp" },
-]);
+  { "label": state.bridge.lang, "disabled": true },
+  { "label": state.bridge.locale, "disabled": true },
+  { "label": "zh" },
+  { "label": "en" },
+  { "label": "jp" }
+])
 
 onMounted(() => {
   bitable.bridge.getTheme().then((theme) => {
-    state.theme = theme === ThemeModeType.LIGHT ? "浅色" : "深色";
-    state.bridge.theme = theme;
-    themes.value[0].label = theme;
-  });
+    state.theme = theme === ThemeModeType.LIGHT ? "浅色" : "深色"
+    state.bridge.theme = theme
+    themes.value[0].label = theme
+  })
   bitable.bridge.getLanguage().then((language) => {
-    state.lang = language;
-    state.bridge.lang = language;
-    lang.value[0].label = language;
-  });
+    state.lang = language
+    state.bridge.lang = language
+    lang.value[0].label = language
+  })
   bitable.bridge.getUserId().then((userId) => {
-    state.bridge.userId = userId;
-  });
+    state.bridge.userId = userId
+  })
   bitable.bridge.getLocale().then((locale) => {
-    state.bridge.locale = locale;
-    lang.value[1].label = locale;
-  });
+    state.bridge.locale = locale
+    lang.value[1].label = locale
+  })
   bitable.bridge.getTenantKey().then((tenantKey) => {
-    state.bridge.tenantKey = tenantKey;
-  });
-});
+    state.bridge.tenantKey = tenantKey
+  })
+})
 </script>
 
 <style lang="scss" scoped>

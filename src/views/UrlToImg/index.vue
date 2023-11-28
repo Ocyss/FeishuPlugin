@@ -26,18 +26,18 @@ meta:
 </route>
 <template>
   <Layout ref="layout">
-    <Select
+    <form-select
       :msg="t('Select Data Table')"
       v-model:value="formData.tableId"
       :options="tableMetaList"
-      @update:value="getField"
+      @update:value="() => data.getField()"
     />
-    <Select
+    <form-select
       :msg="t('Select Url Field')"
       v-model:value="formData.input"
       :options="fieldMetaList.filter((item) => item.type === FieldType.Url)"
     />
-    <Select
+    <form-select
       :msg="t('Select Output Field')"
       v-model:value="formData.input"
       :options="
@@ -58,100 +58,86 @@ meta:
 </template>
 
 <script setup lang="ts">
-import axios from "axios";
-import { reactive } from "vue";
-import { Progress } from "@/utils";
-import Layout from "@/components/layout.vue";
+import axios from "axios"
+import { reactive } from "vue"
 
-const layout = ref<InstanceType<typeof Layout> | null>(null);
-const { t } = useI18n();
+import Layout from "@/components/layout.vue"
+import { Data,Progress  } from "@/utils"
+
+
+
+
+const layout = ref<InstanceType<typeof Layout> | null>(null)
+const { t } = useI18n()
+const data = new Data()
 
 const formData = reactive({
-  tableId: "",
-  input: null,
-  output: null,
-  action: 0,
-  dateKey: null,
-});
-const tableMetaList = ref<ITableMeta[]>([]);
-const fieldMetaList = ref<IFieldMeta[]>([]);
+  "tableId": "",
+  "input": null,
+  "output": null,
+  "action": 0,
+  "dateKey": null
+})
+const tableMetaList = ref<ITableMeta[]>([])
+const fieldMetaList = ref<IFieldMeta[]>([])
 
-async function urlTofile(url: string, err = 0): Promise<File | undefined> {
+async function urlTofile (url: string, err = 0): Promise<File | undefined>{
   if (err > 5) {
-    return undefined;
+    return undefined
   }
   const res = await axios.get(
     `https://s0.wp.com/mshots/v1/${url}?w=1024&h=768`,
-    { responseType: "arraybuffer" }
-  );
-  if (res.headers["Content-Type"] == "image/gif") {
-    await new Promise((resolve) => setTimeout(() => resolve(void 0), 2000));
-    return await urlTofile(url, err + 1);
+    { "responseType": "arraybuffer" }
+  )
+  if (res.headers["Content-Type"] === "image/gif") {
+    await new Promise((resolve) => setTimeout(() => { resolve(undefined) }, 2000))
+    return await urlTofile(url, err + 1)
   }
   const blob = new Blob([res.data], {
-    type: res.headers["content-type"],
-  });
+    "type": res.headers["content-type"]
+  })
   const f = new File([blob], Date.now() + ".jpeg", {
-    type: res.headers["content-type"],
-  });
-  return f;
+    "type": res.headers["content-type"]
+  })
+  return f
 }
 
-async function start(records: IRecord[], pr: Progress) {
-  const dstContent = await dstCell.getValue();
-  if (dstContent) {
-    return;
-  }
-  const urls = await srcCell.getValue();
-  const expression = /^http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/;
-  const files: File[] = [];
-  for (const url of urls) {
-    if (expression.test(url.link)) {
-      const f = await urlTofile(url.link);
-      if (f) {
-        files.push(f);
+async function start (field:IAttachmentField,records: IRecord[], pr: Progress|undefined){
+  records.forEach(async record=>{
+    if (formData.input && formData.input in record.fields && record.fields[formData.input]) {
+      const urls = record.fields[formData.input] as IOpenUrlSegment[]
+      const expression = /^http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?$/
+      const files: File[] = []
+      for (const url of urls) {
+        if (expression.test(url.link)) {
+          const f = await urlTofile(url.link)
+          if (f) {
+            files.push(f)
+          }
+        }
       }
-    }
+      await field.setValue(record.recordId,files)}
+    pr?.add()
+  })
+}
+
+async function main (){
+  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.init()
+  if (formData.tableId && formData.output && formData.input) {
+    const table = await bitable.base.getTableById(formData.tableId)
+    layout.value?.update(true, t("Step 2 - Getting Records"))
+    const field = await table.getFieldById<IAttachmentField>(formData.output)
+    await layout.value?.getRecords(table,({records,pr})=>{
+      return start(field,records.records, pr)
+    },30)
+    layout.value?.finish()
   }
-  await dstCell.setValue(files);
+  layout.value?.update(false)
 }
 
-async function main() {
-  layout.value?.update(true, t("Step 1 - Getting Table"));
-  layout.value?.init();
-  const tableId = formData.tableId;
-  if (tableId) {
-    const table = await bitable.base.getTableById(tableId);
-    layout.value?.update(true, t("Step 2 - Getting Records"));
-    let records: IGetRecordsResponse = {
-      total: 0,
-      hasMore: true,
-      records: [],
-    };
-    const promise: any[] = [];
-    const pr = layout.value?.spin(t("Record"), 0)!;
-    while (records.hasMore) {
-      records = await table.getRecords({
-        pageSize: 1000,
-        pageToken: records.pageToken,
-      });
-      pr.addTotal(records.total);
-      promise.push(start(records.records, pr));
-    }
-    await Promise.all(promise);
-    layout.value?.finish();
-  }
-  layout.value?.update(false);
-}
 
-async function getField() {
-  const data = await layout.value!.getField(formData);
-  fieldMetaList.value = data.fieldMetaList;
-}
-
-onMounted(async () => {
-  const data = await layout.value!.getTable(formData);
-  tableMetaList.value = data.tableMetaList;
-  await getField();
-});
+onMounted(() => {
+  data.init(formData,layout.value!)
+})
 </script>

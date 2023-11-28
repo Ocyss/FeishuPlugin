@@ -10,7 +10,7 @@ meta:
     communication.
   help: ""
   group: >-
-    https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=04bj6841-6a19-4a65-9daa-195ed2150ed8
+    https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=8a5r8ede-3933-462c-b1e0-185fd598ddad
   tags:
     - Audit
   avatar: >-
@@ -28,7 +28,7 @@ meta:
   <Layout ref="layout">
     <n-tabs type="segment">
       <n-tab-pane name="chap1" tab="发音" display-directive="show">
-        <Select
+        <form-select
           :msg="t('Select Voice')"
           v-model:value="formData.voiceUrl"
           :options="voice"
@@ -81,133 +81,134 @@ meta:
       </n-tab-pane>
       <n-tab-pane name="chap3" tab="转换" display-directive="show">
         <n-blockquote>英语转国际音标</n-blockquote>
-        <Select
+        <form-select
           :msg="t('Select Data Table')"
           v-model:value="formData.tableId"
           :options="data.tableMetaList"
           @update:value="() => data.getField()"
         />
-        <Select
+        <form-select
           :msg="t('Select Input Field')"
           v-model:value="formData.input"
           :options="data.filterFields(FieldType.Text)"
         />
-        <Select
+        <form-select
           :msg="t('Select Output Field')"
           v-model:value="formData.output"
           :options="data.filterFields(FieldType.Text)"
         />
-        <Start @update:click="main" :disableds="disableds" />
+        <form-start @update:click="main" :disableds="disableds" />
       </n-tab-pane>
     </n-tabs>
   </Layout>
 </template>
 
 <script setup lang="ts">
-import Layout from "@/components/layout.vue";
-import { Data, TextFieldToStr } from "@/utils";
-import request from "@/utils/request";
-import EasySpeech from "easy-speech";
+import EasySpeech from "easy-speech"
 
-const { t } = useI18n();
+import Layout from "@/components/layout.vue"
+import { Data, TextFieldToStr } from "@/utils"
+import request from "@/utils/request"
 
-const data = reactive(new Data());
-const voice = ref<SpeechSynthesisVoice[]>([]);
-const layout = ref<InstanceType<typeof Layout>>();
-const word = ref("");
+const { t } = useI18n()
+
+const data = reactive(new Data())
+const voice = ref<SpeechSynthesisVoice[]>([])
+const layout = ref<InstanceType<typeof Layout>>()
+const word = ref("")
 const formData = reactive({
-  tableId: "",
-  viewId: "",
-  input: null,
-  output: null,
-  voiceUrl: "",
-  pitch: 1,
-  rate: 1,
-  volume: 100,
-});
+  "tableId": "",
+  "viewId": "",
+  "input": null,
+  "output": null,
+  "voiceUrl": "",
+  "pitch": 1,
+  "rate": 1,
+  "volume": 100
+})
 
-const disableds = computed<[boolean, string][]>(() => [
+const disableds = computed<Array<[boolean, string]>>(() => [
   [!formData.input, "输入不能为空"],
   [!formData.output, "输出不能为空"],
-  [!!formData.input && formData.output === formData.input, "输入输出不能相同"],
-]);
+  [!!formData.input && formData.output === formData.input, "输入输出不能相同"]
+])
 
 const iframeOptions = [
   {
-    label: "国际音标",
-    value:
-      "https://www.xdf.cn/zhuanti/bd-phonetic-alphabet-card/index.html?src=baidu",
+    "label": "国际音标",
+    "value":
+      "https://www.xdf.cn/zhuanti/bd-phonetic-alphabet-card/index.html?src=baidu"
   },
   {
-    label: "英汉词典",
-    value: "https://www.wordreference.com/enzh/",
+    "label": "英汉词典",
+    "value": "https://www.wordreference.com/enzh/"
   },
   {
-    label: "有道词典",
-    value: "https://dict.youdao.com/m/result?lang=en&word=",
-  },
-];
-const iframeRef = ref(iframeOptions[0].value);
-async function start(records: IRecord[]) {
+    "label": "有道词典",
+    "value": "https://dict.youdao.com/m/result?lang=en&word="
+  }
+]
+const iframeRef = ref(iframeOptions[0].value)
+async function start (records: IRecord[]){
   const text = records.map((item) => {
-    return TextFieldToStr(item.fields[formData.input!] as IOpenSegment[]);
-  });
+    return TextFieldToStr(item.fields[formData.input!] as IOpenSegment[])
+  })
   const res = await request.post(
     "https://phoneticsmate.ocyss.repl.co/transcript/ipa",
     text,
     {
-      timeout: 20000,
+      "timeout": 20000
     }
-  );
-  if (res.data.code == 0) {
-    return [];
+  )
+  if (res.data.code=== 0) {
+    return []
   }
-  const dict = res.data.data;
+  const dict = res.data.data
   return records
     .map((item) => {
       const text = TextFieldToStr(
         item.fields[formData.input!] as IOpenSegment[]
-      );
-      item.fields[formData.output!] = dict[text];
-      return item;
+      )
+      item.fields[formData.output!] = dict[text]
+      return item
     })
-    .filter((item) => item !== null);
+    .filter((item) => item !== null)
 }
 
-async function main() {
-  layout.value?.update(true, t("Step 1 - Getting Table"));
-  const tableId = formData.tableId;
+async function main (){
+  layout.value?.update(true, t("Step 1 - Getting Table"))
+  const tableId = formData.tableId
   if (tableId && formData.input) {
-    layout.value?.init();
-    const table = await bitable.base.getTableById(tableId);
-    layout.value?.update(true, t("Step 2 - Getting Records"));
+    layout.value?.init()
+    const table = await bitable.base.getTableById(tableId)
+    layout.value?.update(true, t("Step 2 - Getting Records"))
     await layout.value?.getRecords(
       table,
       async ({ records }) => {
-        return table.setRecords(await start(records.records));
+        return await table.setRecords(await start(records.records))
       },
       20
-    );
-    layout.value?.finish();
+    )
+    layout.value?.finish()
   }
-  layout.value?.update(false);
+  layout.value?.update(false)
 }
 
 onMounted(async () => {
-  await data.init(formData, layout.value!);
-  EasySpeech.detect();
-  let table: ITable;
-  await EasySpeech.init({ maxTimeout: 5000, interval: 250, quiet: true })
-    .then(() => console.debug("load complete"))
-    .catch((e) => console.error(e));
-  voice.value = EasySpeech.voices().filter((item) => item.lang === "en-US");
-  formData.voiceUrl = voice.value[0].voiceURI;
+  await data.init(formData, layout.value!)
+  EasySpeech.detect()
+  let table: ITable
+  await EasySpeech.init({ "maxTimeout": 5000, "interval": 250, "quiet": true })
+    .then(() => { console.debug("load complete") })
+    .catch((e) => { console.error(e) })
+  voice.value = EasySpeech.voices().filter((item) => item.lang === "en-US")
+  formData.voiceUrl = voice.value[0].voiceURI
   const off = bitable.base.onSelectionChange(async ({ data }) => {
     if (data.tableId && data.fieldId && data.recordId) {
-      if (!table || table.id != data.tableId) {
-        table = await bitable.base.getTableById(data.tableId);
+      if (!table || table.id !== data.tableId) {
+        table = await bitable.base.getTableById(data.tableId)
       }
-      const cellValue = await table.getCellValue(data.fieldId, data.recordId);
+      const cellValue = await table.getCellValue(data.fieldId, data.recordId)
       if (
         Array.isArray(cellValue) &&
         cellValue[0] &&
@@ -216,24 +217,24 @@ onMounted(async () => {
         cellValue[0].type === "text" &&
         "text" in cellValue[0]
       ) {
-        word.value = cellValue[0].text;
-        EasySpeech.cancel();
+        word.value = cellValue[0].text
+        EasySpeech.cancel()
         await EasySpeech.speak({
-          text: word.value,
-          voice: voice.value.find((item) => item.voiceURI == formData.voiceUrl),
-          pitch: formData.pitch,
-          rate: formData.rate,
-          volume: formData.volume / 100,
-        });
+          "text": word.value,
+          "voice": voice.value.find((item) => item.voiceURI === formData.voiceUrl),
+          "pitch": formData.pitch,
+          "rate": formData.rate,
+          "volume": formData.volume / 100
+        })
       } else {
-        word.value = "";
+        word.value = ""
       }
     }
-  });
+  })
   onBeforeUnmount(() => {
-    off();
-  });
-});
+    off()
+  })
+})
 </script>
 
 <i18n locale="zh" lang="json">

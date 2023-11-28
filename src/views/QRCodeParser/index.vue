@@ -26,20 +26,20 @@ meta:
 </route>
 <template>
   <Layout ref="layout">
-    <Select
+    <form-select
       :msg="t('Select Data Table')"
       v-model:value="formData.tableId"
       :options="tableMetaList"
       @update:value="getField"
     />
-    <Select
+    <form-select
       :msg="t('Select QR Code / Barcode Attachment Field')"
       v-model:value="formData.input"
       :options="
         fieldMetaList.filter((item) => item.type === FieldType.Attachment)
       "
     />
-    <Select
+    <form-select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
       :options="fieldMetaList.filter((item) => item.type === FieldType.Text)"
@@ -58,83 +58,84 @@ meta:
 </template>
 
 <script setup lang="ts">
-import { BrowserMultiFormatReader } from "@zxing/library";
-import Layout from "@/components/layout.vue";
+import { BrowserMultiFormatReader } from "@zxing/library"
 
-const { t } = useI18n();
-const layout = ref<InstanceType<typeof Layout> | null>(null);
-const lock = ref(true);
+import Layout from "@/components/layout.vue"
+
+const { t } = useI18n()
+const layout = ref<InstanceType<typeof Layout> | null>(null)
+const lock = ref(true)
 const formData = reactive<{
-  tableId: string | null;
-  input: string | null;
-  output: string | null;
+  tableId: string | null
+  input: string | null
+  output: string | null
 }>({
-  tableId: null,
-  input: null,
-  output: null,
-});
-const tableMetaList = ref<ITableMeta[]>([]);
-const fieldMetaList = ref<IFieldMeta[]>([]);
+  "tableId": null,
+  "input": null,
+  "output": null
+})
+const tableMetaList = ref<ITableMeta[]>([])
+const fieldMetaList = ref<IFieldMeta[]>([])
 
-const spinContent = ref(t("正在初始化~~"));
+const spinContent = ref(t("正在初始化~~"))
 
-async function decode(srcCell: string[], dstCell: ICell, err = 0) {
+async function decode (srcCell: string[], dstCell: ICell, err = 0){
   if (err > 8) {
-    return;
+    return
   }
   try {
-    let content = "";
+    let content = ""
     for (const item of srcCell) {
-      const img = new Image();
-      img.crossOrigin = "";
-      img.src = item;
-      const reader = new BrowserMultiFormatReader();
-      const res = await reader.decodeFromImage(img);
-      content += res.getText() + "\n";
+      const img = new Image()
+      img.crossOrigin = ""
+      img.src = item
+      const reader = new BrowserMultiFormatReader()
+      const res = await reader.decodeFromImage(img)
+      content += res.getText() + "\n"
     }
-    content = content.slice(0, -1);
-    await dstCell.setValue(content);
+    content = content.slice(0, -1)
+    await dstCell.setValue(content)
   } catch {
-    await decode(srcCell, dstCell, err + 1);
+    await decode(srcCell, dstCell, err + 1)
   }
 }
 
-async function start(table: ITable, record: IRecordType) {
+async function start (table: ITable, record: IRecordType){
   const [srcCell, dstCell] = await Promise.all([
     (
       await table.getField<IAttachmentField>(formData.input!)
     ).getAttachmentUrls(record),
-    record.getCellByField(formData.output!),
-  ]);
-  await decode(srcCell, dstCell);
+    record.getCellByField(formData.output!)
+  ])
+  await decode(srcCell, dstCell)
 }
 
-async function main() {
-  lock.value = true;
-  spinContent.value = t("第一步-获取表格中");
-  const tableId = formData.tableId;
+async function main (){
+  lock.value = true
+  spinContent.value = t("第一步-获取表格中")
+  const tableId = formData.tableId
   if (tableId) {
-    const table = await bitable.base.getTableById(tableId);
-    spinContent.value = t("第二步-获取记录中");
-    const recordList = await table.getRecordList();
-    spinContent.value = t("第三步-Start，请耐心等待");
-    const promises: Promise<unknown>[] = [];
+    const table = await bitable.base.getTableById(tableId)
+    spinContent.value = t("第二步-获取记录中")
+    const recordList = await table.getRecordList()
+    spinContent.value = t("第三步-Start，请耐心等待")
+    const promises: Array<Promise<unknown>> = []
     for (const record of recordList) {
-      promises.push(start(table, record));
+      promises.push(start(table, record))
     }
-    await Promise.all(promises);
+    await Promise.all(promises)
   }
-  lock.value = false;
+  lock.value = false
 }
 
-async function getField() {
-  const data = await layout.value!.getField(formData);
-  fieldMetaList.value = data.fieldMetaList;
+async function getField (){
+  const data = await layout.value!.getField(formData)
+  fieldMetaList.value = data.fieldMetaList
 }
 
 onMounted(async () => {
-  const data = await layout.value!.getTable(formData);
-  tableMetaList.value = data.tableMetaList;
-  await getField();
-});
+  const data = await layout.value!.getTable(formData)
+  tableMetaList.value = data.tableMetaList
+  await getField()
+})
 </script>

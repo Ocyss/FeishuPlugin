@@ -31,18 +31,18 @@ meta:
 </route>
 <template>
   <Layout ref="layout">
-    <Select
+    <form-select
       :msg="t('Select Data Table')"
       v-model:value="formData.tableId"
       :options="tableMetaList"
       @update:value="getField"
     />
-    <Select
+    <form-select
       :msg="t('Select ID field')"
       v-model:value="formData.input"
       :options="fieldMetaList.filter((item) => item.type == FieldType.Text)"
     />
-    <Select
+    <form-select
       :msg="t('Select Output Field')"
       v-model:value="formData.output"
       :options="
@@ -51,7 +51,7 @@ meta:
         )
       "
     />
-    <Select
+    <form-select
       :msg="t('Select output format')"
       v-model:value="formData.format"
       :options="outputFormat"
@@ -60,7 +60,7 @@ meta:
         formData.output && fieldMap.IdToType[formData.output] == FieldType.Text
       "
     />
-    <Select
+    <form-select
       :msg="t('Select output format')"
       :value="t('age')"
       disabled
@@ -83,14 +83,15 @@ meta:
 </template>
 
 <script setup lang="ts">
-import idcard from "@fekit/idcard";
-import Layout from "@/components/layout.vue";
-import { TextFieldToStr } from "@/utils";
-import { FieldMaps, Data } from "@/types";
+import idcard from "@fekit/idcard"
 
-const { t } = useI18n();
+import Layout from "@/components/layout.vue"
+import type {  Data,  FieldMaps } from "@/types"
+import { TextFieldToStr } from "@/utils"
 
-const layout = ref<InstanceType<typeof Layout> | null>(null);
+const { t } = useI18n()
+
+const layout = ref<InstanceType<typeof Layout> | null>(null)
 
 const InfoFields = [
   "gender", // 性别
@@ -101,110 +102,110 @@ const InfoFields = [
   "city", // 市
   "area", // 区县
   "zodiac", // 生肖
-  "constellation", // 星座
-] as const;
+  "constellation" // 星座
+] as const
 
-type InfoField = (typeof InfoFields)[number];
-type FormData = Data<{ format?: InfoField[] }>;
+type InfoField = (typeof InfoFields)[number]
+type FormData = Data<{ format?: InfoField[] }>
 const formData = reactive<FormData>({
-  tableId: void 0,
-  input: void 0,
-  output: void 0,
-  format: void 0,
-});
+  "tableId": void 0,
+  "input": void 0,
+  "output": void 0,
+  "format": void 0
+})
 
 const outputFormat = InfoFields.map((item) => {
-  return { name: t(item), id: item };
-});
+  return { "name": t(item), "id": item }
+})
 
-const tableMetaList = ref<ITableMeta[]>([]);
-const fieldMetaList = ref<IFieldMeta[]>([]);
-let fieldMap: FieldMaps = { NameToId: {}, IdToName: {}, IdToType: {} };
+const tableMetaList = ref<ITableMeta[]>([])
+const fieldMetaList = ref<IFieldMeta[]>([])
+let fieldMap: FieldMaps = { "NameToId": {}, "IdToName": {}, "IdToType": {} }
 
-function main(recordId: string, val: IOpenCellValue): string | number | null {
-  const text = TextFieldToStr(val as IOpenSegment[]);
-  const info = idcard(text);
+function main (recordId: string, val: IOpenCellValue): string | number | null{
+  const text = TextFieldToStr(val as IOpenSegment[])
+  const info = idcard(text)
   if (!info) {
     layout.value?.error(t("ID card format error"), {
-      tableId: formData.tableId!,
-      fieldId: formData.input!,
-      recordId,
-    });
-    return null;
+      "tableId": formData.tableId!,
+      "fieldId": formData.input!,
+      recordId
+    })
+    return null
   }
   const getValueByField = (item: InfoField) => {
-    const textFields = ["province", "area", "city"];
+    const textFields = ["province", "area", "city"]
     if (textFields.includes(item)) {
-      return typeof info[item] === "string" ? info[item] : info[item].text;
+      return typeof info[item] === "string" ? info[item] : info[item].text
     }
-    return info[item];
-  };
+    return info[item]
+  }
 
-  let res =
+  const res =
     fieldMap.IdToType[formData.output!] === FieldType.Text
       ? formData.format!.map((item) => getValueByField(item)).join(" ")
-      : info.age;
-  return res;
+      : info.age
+  return res
 }
 
-async function start() {
-  layout.value?.update(true, t("Step 1 - Getting Table"));
-  layout.value?.init();
-  const tableId = formData.tableId;
+async function start (){
+  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.init()
+  const tableId = formData.tableId
   if (tableId) {
-    const table = await bitable.base.getTableById(tableId);
-    layout.value?.update(true, t("Step 2 - Getting Records"));
+    const table = await bitable.base.getTableById(tableId)
+    layout.value?.update(true, t("Step 2 - Getting Records"))
     let records: IGetRecordsResponse = {
-      total: 0,
-      hasMore: true,
-      records: [],
-    };
-    const promise: any[] = [];
-    const pr = layout.value?.spin(t("Record"), 0)!;
+      "total": 0,
+      "hasMore": true,
+      "records": []
+    }
+    const promise: any[] = []
+    const pr = layout.value?.spin(t("Record"), 0)
     while (records.hasMore) {
       records = await table.getRecords({
-        pageSize: 1000,
-        pageToken: records.pageToken,
-      });
-      pr.addTotal(records.records.length);
+        "pageSize": 1000,
+        "pageToken": records.pageToken
+      })
+      pr?.addTotal(records.records.length)
       const newVals = records.records
         .map((item) => {
           // 检查字段是否存在且不为null
           if (
             !formData.input ||
             !formData.output ||
-            !item.fields.hasOwnProperty(formData.input) ||
-            !item.fields.hasOwnProperty(formData.output) ||
-            item.fields[formData.input] == null
+             !(formData.input in item.fields) ||
+            !(formData.output in item.fields) ||
+            item.fields[formData.input] === null
           ) {
-            return null;
+            return null
           }
-          const val = item.fields[formData.input];
-          item.fields[formData.output] = main(item.recordId, val);
-          return item;
+          const val = item.fields[formData.input]
+          item.fields[formData.output] = main(item.recordId, val)
+          return item
         })
-        .filter((item) => item !== null) as IRecord[]; // 过滤掉未定义的项
+        .filter((item) => item !== null) as IRecord[] // 过滤掉未定义的项
       promise.push(
         table.setRecords(newVals).then((res) => {
-          pr.add(res.length);
+          pr?.add(res.length)
         })
-      );
+      )
     }
-    await Promise.all(promise);
-    layout.value?.finish();
+    await Promise.all(promise)
+    layout.value?.finish()
   }
-  layout.value?.update(false);
+  layout.value?.update(false)
 }
 
-async function getField() {
-  const data = await layout.value!.getField(formData);
-  fieldMap = data.fieldMap;
-  fieldMetaList.value = data.fieldMetaList;
+async function getField (){
+  const data = await layout.value!.getField(formData)
+  fieldMap = data.fieldMap
+  fieldMetaList.value = data.fieldMetaList
 }
 
 onMounted(async () => {
-  const data = await layout.value!.getTable(formData);
-  tableMetaList.value = data.tableMetaList;
-  await getField();
-});
+  const data = await layout.value!.getTable(formData)
+  tableMetaList.value = data.tableMetaList
+  await getField()
+})
 </script>
