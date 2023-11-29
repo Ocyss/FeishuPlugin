@@ -25,7 +25,7 @@ meta:
       :msg="t('Select Output Field')"
       v-model:value="store.output"
       :options="store.filterFields(FieldType.Text)" />
-    <form-start @update:click="main" :disableds="[]" />
+    <form-start @update:click="main" :disableds="disableds" />
   </Layout>
 </template>
 
@@ -37,6 +37,11 @@ import {Progress} from "@/utils"
 const {t} = useI18n()
 const layout = ref<InstanceType<typeof Layout> | null>(null)
 
+const disableds = computed<Array<[boolean, string]>>(() => [
+  [!store.input, t("Input can not be empty")],
+  [!store.output, t("Output can not be empty")]
+])
+
 async function start(records: IRecord[], pr?: Progress) {
   return records
     .map(record => {
@@ -47,7 +52,7 @@ async function start(records: IRecord[], pr?: Progress) {
     .filter(record => record !== null) as IRecord[]
 }
 
-async function main() {
+async function main(all?: boolean) {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
   if (store.check()) {
@@ -58,11 +63,11 @@ async function main() {
       async ({records, pr}) => {
         return table.setRecords(await start(records.records, pr))
       },
+      all,
       1000 // 每次处理多少条记录 max:5000
     )
-    layout.value?.finish()
   }
-  layout.value?.update(false)
+  layout.value?.finish()
 }
 
 onMounted(() => {

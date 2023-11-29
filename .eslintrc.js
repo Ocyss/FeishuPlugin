@@ -13,7 +13,7 @@ module.exports = {
     "prettier"
   ],
   "parser": "vue-eslint-parser",
-  "ignorePatterns": ["build/", "dist/", "*.md", "*.py", "*.json"],
+  "ignorePatterns": ["build/", "dist/", "*.md", "*.py", "*.json", "index.html"],
   "parserOptions": {
     "ecmaVersion": "latest",
     "parser": "@typescript-eslint/parser",
@@ -30,8 +30,6 @@ module.exports = {
     "no-self-compare": "error",
     "array-callback-return": ["error", {"checkForEach": true, "allowImplicit": true}],
     "quote-props": ["error", "always"],
-    "lines-around-comment": ["error", {"beforeBlockComment": true}],
-    "quotes": ["error", "double"],
     "no-new-native-nonconstructor": "error",
     "no-unmodified-loop-condition": "error",
     "no-unreachable-loop": "error",

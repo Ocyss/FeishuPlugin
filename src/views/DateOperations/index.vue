@@ -15,7 +15,6 @@ meta:
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=04bj6841-6a19-4a65-9daa-195ed2150ed8
   tags:
     - Audit
-    - 重构中，不可用
   avatar: >-
     <svg xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M19
@@ -46,7 +45,7 @@ meta:
       v-model:value="store.input"
       :options="
         store.filterFields(formData.action, {
-          [FieldType.DateTime]: [0, 1, 3],
+          [FieldType.DateTime]: [0, 1, 3, 4],
           [FieldType.Text]: [2]
         })
       " />
@@ -63,20 +62,29 @@ meta:
       v-if="formData.action == 0"
       :options="dateFormatter"
       :render-label="dateRenderLabel" />
-    <InputNumbers
+    <form-input-number
       v-else-if="formData.action == 1"
       :msg="t('Time addition and subtraction operations')"
       :data="dateAdd" />
-    <InputNumbers
+    <form-input-number
       v-else-if="formData.action == 3"
       :msg="t('Time setting operation')"
       :data="dateSet" />
+    <n-form-item v-else-if="formData.action == 4" :label="t('Time random operation')">
+      <n-space item-style="display: flex;" align="center">
+        <n-checkbox
+          v-for="(_, key) in dateRand"
+          :key="key"
+          :label="t(key)"
+          v-model:checked="dateRand[key]" />
+      </n-space>
+    </n-form-item>
     <form-select
       :msg="t('Select Output Field')"
       v-model:value="store.output"
       :options="
         store.filterFields(formData.action, {
-          [FieldType.DateTime]: [1, 2, 3],
+          [FieldType.DateTime]: [1, 2, 3, 4],
           [FieldType.Text]: [0]
         })
       "
@@ -91,12 +99,12 @@ import format from "date-fns/format"
 import parse from "date-fns/parse"
 import set from "date-fns/set"
 import {NTime, type SelectOption} from "naive-ui"
+import {generateNumber} from "random-ease"
 import {type VNodeChild} from "vue"
 
 import Layout from "@/components/layout.vue"
 import {store} from "@/store.js"
-import {dateFormatterList, Progress, TextFieldToStr} from "@/utils"
-
+import {dateFormatterList, TextFieldToStr} from "@/utils"
 const {t} = useI18n()
 
 const layout = ref<InstanceType<typeof Layout>>()
@@ -110,7 +118,8 @@ const radios = [
   {"label": "format", "value": 0},
   {"label": "add-subtract", "value": 1},
   {"label": "text to time", "value": 2},
-  {"label": "settings", "value": 3}
+  {"label": "settings", "value": 3},
+  {"label": "random", "value": 4}
 ]
 const dateAdd = reactive({
   "years": 0,
@@ -134,8 +143,23 @@ const dateSet = reactive<{
   hours?: number
   minutes?: number
   seconds?: number
-  milliseconds?: number
-}>({})
+}>({
+  "year": undefined,
+  "month": undefined,
+  "date": undefined,
+  "hours": undefined,
+  "minutes": undefined,
+  "seconds": undefined
+})
+
+const dateRand = reactive({
+  "year": false,
+  "month": false,
+  "date": false,
+  "hours": false,
+  "minutes": false,
+  "seconds": false
+})
 
 const dateFormatter = computed(() =>
   dateFormatterList.map(item => {
@@ -148,10 +172,19 @@ const dateRenderLabel = (option: SelectOption): VNodeChild => [
   option.label as string
 ]
 
-function start(records: IRecord[], pr: Progress): IRecord[] {
+function start(records: IRecord[]): IRecord[] {
+  const rand = () => {
+    return {
+      "year": dateRand.year ? generateNumber(1971, 2030) : undefined,
+      "month": dateRand.month ? generateNumber(0, 11) : undefined,
+      "date": dateRand.date ? generateNumber(1, 28) : undefined,
+      "hours": dateRand.hours ? generateNumber(0, 23) : undefined,
+      "minutes": dateRand.minutes ? generateNumber(0, 59) : undefined,
+      "seconds": dateRand.seconds ? generateNumber(0, 59) : undefined
+    }
+  }
   return records
     .map(item => {
-      pr.add()
       if (
         store.check() &&
         store.input in item.fields &&
@@ -169,15 +202,25 @@ function start(records: IRecord[], pr: Progress): IRecord[] {
             break
           case 2:
             for (const f of dateFormatterList) {
-              res = parse(TextFieldToStr(val as IOpenSegment[]), f, 0).getTime()
-              if (!isNaN(res)) break
+              try {
+                res = parse(TextFieldToStr(val as IOpenSegment[]), f, 0).getTime()
+                if (!isNaN(res)) break
+              } catch (err) {
+                /* empty */
+              }
             }
             if (typeof res !== "number" || isNaN(res)) {
               return null
             }
             break
           case 3:
-            res = set(val as number, dateSet).getTime()
+            res = set(val as number, {
+              ...dateSet,
+              "month": dateSet.month !== undefined ? dateSet.month - 1 : undefined
+            }).getTime()
+            break
+          case 4:
+            res = set(val as number, rand()).getTime()
             break
         }
         item.fields[store.output] = res
@@ -188,15 +231,21 @@ function start(records: IRecord[], pr: Progress): IRecord[] {
     .filter(item => item !== null) as IRecord[]
 }
 
-async function main() {
+async function main(all?: boolean) {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
   if (store.check()) {
     const table = await bitable.base.getTableById(store.tableId)
     layout.value?.update(true, t("Step 2 - Getting Records"))
-    await layout.value?.getRecords(table, ({records, pr}) => {
-      return table.setRecords(start(records.records, pr))
-    })
+    await layout.value?.getRecords(
+      table,
+      ({records, pr}) => {
+        pr.add(records.records.length)
+        return table.setRecords(start(records.records))
+      },
+      all,
+      5000
+    )
   }
   layout.value?.finish()
 }

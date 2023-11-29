@@ -26,7 +26,7 @@
       <n-blockquote align-text v-html="t(route.meta.help as string)"></n-blockquote>
     </n-collapse-item>
   </n-collapse>
-  <n-spin :show="lock">
+  <n-spin :show="lock" class="spin">
     <template #description>
       <div v-if="progress.length === 0">
         {{ message }}
@@ -35,7 +35,17 @@
         {{ `${item.message}: ${item.completed}/${item.total}` }}
       </div>
     </template>
-    <n-form ref="form" class="form" labn-placement="top" style="margin-top: 30px">
+    <template #icon>
+      <!-- https://uiverse.io/Galahhad/cold-yak-10 -->
+      <div class="ui-abstergo">
+        <div class="abstergo-loader">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+    </template>
+    <n-form class="form" labn-placement="top" style="margin-top: 30px">
       <slot></slot>
     </n-form>
   </n-spin>
@@ -48,6 +58,7 @@
 </template>
 
 <script lang="ts" setup>
+import {ViewType} from "@lark-base-open/js-sdk"
 import {DataTableColumns, NTag} from "naive-ui"
 
 import {LogRowData, LogType, Track} from "@/types"
@@ -145,22 +156,51 @@ async function getTable() {
 async function getRecords(
   table: ITable,
   f: (val: {records: IGetRecordsResponse; pr: Progress}) => Promise<any>,
-  pageSize = 1000
+  all = false,
+  pageSize = 1000,
+  viewId = ""
 ) {
   let records: IGetRecordsResponse = {
     "total": 0,
     "hasMore": true,
     "records": []
   }
-  const promise: any[] = []
-  const pr = spin(t("Record"), 0)!
-  while (records.hasMore) {
-    records = await table.getRecords({
-      pageSize,
-      "pageToken": records.pageToken
+  let promise: any[] = []
+  const pr = spin(t("Record"), 0)
+  if (all) {
+    while (records.hasMore) {
+      records = await table.getRecords({
+        pageSize,
+        "pageToken": records.pageToken
+      })
+      if (pr.total === 0) {
+        pr.addTotal(records.total)
+      }
+      promise.push(f({records, pr}))
+    }
+  } else {
+    if (!viewId) {
+      const selection = await bitable.base.getSelection()
+      if (selection.viewId && selection.tableId === table.id) {
+        viewId = selection.viewId
+      } else {
+        const views = (await table.getViewMetaList()).filter(item => item.type === ViewType.Grid)
+        viewId = views[0].id
+      }
+    }
+    const recordIdList = await bitable.ui.selectRecordIdList(table.id, viewId)
+    pr.addTotal(recordIdList.length)
+    promise = recordIdList.map(async item => {
+      const record = await table.getRecordById(item)
+      return f({
+        "records": {
+          "total": 0,
+          "hasMore": false,
+          "records": [{"recordId": item, "fields": record.fields}]
+        },
+        pr
+      })
     })
-    pr.addTotal(records.records.length)
-    promise.push(f({records, pr}))
   }
   await Promise.all(promise)
 }
@@ -183,7 +223,7 @@ const init = () => {
 }
 
 // 新建一个加载进度
-const spin = (message: string, n: number) => {
+const spin = (message: string, n = 0) => {
   lock.value = true
   const p = reactive(new Progress(message, n))
   progress.value.push(p)
@@ -231,6 +271,100 @@ onMounted(() => {
   align-items: center;
   span {
     margin-right: 8px;
+  }
+}
+.spin :deep(.n-spin) {
+  height: auto;
+  margin-bottom: 20px;
+  display: block;
+  &.n-spin--rotate {
+    animation: none;
+  }
+}
+.ui-abstergo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  row-gap: 30px;
+  scale: 1;
+}
+
+@mixin animation-style($rotate, $animation) {
+  rotate: $rotate;
+  -webkit-animation: $animation 1.2s linear infinite alternate;
+  animation: $animation 1.2s linear infinite alternate;
+}
+.abstergo-loader {
+  width: 103px;
+  height: 90px;
+  position: relative;
+  div {
+    width: 50px;
+    border-right: 12px solid transparent;
+    border-left: 12px solid transparent;
+    border-top: 21px solid var(--n-color);
+    position: absolute;
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.3));
+    &:nth-child(1) {
+      @include animation-style(-60deg, line1);
+      top: 27px;
+      left: 7px;
+    }
+    &:nth-child(2) {
+      @include animation-style(180deg, line2);
+      bottom: 2px;
+      left: 0;
+    }
+    &:nth-child(3) {
+      @include animation-style(60deg, line3);
+      bottom: 16px;
+      right: -9px;
+    }
+  }
+}
+
+@keyframes line1 {
+  0%,
+  40% {
+    top: 27px;
+    left: 7px;
+    rotate: -60deg;
+  }
+  60%,
+  100% {
+    top: 22px;
+    left: 14px;
+    rotate: 60deg;
+  }
+}
+
+@keyframes line2 {
+  0%,
+  40% {
+    bottom: 2px;
+    left: 0;
+    rotate: 180deg;
+  }
+  60%,
+  100% {
+    bottom: 5px;
+    left: -8px;
+    rotate: 300deg;
+  }
+}
+
+@keyframes line3 {
+  0%,
+  40% {
+    bottom: 16px;
+    right: -9px;
+    rotate: 60deg;
+  }
+  60%,
+  100% {
+    bottom: 7px;
+    right: -11px;
+    rotate: 180deg;
   }
 }
 </style>

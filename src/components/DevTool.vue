@@ -6,8 +6,7 @@
         size="small"
         type="info"
         style="width: auto"
-        @click="show = !show"
-      >
+        @click="show = !show">
         DevTool
       </n-button>
     </template>
@@ -21,36 +20,45 @@
       <n-dropdown
         trigger="click"
         :options="routes as DropdownOption[]"
-        @select="(path:keyof RouteNamedMap)=>router.push({ name: path })"
+        @select="(path: keyof RouteNamedMap) => router.push({name: path})"
         key-field="name"
-        label-field="name"
-      >
+        label-field="name">
         <n-button>路由跳转</n-button>
       </n-dropdown>
       <n-dropdown
         trigger="click"
         :options="apis"
-        @select="(_:string,option:DropdownOption)=>{
-          if (typeof option.f=== 'function'){option.f()}
-          }"
-        key-field="label"
-      >
+        @select="
+          (_: string, option: DropdownOption) => {
+            if (typeof option.f === 'function') {
+              option.f()
+            }
+          }
+        "
+        key-field="label">
         <n-button>Api测试</n-button>
       </n-dropdown>
       <n-dropdown
         trigger="click"
         :options="themes"
-        @select="(key:number)=>{
-          state.theme = key===1?'浅色' : '深色';$emit('update:theme', key===1)}"
-      >
+        @select="
+          (key: number) => {
+            state.theme = key === 1 ? '浅色' : '深色'
+            $emit('update:theme', key === 1)
+          }
+        ">
         <n-button>主题切换({{ state.theme }})</n-button>
       </n-dropdown>
       <n-dropdown
         trigger="click"
         :options="lang"
-        @select="(v:any) => {state.lang = v; locale = v}"
-        key-field="label"
-      >
+        @select="
+          (v: any) => {
+            state.lang = v
+            locale = v
+          }
+        "
+        key-field="label">
         <n-button>语言切换({{ state.lang }})</n-button>
       </n-dropdown>
     </n-space>
@@ -58,16 +66,16 @@
 </template>
 
 <script lang="ts" setup>
-import { bitable,ThemeModeType } from "@lark-base-open/js-sdk"
-import type { DropdownOption } from "naive-ui"
-import { useI18n } from "vue-i18n"
-import { type RouteNamedMap, routes as _routes } from "vue-router/auto/routes"
+import {bitable, ThemeModeType, ToastType} from "@lark-base-open/js-sdk"
+import type {DropdownOption} from "naive-ui"
+import {useI18n} from "vue-i18n"
+import {type RouteNamedMap, routes as _routes} from "vue-router/auto/routes"
 
-import { getRoutes } from "@/utils"
-const { locale } = useI18n()
+import {getRoutes} from "@/utils"
+const {locale} = useI18n()
 const router = useRouter()
 const show = ref(false)
-const routes = [{ "name": "home" }, ...getRoutes(_routes)]
+const routes = [{"name": "home"}, ...getRoutes(_routes)]
 
 const apis: DropdownOption[] = [
   {
@@ -75,16 +83,27 @@ const apis: DropdownOption[] = [
     "f": () => {
       alert("Test!")
     }
+  },
+  {
+    "label": "showToast",
+    "f": () => {
+      bitable.ui.showToast({
+        "toastType": ToastType.info,
+        "message": "hello world"
+      })
+    }
+  },
+  {
+    "label": "PrintRecord",
+    "f": async () => {
+      const selection = await bitable.base.getSelection()
+      if (!selection.tableId || !selection.recordId) {
+        return
+      }
+      const table = await bitable.base.getTableById(selection.tableId)
+      console.log(await table.getRecordById(selection.recordId))
+    }
   }
-  //   {
-  //     label: "showToast",
-  //     f: () => {
-  //       bitable.ui.showToast({
-  //         toastType: ToastType.info,
-  //         message: "hello world",
-  //       });
-  //     },
-  //   },
 ]
 const state = reactive({
   "theme": "",
@@ -98,38 +117,38 @@ const state = reactive({
   }
 })
 const themes = ref<DropdownOption[]>([
-  { "label": state.bridge.theme, "disabled": true },
-  { "label": "浅色", "key": 0 },
-  { "label": "深色", "key": 1 }
+  {"label": state.bridge.theme, "disabled": true},
+  {"label": "浅色", "key": 0},
+  {"label": "深色", "key": 1}
 ])
 
 const lang = ref<DropdownOption[]>([
-  { "label": state.bridge.lang, "disabled": true },
-  { "label": state.bridge.locale, "disabled": true },
-  { "label": "zh" },
-  { "label": "en" },
-  { "label": "jp" }
+  {"label": state.bridge.lang, "disabled": true},
+  {"label": state.bridge.locale, "disabled": true},
+  {"label": "zh"},
+  {"label": "en"},
+  {"label": "jp"}
 ])
 
 onMounted(() => {
-  bitable.bridge.getTheme().then((theme) => {
+  bitable.bridge.getTheme().then(theme => {
     state.theme = theme === ThemeModeType.LIGHT ? "浅色" : "深色"
     state.bridge.theme = theme
     themes.value[0].label = theme
   })
-  bitable.bridge.getLanguage().then((language) => {
+  bitable.bridge.getLanguage().then(language => {
     state.lang = language
     state.bridge.lang = language
     lang.value[0].label = language
   })
-  bitable.bridge.getUserId().then((userId) => {
+  bitable.bridge.getUserId().then(userId => {
     state.bridge.userId = userId
   })
-  bitable.bridge.getLocale().then((locale) => {
+  bitable.bridge.getLocale().then(locale => {
     state.bridge.locale = locale
     lang.value[1].label = locale
   })
-  bitable.bridge.getTenantKey().then((tenantKey) => {
+  bitable.bridge.getTenantKey().then(tenantKey => {
     state.bridge.tenantKey = tenantKey
   })
 })

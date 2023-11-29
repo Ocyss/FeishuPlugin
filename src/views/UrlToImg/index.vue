@@ -127,7 +127,7 @@ async function start(field: IAttachmentField, records: IRecord[], pr: Progress |
   )
 }
 
-async function main() {
+async function main(all?: boolean) {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
   if (store.check()) {
@@ -139,7 +139,8 @@ async function main() {
       ({records, pr}) => {
         return start(field, records.records, pr)
       },
-      30
+      all,
+      50
     )
   }
   layout.value?.finish()

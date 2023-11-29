@@ -146,7 +146,7 @@ async function start(records: IRecord[]) {
     .filter(item => item !== null)
 }
 
-async function main() {
+async function main(all?: boolean) {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
   if (store.check()) {
@@ -157,6 +157,7 @@ async function main() {
       async ({records}) => {
         return await table.setRecords(await start(records.records))
       },
+      all,
       30
     )
   }

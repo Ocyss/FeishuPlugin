@@ -82,7 +82,7 @@ import {useI18n} from "vue-i18n"
 
 import Layout from "@/components/layout.vue"
 import {store} from "@/store.js"
-import {dateFormatterList, delimiterList, FieldInfos, Progress} from "@/utils"
+import {dateFormatterList, delimiterList, FieldInfos} from "@/utils"
 
 const {t} = useI18n()
 const layout = ref<InstanceType<typeof Layout> | null>(null)
@@ -122,10 +122,9 @@ const dateRenderLabel = (option: SelectOption): VNodeChild => [
   option.label as string
 ]
 
-function start(records: IRecord[], pr: Progress): IRecord[] {
+function start(records: IRecord[]): IRecord[] {
   return records
     .map(item => {
-      pr.add()
       if (
         store.check() &&
         store.input in item.fields &&
@@ -157,7 +156,7 @@ function processValue(val: any): string {
   }
 }
 
-async function main() {
+async function main(all?: boolean) {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
   if (store.check()) {
@@ -166,9 +165,11 @@ async function main() {
     await layout.value?.getRecords(
       table,
       ({records, pr}) => {
-        return table.setRecords(start(records.records, pr))
+        pr.add(records.records.length)
+        return table.setRecords(start(records.records))
       },
-      2000
+      all,
+      5000
     )
   }
   layout.value?.finish()

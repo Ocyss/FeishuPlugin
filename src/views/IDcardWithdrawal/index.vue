@@ -122,7 +122,7 @@ function start(recordId: string, val: IOpenCellValue): string | number | null {
   return res
 }
 
-async function main() {
+async function main(all?: boolean) {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
   if (store.check()) {
@@ -149,7 +149,8 @@ async function main() {
           .filter(item => item !== null) as IRecord[]
         return table.setRecords(newVals)
       },
-      1000
+      all,
+      5000
     )
   }
   layout.value?.finish()

@@ -88,7 +88,7 @@ async function start(records: IRecord[], pr?: Progress) {
     .filter(record => record !== null) as IRecord[]
 }
 
-async function main() {
+async function main(all?: boolean) {
   layout.value?.update(true, t("Step 1 - Getting Table"))
   layout.value?.init()
   if (store.check()) {
@@ -99,7 +99,8 @@ async function main() {
       async ({records, pr}) => {
         return table.setRecords(await start(records.records, pr))
       },
-      30
+      all,
+      500
     )
   }
   layout.value?.finish()

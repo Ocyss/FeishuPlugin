@@ -12,7 +12,6 @@ meta:
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=61ci3d06-d3c2-40dd-a2e9-00232cda2417
   tags:
     - Audit
-    - 重构中，不可用
   avatar: >-
     <svg xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M12
@@ -319,7 +318,7 @@ async function startUrl(records: IRecord[]) {
   return await port(formData.AriaConf.aria2Url, res)
 }
 
-async function main() {
+async function main(all?: boolean) {
   layout.value?.update(true, t("Step 1 - Verification Aria2 status"))
   await aria2Stat()
   if (store.check(false)) {
@@ -350,6 +349,7 @@ async function main() {
         }
         pr.add(records.records.length)
       },
+      all,
       15
     )
     layout.value?.finish()

@@ -38,7 +38,7 @@ meta:
       :msg="t('Select Output Field')"
       v-model:value="store.output"
       :options="store.filterFields(FieldType.Text)" />
-    <form-start @update:click="main" :disableds="disableds" />
+    <form-start @update:click="main" :disableds="disableds" operate />
   </Layout>
 </template>
 

@@ -2,44 +2,40 @@
   <n-config-provider
     class="main"
     :theme="themes"
-    :theme-overrides="
-      themes === null ? lightThemeOverrides : darkThemeOverrides
-    "
-  >
+    :theme-overrides="themes === null ? lightThemeOverrides : darkThemeOverrides">
     <n-message-provider>
-      <DevTool
-        @update:theme="
-          (v) => {
-            themes = v ? darkTheme : null;
-          }
-        "
-      />
-      <RouterView />
+      <n-dialog-provider>
+        <DevTool
+          @update:theme="
+            v => {
+              themes = v ? darkTheme : null
+            }
+          " />
+        <RouterView />
+      </n-dialog-provider>
     </n-message-provider>
     <n-global-style />
   </n-config-provider>
 </template>
 
 <script lang="ts" setup>
-import { type Language, ThemeModeType } from "@lark-base-open/js-sdk"
-import { darkTheme,GlobalTheme, GlobalThemeOverrides,NConfigProvider } from "naive-ui"
+import {type Language, ThemeModeType} from "@lark-base-open/js-sdk"
+import {darkTheme, GlobalTheme, GlobalThemeOverrides, NConfigProvider} from "naive-ui"
 
 import DevTool from "@/components/DevTool.vue"
 
-const { t } = useI18n()
-const props = defineProps<{ lang: Language, theme: ThemeModeType }>()
+const {t} = useI18n()
+const props = defineProps<{lang: Language; theme: ThemeModeType}>()
 const darkThemeOverrides: GlobalThemeOverrides = {
   "common": {
     "bodyColor": "#1a1a1a"
   }
 }
 const lightThemeOverrides: GlobalThemeOverrides = {}
-const themes = ref<GlobalTheme | null>(
-  props.theme === ThemeModeType.DARK ? darkTheme : null
-)
+const themes = ref<GlobalTheme | null>(props.theme === ThemeModeType.DARK ? darkTheme : null)
 onMounted(() => {
   window.$t = t
-  const themeOff = bitable.bridge.onThemeChange((event) => {
+  const themeOff = bitable.bridge.onThemeChange(event => {
     themes.value = event.data.theme === ThemeModeType.DARK ? darkTheme : null
   })
   onBeforeUnmount(() => {
@@ -65,6 +61,9 @@ onMounted(() => {
   white-space: pre-line;
   user-select: none;
   width: 150px;
+}
+.n-dialog .n-dialog__content {
+  white-space: pre-line;
 }
 </style>
 

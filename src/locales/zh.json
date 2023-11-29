@@ -21,7 +21,10 @@
   "AriaLink Batch Downloader is a powerful plugin that allows users to efficiently perform batch file downloads using Aria2. Leveraging the advantages of Aria2, users can download multiple files faster and more conveniently.": "AriaLink 批量下载器是一个强大的插件，允许用户使用 Aria2 来进行高效的批量文件下载操作。利用 Aria2 的优势，用户可以更快速、更便捷地下载多个文件。",
   "PhoneticsMate is a convenient tool that converts English text into phonetic symbols and provides pronunciation previews in both American and British phonetic notation. Users can click on the symbols to listen to their pronunciation, effectively enhancing accuracy in English learning and communication.": "PhoneticsMate（音标伴侣）是一个方便的工具，能够将英语文本转换为音标，并提供美式和英式音标的发音预览功能。用户可以通过点击音标来聆听其发音，有效提高英语学习和交流的准确性。",
   "RandomRecord is a practical tool designed to test plugin performance, allowing bulk generation of random records containing data for various fields. Users can customize field types and quantities as needed, facilitating performance testing and data simulation.": "RandomRecord Generator（随机记录生成器）是一个旨在测试插件性能的实用工具，能够批量生成包含任意字段数据的随机记录。用户可根据需求自定义字段类型和数量，用于性能测试和数据模拟。",
+  "Your current selection ({msg})\n\nall: The operation will be performed on all records. Each operation is 5000 or smaller, which is faster.\npart: The user selects the operation records, one is processed at a time, and the speed is slow.": "你当前的选择 ({msg}) \n\n(全部)all: 将对所有记录执行操作，每次操作5000条或更小，速度较快\n(部分)part: 由用户选择操作记录，每次处理一条，速度较慢",
   "NotSupport": "不支持",
+  "random": "随机",
+  "Personal": "自用",
   "Text": "文本",
   "Number": "数字",
   "SingleSelect": "单选",
@@ -156,5 +159,13 @@
   "There is no data. There is a high probability that the field type has been filtered. Please check whether there are related types.": "没有数据，大概率对字段类型进行了筛选，请检查是否有相关类型",
   "Input can not be empty": "输入不能为空",
   "Output can not be empty": "输出不能为空",
-  "View can not be empty": "视图不能为空"
+  "View can not be empty": "视图不能为空",
+  "search": "搜索",
+  "all": "全部",
+  "delEmpty": "删除空记录",
+  "Time random operation": "时间随机操作",
+  "part": "部分",
+  "warning": "警告",
+  "confirm": "确认",
+  "cancel": "取消"
 }
