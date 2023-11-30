@@ -20,6 +20,7 @@
         </svg>
       </n-icon>
     </n-a>
+    <slot name="header"></slot>
   </n-h4>
   <n-collapse v-if="route.meta.help">
     <n-collapse-item title="Help" name="1">

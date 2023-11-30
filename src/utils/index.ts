@@ -22,6 +22,8 @@ export class Progress {
     this.total += n
   }
 }
+
+
 function getFieldMapValue(
   fieldId: string | null | undefined,
   map: FieldMaps | undefined,

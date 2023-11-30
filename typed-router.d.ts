@@ -46,6 +46,7 @@ declare module 'vue-router/auto/routes' {
     'home': RouteRecordInfo<'home', '/home', Record<never, never>, Record<never, never>>,
     'IDcardWithdrawal': RouteRecordInfo<'IDcardWithdrawal', '/IDcardWithdrawal', Record<never, never>, Record<never, never>>,
     'JsonParser': RouteRecordInfo<'JsonParser', '/JsonParser', Record<never, never>, Record<never, never>>,
+    'kkview': RouteRecordInfo<'kkview', '/kkview', Record<never, never>, Record<never, never>>,
     'Phonearea': RouteRecordInfo<'Phonearea', '/Phonearea', Record<never, never>, Record<never, never>>,
     'PhoneticsMate': RouteRecordInfo<'PhoneticsMate', '/PhoneticsMate', Record<never, never>, Record<never, never>>,
     'QRCodeParser': RouteRecordInfo<'QRCodeParser', '/QRCodeParser', Record<never, never>, Record<never, never>>,
