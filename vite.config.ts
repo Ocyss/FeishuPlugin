@@ -7,6 +7,7 @@ import Components from "unplugin-vue-components/vite"
 import { VueRouterAutoImports } from "unplugin-vue-router"
 import VueRouter from "unplugin-vue-router/vite"
 import { defineConfig } from "vite"
+import topLevelAwait from "vite-plugin-top-level-await"
 
 
 const pathSrc = path.resolve(__dirname, "src")
@@ -73,6 +74,12 @@ export default defineConfig({
     VueI18nPlugin({
       "include": [path.resolve(__dirname, "./src/locales/**")],
       "strictMessage": false,
+    }),
+    topLevelAwait({
+      // The export name of top-level await promise for each chunk module
+      "promiseExportName": "__tla",
+      // The function to generate import names of top-level await promise in each chunk module
+      "promiseImportName": i => `__tla_${i}`
     }),
   ],
   "resolve": {
