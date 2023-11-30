@@ -1,5 +1,5 @@
 <route lang="yaml">
-path: /home
+path: /(\/|\/home)/
 name: home
 </route>
 <template>
