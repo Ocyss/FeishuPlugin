@@ -5,7 +5,15 @@ name: home
 <template>
   <div style="padding: 6px 20px">
     <n-h2 prefix="bar" align-text>
-      <n-text type="primary">Ocyss_04 的插件库</n-text>
+      <n-text type="primary"
+        ><a
+          style="color: var(--n-text-color); text-decoration: none"
+          href="https://github.com/Ocyss"
+          target="_blank"
+          >Ocyss_04</a
+        >
+        的插件库</n-text
+      >
     </n-h2>
   </div>
   <n-input-group style="width: 100%; display: flex; margin-bottom: 10px">
