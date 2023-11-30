@@ -3,7 +3,7 @@ import { createApp } from "vue"
 import { createI18n } from "vue-i18n"
 import {
   createRouter,
-  createWebHistory,
+  createWebHashHistory,
   setupDataFetchingGuard
 } from "vue-router/auto"
 
@@ -12,7 +12,7 @@ import zh from "@/locales/zh.json"
 import App from "./App.vue"
 
 const router = createRouter({
-  "history": createWebHistory()
+  "history": createWebHashHistory()
 })
 
 setupDataFetchingGuard(router)
