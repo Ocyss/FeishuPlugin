@@ -80,7 +80,7 @@ declare global {
   export type { Component, ComponentPublicInstance, ComputedRef, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
-  export type { ITableMeta, IOpenCellValue, IOpenSegment, IFieldMeta, IGetRecordsResponse, IRecord, IOpenSingleSelect, IOpenUser, IOpenUrlSegment, IOpenAttachment, IOpenLink, IOpenLocation, IOpenGroupChat, ITable, IRecordType, IAttachmentField, ICell, IViewMeta, IView } from '@lark-base-open/js-sdk'
+  export type { ITableMeta, IOpenCellValue, IOpenSegment, IFieldMeta, IGetRecordsResponse, IRecord, IOpenSingleSelect, IOpenUser, IOpenUrlSegment, IOpenAttachment, IOpenLink, IOpenLocation, IOpenGroupChat, ITable, IRecordType, IAttachmentField, ICell, IViewMeta, IView, IRecordValue } from '@lark-base-open/js-sdk'
   import('@lark-base-open/js-sdk')
 }
 // for vue template auto import

@@ -31,7 +31,7 @@ const baseType = [
   "IAttachmentField",
   "ICell",
   "IViewMeta",
-  "IView",
+  "IView","IRecordValue"
 ]
 // https://vitejs.dev/config/
 export default defineConfig({

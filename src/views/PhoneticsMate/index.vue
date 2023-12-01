@@ -105,9 +105,9 @@ const formData = reactive({
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!store.input, "输入不能为空"],
-  [!store.output, "输出不能为空"],
-  [!!store.input && store.output === store.input, "输入输出不能相同"]
+  [!store.input, t("Input can not be empty")],
+  [!store.output, t("Output can not be empty")],
+  [!!store.input && store.output === store.input, "Input and output cannot be the same"]
 ])
 
 const iframeOptions = [

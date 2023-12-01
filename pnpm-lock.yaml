@@ -23,9 +23,15 @@ dependencies:
   easy-speech:
     specifier: ^2.1.1
     version: 2.1.1
+  html-to-image:
+    specifier: ^1.11.11
+    version: 1.11.11
   js-base64:
     specifier: ^3.7.5
     version: 3.7.5
+  l-watermark:
+    specifier: ^2.1.2
+    version: 2.1.2
   liquidjs:
     specifier: ^10.9.4
     version: 10.9.4
@@ -2095,6 +2101,10 @@ packages:
     engines: {node: '>=12.0.0'}
     dev: true
 
+  /html-to-image@1.11.11:
+    resolution: {integrity: sha512-9gux8QhvjRO/erSnDPv28noDZcPZmYE7e1vFsBLKLlRlKDSqNJYebj6Qz1TGd5lsRV+X+xYyjCKjuZdABinWjA==}
+    dev: false
+
   /ignore@5.3.0:
     resolution: {integrity: sha512-g7dmpshy+gD7mh88OC9NwSGTKoc3kyLAZQRU1mt53Aw/vnvfXnbC+F/7F7QoYVKbV+KNvJx8wArewKy1vXMtlg==}
     engines: {node: '>= 4'}
@@ -2317,6 +2327,11 @@ packages:
     dependencies:
       json-buffer: 3.0.1
     dev: true
+
+  /l-watermark@2.1.2:
+    resolution: {integrity: sha512-ORXebqt9UOF2oJRYTHrguABXnlnn9Yt7MFe8QhXDvo2FgdFY4mmRbK2AyBzJnh5fkJkoeO+KnTVLDYI0VRbydQ==}
+    engines: {node: '>=6.0.0'}
+    dev: false
 
   /levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}

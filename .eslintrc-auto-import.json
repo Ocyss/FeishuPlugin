@@ -100,6 +100,7 @@
     "IAttachmentField": true,
     "ICell": true,
     "IViewMeta": true,
-    "IView": true
+    "IView": true,
+    "IRecordValue": true
   }
 }

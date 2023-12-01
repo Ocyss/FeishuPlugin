@@ -54,6 +54,7 @@ declare module 'vue-router/auto/routes' {
     'SummarizePro': RouteRecordInfo<'SummarizePro', '/SummarizePro', Record<never, never>, Record<never, never>>,
     'TemplateRendering': RouteRecordInfo<'TemplateRendering', '/TemplateRendering', Record<never, never>, Record<never, never>>,
     'UrlToImg': RouteRecordInfo<'UrlToImg', '/UrlToImg', Record<never, never>, Record<never, never>>,
+    'watermark': RouteRecordInfo<'watermark', '/watermark', Record<never, never>, Record<never, never>>,
   }
 }
 

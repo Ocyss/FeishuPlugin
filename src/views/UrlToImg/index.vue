@@ -100,7 +100,7 @@ function isValidHttpUrl(s: string) {
   }
 }
 
-async function start(field: IAttachmentField, records: IRecord[], pr: Progress | undefined) {
+async function start(field: IAttachmentField, records: IRecord[], pr: Progress) {
   await Promise.all(
     records.map(async record => {
       if (

@@ -143,6 +143,8 @@ export const getRoutes = (routes: RouteRecordRaw[]) =>
       const index = v.children![0]
       return index
     })
+
 export * from "./browser.ts"
 export * from "./field.ts"
+export * from "./files.ts"
 export * from "./format.ts"

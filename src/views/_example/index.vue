@@ -7,6 +7,7 @@ meta:
   group: 应用交流群
   tags:
     - 应用标签
+    - Develop
   avatar: 应用图标 html格式
 </route>
 

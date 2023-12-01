@@ -26,6 +26,8 @@
   "SummarizePro (Intelligent Summarizer) is an intelligent tool based on the ChatGPT API, designed to assist users in summarizing text fields or articles intelligently. Leveraging advanced natural language processing, this plugin supports multi-field assignment, offering users high-quality summaries and abstracts.": "SummarizePro（智能总结大师）是一款基于 ChatGPT API 的智能工具，旨在帮助用户智能总结字段或文章内容。该插件能够利用先进的自然语言处理技术，支持多字段赋值，为用户提供高质量的摘要和概括。",
   "Your current selection ({msg})\n\nall: The operation will be performed on all records. Each operation is 5000 or smaller, which is faster.\npart: The user selects the operation records, one is processed at a time, and the speed is slow.": "你当前的选择 ({msg}) \n\n(全部)all: 将对所有记录执行操作，每次操作5000条或更小，速度较快\n(部分)part: 由用户选择操作记录，每次处理一条，速度较慢",
   "UniversalPreviewer is a multifunctional plugin that allows users to effortlessly preview file contents by selecting cells or links. This tool supports previews for almost all commonly used file formats, offering users a comprehensive viewing experience for file content.": " UniversalPreviewer（万能文件预览器）是一个多功能插件，让用户能够轻松选择单元格或链接进行文件内容预览。该工具支持几乎市面上所有常用格式的文件预览，为用户提供全方位的文件内容查看体验。",
+  "WatermarkMaster": "水印大师",
+  "WatermarkMaster is a tool that automatically adds watermarks to selected image fields. It supports multiple watermark schemes, including visible watermarks, invisible watermarks, steganography encryption and decryption, and more.": "WatermarkMaster（水印大师）是一个能够自动添加水印的工具，用户只需选择需要添加水印的图片字段，即可享受多种水印方案，包括明水印、盲水印、隐写术加密解密等功能。",
   "NotSupport": "不支持",
   "Develop": "开发中",
   "random": "随机",
@@ -165,6 +167,7 @@
   "Input can not be empty": "输入不能为空",
   "Output can not be empty": "输出不能为空",
   "View can not be empty": "视图不能为空",
+  "Input and output cannot be the same": "输入输出不能相同",
   "search": "搜索",
   "all": "全部",
   "delEmpty": "删除空记录",
@@ -172,5 +175,9 @@
   "part": "部分",
   "warning": "警告",
   "confirm": "确认",
-  "cancel": "取消"
+  "cancel": "取消",
+  "blind watermark": "盲水印",
+  "Steganography": "隐写术",
+  "watermark": "明水印",
+  "decode watermark": "盲水印解密"
 }

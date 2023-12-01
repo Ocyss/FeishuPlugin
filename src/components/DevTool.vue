@@ -85,6 +85,12 @@ const apis: DropdownOption[] = [
     }
   },
   {
+    "label": "location.reload",
+    "f": () => {
+      location.reload()
+    }
+  },
+  {
     "label": "showToast",
     "f": () => {
       bitable.ui.showToast({
