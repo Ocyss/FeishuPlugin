@@ -42,7 +42,7 @@ meta:
     <form-select
       :msg="t('Select Output Field')"
       v-model:value="store.output"
-      :options="store.filterFields([FieldType.Text, FieldType.Number])" />
+      :options="store.filterFields([FieldType.Text, FieldType.Number, FieldType.DateTime])" />
     <form-select
       :msg="t('Select output format')"
       v-model:value="formData.format"
@@ -54,12 +54,21 @@ meta:
       :value="t('age')"
       disabled
       v-else-if="store.output && store.type(store.output) == FieldType.Number" />
+    <form-select
+      :msg="t('Select output format')"
+      :value="t('birthday')"
+      disabled
+      v-else-if="store.output && store.type(store.output) == FieldType.DateTime" />
+    <n-form-item label="强校验">
+      <n-switch />
+    </n-form-item>
     <form-start @update:click="main" :disableds="disableds" />
   </Layout>
 </template>
 
 <script setup lang="ts">
 import idcard from "@fekit/idcard"
+import parse from "date-fns/parse"
 
 import Layout from "@/components/layout.vue"
 import {store} from "@/store.js"
@@ -115,10 +124,18 @@ function start(recordId: string, val: IOpenCellValue): string | number | null {
     return info[item]
   }
 
-  const res =
-    store.type(store.output) === FieldType.Text
-      ? formData.format!.map(item => getValueByField(item)).join(" ")
-      : info.age
+  let res: any
+  switch (store.type(store.output)) {
+    case FieldType.Text:
+      res = formData.format!.map(item => getValueByField(item)).join(" ")
+      break
+
+    case FieldType.Number:
+      res = info.age
+      break
+    case FieldType.DateTime:
+      res = parse(info.birthday, "yyyy-MM-dd", 0).getTime()
+  }
   return res
 }
 

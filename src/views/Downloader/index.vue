@@ -267,7 +267,7 @@ function generate(url: string, record: IRecord, index = 0) {
     "method": "aria2.addUri",
     "id": record.recordId + store.input + index,
     "params": [
-      ["token:" + formData.AriaConf.secret],
+      "token:" + formData.AriaConf.secret,
       [url],
       {
         out,
