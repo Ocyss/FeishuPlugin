@@ -27,7 +27,7 @@
       <n-blockquote align-text v-html="t(route.meta.help as string)"></n-blockquote>
     </n-collapse-item>
   </n-collapse>
-  <n-spin :show="lock" class="spin">
+  <n-spin :show="lock" class="layout-spin">
     <template #description>
       <div v-if="progress.length === 0">
         {{ message }}
@@ -274,7 +274,7 @@ onMounted(() => {
     margin-right: 8px;
   }
 }
-.spin :deep(.n-spin) {
+.layout-spin > :deep(.n-spin-body) > .n-spin {
   height: auto;
   margin-bottom: 20px;
   display: block;

@@ -15,3 +15,7 @@ export function base64ToBlob(base64: string): Blob {
 export function blobToFile(blob: Blob, fileName: string): File {
   return new File([blob], fileName)
 }
+
+export function fileToBlob(file: File): Blob {
+  return new Blob([file], { "type": file.type })
+}

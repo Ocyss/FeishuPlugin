@@ -63,6 +63,7 @@ name: home
 import {RouteRecordRaw} from "vue-router/auto"
 import {RouteNamedMap, routes as _routes} from "vue-router/auto/routes"
 
+import {store} from "@/store.js"
 import {getRoutes} from "@/utils"
 
 const {t} = useI18n()
@@ -100,6 +101,16 @@ onMounted(() => {
       })
     }
   })
+  store.layout = undefined
+  store.tableId = undefined
+  store.viewId = undefined
+  store.input = undefined
+  store.output = undefined
+  store.tableMetaList = undefined
+  store.viewMetaList = undefined
+  store.fieldMetaList = undefined
+  store.fieldMap = undefined
+  store.view = undefined
 })
 </script>
 

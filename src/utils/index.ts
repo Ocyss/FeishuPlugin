@@ -36,8 +36,8 @@ export class Data {
   layout?: InstanceType<typeof Layout>
   tableId?: string | null
   viewId?: string | null
-  input?: string | null
-  output?: string | null
+  input?: string | string[] | null
+  output?: string | string[] | null
   tableMetaList?: ITableMeta[]
   viewMetaList?: IViewMeta[]
   fieldMetaList?: IFieldMeta[]
