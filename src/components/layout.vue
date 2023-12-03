@@ -59,7 +59,6 @@
 </template>
 
 <script lang="ts" setup>
-import {ViewType} from "@lark-base-open/js-sdk"
 import {DataTableColumns, NTag} from "naive-ui"
 
 import {LogRowData, LogType, Track} from "@/types"
@@ -189,6 +188,7 @@ async function getRecords(
         viewId = views[0].id
       }
     }
+
     const recordIdList = await bitable.ui.selectRecordIdList(table.id, viewId)
     pr.addTotal(recordIdList.length)
     promise = recordIdList.map(async item => {

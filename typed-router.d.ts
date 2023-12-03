@@ -41,6 +41,7 @@ declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
     '项目名': RouteRecordInfo<'项目名', '/_example', Record<never, never>, Record<never, never>>,
     'DateOperations': RouteRecordInfo<'DateOperations', '/DateOperations', Record<never, never>, Record<never, never>>,
+    'DocxTemplate': RouteRecordInfo<'DocxTemplate', '/DocxTemplate', Record<never, never>, Record<never, never>>,
     'Downloader': RouteRecordInfo<'Downloader', '/Downloader', Record<never, never>, Record<never, never>>,
     'FieldExtraction': RouteRecordInfo<'FieldExtraction', '/FieldExtraction', Record<never, never>, Record<never, never>>,
     'home': RouteRecordInfo<'home', '/home', Record<never, never>, Record<never, never>>,

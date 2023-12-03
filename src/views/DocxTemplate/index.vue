@@ -1,8 +1,8 @@
 <route lang="yaml">
-name: WordTemplate
+name: DocxTemplate
 meta:
-  title: WordTemplate
-  desc: "WordTemplate allows users to upload a Word template file and automatically replace placeholders with table data. This plugin supports various operations, including inserting images and more."
+  title: DocxTemplate
+  desc: "DocxTemplate allows users to upload a Word template file and automatically replace placeholders with table data. This plugin supports various operations, including inserting images and more."
   help:
   group:
   tags:
@@ -60,20 +60,20 @@ meta:
 <script setup lang="ts">
 import VueOfficeDocx from "@vue-office/docx"
 import format from "date-fns/format"
-import {ImageRun, patchDocument, PatchType, TextRun} from "docx"
+import {createReport} from "docx-templates"
 import {saveAs} from "file-saver"
 import {UploadCustomRequestOptions} from "naive-ui"
 
 import Layout from "@/components/layout.vue"
 import {store} from "@/store.js"
-import {blobToFile, fileToBlob, Progress, TextFieldToStr} from "@/utils"
+import {blobToFile, fileToBuf, Progress, TextFieldToStr} from "@/utils"
 import request from "@/utils/request"
 
 const {t} = useI18n()
 const layout = ref<InstanceType<typeof Layout> | null>(null)
 let table: ITable
 let attachments: Record<string, IAttachmentField> = {}
-let wordFile: Blob
+let wordFile: ArrayBuffer
 const wordPreview = ref<Blob>()
 const wordPreviewSpin = ref(false)
 const disableds = computed<Array<[boolean, string]>>(() => [
@@ -121,7 +121,7 @@ function savePreview() {
 
 const customRequest = async ({file, onFinish}: UploadCustomRequestOptions) => {
   wordPreviewSpin.value = true
-  wordFile = fileToBlob(file.file as File)
+  wordFile = await fileToBuf(file.file as File)
   wordPreview.value = await create()
   wordPreviewSpin.value = false
   onFinish()
@@ -133,59 +133,97 @@ async function create(
   },
   recordId?: string
 ) {
-  const patches: Record<string, any> = {}
+  const base: Record<string, any> = {
+    "json": (obj: object) => JSON.stringify(obj)
+  }
   if (fields && recordId) {
     await Promise.all(
       (store.input as string[]).map(async id => {
-        let children: any
         const val = fields[id]
-        if (!val) {
+        const name = store.name(id)
+        if (!name) {
           return
         }
-        switch (store.type(id)) {
-          case FieldType.Text:
-          case FieldType.Url:
-          case FieldType.User:
-          case FieldType.GroupChat:
-            children = [new TextRun(TextFieldToStr(val))]
-            break
-          case FieldType.DateTime:
-            children = [new TextRun(format(val as number, "yyyy-MM-dd HH:mm"))]
-            break
-          case FieldType.Attachment:
-            children = await Promise.all(
-              ((await attachments[id].getAttachmentUrls(recordId)) ?? []).map(async url => {
-                const res = await request.get(url, {"responseType": "arraybuffer"})
-                return new ImageRun({
-                  "data": res.data,
-                  "transformation": {"width": 100, "height": 100}
-                })
-              })
-            )
-            break
-          default:
-            return
+        let data: any = "null"
+        if (val) {
+          switch (store.type(id)) {
+            case FieldType.Text:
+            case FieldType.Url:
+            case FieldType.User:
+            case FieldType.GroupChat:
+              data = (v?: string) => TextFieldToStr(val, v)
+              break
+            case FieldType.DateTime:
+              data = (f = "yyyy-MM-dd HH:mm") => format(val as number, f)
+              break
+            case FieldType.Attachment:
+              {
+                const temp = await Promise.all(
+                  (await attachments[id].getAttachmentUrls(recordId)).map(async (url, index) => {
+                    const res = await request.get(url, {"responseType": "arraybuffer"})
+                    const name = (val as IOpenAttachment[])[index].name
+                    let extension = name.substring(name.lastIndexOf("."))
+                    if (extension === ".webp") {
+                      extension = ".jpeg"
+                    }
+                    return {"width": 6, "height": 6, "data": res.data, extension}
+                  })
+                )
+                data = (
+                  width?: number,
+                  height?: number,
+                  rotation?: number,
+                  caption?: string,
+                  alt?: string,
+                  extension?: string
+                ) => {
+                  return temp.map(item => {
+                    const newItem: Record<string, any> = {...item}
+                    if (width) {
+                      height = height ?? width
+                      newItem.width = width
+                      newItem.height = height
+                    }
+                    newItem.rotation = rotation
+                    newItem.caption = caption
+                    newItem.alt = alt
+                    if (extension) {
+                      newItem.extension = extension
+                    }
+                    return newItem
+                  })
+                }
+              }
+              break
+            default:
+              data = val
+          }
         }
-        patches[store.name(id)!] = {
-          "type": PatchType.PARAGRAPH,
-          children
-        }
+        base[name] = data
+        base[name + "Raw"] = val
       })
     )
   }
   const t = performance.now()
-  const document = await patchDocument(wordFile, {
-    "patches": patches,
-    "keepOriginalStyles": true
+  const document = await createReport({
+    // @ts-expect-error not Buffer
+    "template": wordFile,
+    "additionalJsContext": base,
+    "cmdDelimiter": ["{{", "}}"],
+    "failFast": false,
+    "errorHandler": (e: Error, raw_code?: string) => {
+      console.log(e, raw_code)
+      return "nil"
+    }
   })
-  console.log(`patchDocument ${recordId}: ${performance.now() - t} ms`)
+  console.log(`createReport ${recordId}: ${performance.now() - t} ms`)
   return new Blob([document], {"type": "application/octet-stream"})
 }
 
 onMounted(async () => {
   const data = await store.init(layout.value!)
   table = data.table
-  store.input = store.fieldMetaList?.map(item => {
+  store.fieldMetaList?.map(item => {
     if (item.type === FieldType.Attachment) {
       table.getFieldById<IAttachmentField>(item.id).then(field => {
         attachments[item.id] = field

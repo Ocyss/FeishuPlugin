@@ -19,3 +19,19 @@ export function blobToFile(blob: Blob, fileName: string): File {
 export function fileToBlob(file: File): Blob {
   return new Blob([file], { "type": file.type })
 }
+
+
+export function fileToBuf(fd: File): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = reject
+    reader.onload = () => {
+      if (!reader.result || typeof reader.result === 'string') {
+        reject()
+      } else {
+        resolve(reader.result)
+      }
+    }
+    reader.readAsArrayBuffer(fd)
+  })
+}

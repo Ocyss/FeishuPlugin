@@ -3,13 +3,13 @@ import { FieldType, type IFieldMeta, type IOpenSegment } from "@lark-base-open/j
 import type { FieldMaps } from "@/types"
 
 // 多行文本转文本
-export function TextFieldToStr(val: IOpenSegment[] | IOpenCellValue) {
+export function TextFieldToStr(val: IOpenSegment[] | IOpenCellValue, separator = "") {
   if (!Array.isArray(val) || !val) {
     return ""
   }
   return val
     .map((item: any) => item.text ?? item.name ?? item.enName ?? item.link)
-    .join("")
+    .join(separator)
 }
 
 export function fieldMaps(fieldMetaList: IFieldMeta[]) {

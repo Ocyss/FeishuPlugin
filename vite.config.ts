@@ -7,14 +7,18 @@ import Components from "unplugin-vue-components/vite"
 import { VueRouterAutoImports } from "unplugin-vue-router"
 import VueRouter from "unplugin-vue-router/vite"
 import { defineConfig } from "vite"
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import topLevelAwait from "vite-plugin-top-level-await"
 
 
 const pathSrc = path.resolve(__dirname, "src")
-const basePkg = ["bitable", "FieldType", ["*", "base"]]
+const basePkg = ["bitable", "FieldType", "ViewType", ["*", "base"]]
 const baseType = [
   "ITableMeta",
   "IOpenCellValue",
+  "FieldType",
+  "IEventCbCtx", "Selection",
+  "ViewType",
   "IOpenSegment",
   "IFieldMeta",
   "IGetRecordsResponse",
@@ -31,7 +35,7 @@ const baseType = [
   "IAttachmentField",
   "ICell",
   "IViewMeta",
-  "IView","IRecordValue"
+  "IView", "IRecordValue"
 ]
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -81,6 +85,7 @@ export default defineConfig({
       // The function to generate import names of top-level await promise in each chunk module
       "promiseImportName": i => `__tla_${i}`
     }),
+    nodePolyfills(),
   ],
   "resolve": {
     "alias": {

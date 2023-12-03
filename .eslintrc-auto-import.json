@@ -101,6 +101,9 @@
     "ICell": true,
     "IViewMeta": true,
     "IView": true,
-    "IRecordValue": true
+    "IRecordValue": true,
+    "IEventCbCtx": true,
+    "Selection": true,
+    "ViewType": true
   }
 }
