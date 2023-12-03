@@ -16,7 +16,8 @@ meta:
       directory-dnd
       keep-file-after-finish
       :custom-request="customRequest"
-      style="margin-bottom: 12px">
+      style="margin-bottom: 12px"
+      accept=".docx">
       <n-upload-dragger>
         <div>
           <n-icon size="48" :depth="3">
@@ -30,9 +31,13 @@ meta:
             </svg>
           </n-icon>
         </div>
-        <n-text style="font-size: 16px"> 请选择Word模板文件 </n-text>
+        <n-text style="font-size: 16px">{{ t("Please select Word(.docx) template file") }}</n-text>
         <n-p depth="3" style="margin: 8px 0 0 0">
-          必须是docx后缀名，模板标记语言为 { 文本 }, 使用尖括号包裹字段名将自动使用对应的值替换
+          {{
+            t(
+              "The template markup language is {'{'}{'{'} text() {'}'}{'}'}. Using angle brackets to wrap the field name will automatically replace it with the corresponding value."
+            )
+          }}
         </n-p>
       </n-upload-dragger>
     </n-upload>
@@ -47,9 +52,9 @@ meta:
       :options="store.filterFields(FieldType.Attachment)" />
     <form-start @update:click="main" :disableds="disableds">
       <n-button type="warning" @click="openPreview" :disabled="openPreviewDisabled">
-        预览窗口
+        {{ t("preview window") }}
       </n-button>
-      <n-button type="warning" @click="savePreview"> 下载预览 </n-button>
+      <n-button type="warning" @click="savePreview">{{ t("Download preview") }}</n-button>
     </form-start>
   </Layout>
 </template>
@@ -277,7 +282,11 @@ onMounted(async () => {
 
 <i18n locale="zh" lang="json">
 {
-  "Template can not be empty": "模板不能为空"
+  "Template can not be empty": "模板不能为空",
+  "Please select Word(.docx) template file": "请选择Word(.docx)模板文件 ",
+  "The template markup language is {'{'}{'{'} text() {'}'}{'}'}. Using angle brackets to wrap the field name will automatically replace it with the corresponding value.": "模板标记语言为 {'{'}{'{'} 文本() {'}'}{'}'}, 使用尖括号包裹字段名将自动使用对应的值替换",
+  "preview window": "预览窗口",
+  "Download preview": "下载预览 "
 }
 </i18n>
 

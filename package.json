@@ -16,7 +16,6 @@
     "@zxing/library": "^0.20.0",
     "axios": "^1.6.2",
     "date-fns": "^2.30.0",
-    "docx": "^8.2.4",
     "docx-templates": "^4.11.3",
     "easy-speech": "^2.1.1",
     "file-saver": "^2.0.5",

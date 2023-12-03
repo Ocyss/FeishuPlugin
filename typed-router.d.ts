@@ -56,7 +56,6 @@ declare module 'vue-router/auto/routes' {
     'TemplateRendering': RouteRecordInfo<'TemplateRendering', '/TemplateRendering', Record<never, never>, Record<never, never>>,
     'UrlToImg': RouteRecordInfo<'UrlToImg', '/UrlToImg', Record<never, never>, Record<never, never>>,
     'watermark': RouteRecordInfo<'watermark', '/Watermark', Record<never, never>, Record<never, never>>,
-    'WordTemplate': RouteRecordInfo<'WordTemplate', '/WordTemplate', Record<never, never>, Record<never, never>>,
   }
 }
 
