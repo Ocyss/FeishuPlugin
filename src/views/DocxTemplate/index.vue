@@ -46,14 +46,11 @@ meta:
       v-model:value="store.output"
       :options="store.filterFields(FieldType.Attachment)" />
     <form-start @update:click="main" :disableds="disableds">
+      <n-button type="warning" @click="openPreview" :disabled="openPreviewDisabled">
+        预览窗口
+      </n-button>
       <n-button type="warning" @click="savePreview"> 下载预览 </n-button>
     </form-start>
-    <n-spin :show="wordPreviewSpin">
-      <vue-office-docx
-        style="margin-top: 15px"
-        :src="wordPreview"
-        :options="{ignoreWidth: true, ignoreHeight: true, useBase64URL: true}" />
-    </n-spin>
   </Layout>
 </template>
 
@@ -76,6 +73,7 @@ let attachments: Record<string, IAttachmentField> = {}
 let wordFile: ArrayBuffer
 const wordPreview = ref<Blob>()
 const wordPreviewSpin = ref(false)
+const openPreviewDisabled = ref(false)
 const disableds = computed<Array<[boolean, string]>>(() => [
   [!store.input, t("Input can not be empty")],
   [!wordFile, t("Template can not be empty")],
@@ -119,10 +117,32 @@ function savePreview() {
   }
 }
 
+function openPreview() {
+  let docwindow = window.open(
+    "",
+    "_blank",
+    "width=920, height=675, top=100, left=100, popup=yes, toolbar=no, menubar=no, location=no, status=no"
+  )
+  if (!docwindow) {
+    return
+  }
+  openPreviewDisabled.value = true
+  docwindow.document.body.style.margin = "0px"
+  docwindow.document.title = "DocxTemplate PreviewWindow"
+  createApp({
+    render() {
+      return h(VueOfficeDocx, {
+        "src": wordPreview.value,
+        "options": {"useBase64URL": true}
+      })
+    }
+  }).mount(docwindow.document.body)
+}
+
 const customRequest = async ({file, onFinish}: UploadCustomRequestOptions) => {
   wordPreviewSpin.value = true
   wordFile = await fileToBuf(file.file as File)
-  wordPreview.value = await create()
+  wordPreview.value = await create(undefined, undefined, false)
   wordPreviewSpin.value = false
   onFinish()
 }
@@ -131,12 +151,13 @@ async function create(
   fields?: {
     [fieldId: string]: IOpenCellValue
   },
-  recordId?: string
+  recordId?: string,
+  log = true
 ) {
   const base: Record<string, any> = {
     "json": (obj: object) => JSON.stringify(obj)
   }
-  if (fields && recordId) {
+  if (fields && recordId && store.input) {
     await Promise.all(
       (store.input as string[]).map(async id => {
         const val = fields[id]
@@ -164,7 +185,7 @@ async function create(
                     const name = (val as IOpenAttachment[])[index].name
                     let extension = name.substring(name.lastIndexOf("."))
                     if (extension === ".webp") {
-                      extension = ".jpeg"
+                      extension = ".png"
                     }
                     return {"width": 6, "height": 6, "data": res.data, extension}
                   })
@@ -212,7 +233,15 @@ async function create(
     "cmdDelimiter": ["{{", "}}"],
     "failFast": false,
     "errorHandler": (e: Error, raw_code?: string) => {
-      console.log(e, raw_code)
+      if (fields && recordId && store.input) {
+        console.log(e, raw_code)
+      }
+      if (log) {
+        layout.value?.error(raw_code ?? "err", {
+          "tableId": store.tableId,
+          recordId
+        })
+      }
       return "nil"
     }
   })
@@ -236,7 +265,7 @@ onMounted(async () => {
     wordPreviewSpin.value = true
     if (data.tableId && data.fieldId && data.recordId) {
       const record = await table.getRecordById(data.recordId)
-      wordPreview.value = await create(record.fields, data.recordId)
+      wordPreview.value = await create(record.fields, data.recordId, false)
     }
     wordPreviewSpin.value = false
   })
