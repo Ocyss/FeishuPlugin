@@ -1,11 +1,13 @@
 {
   "name": "id-card-withdrawal",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173",
-    "lint:fixJs": "eslint --fix --cache --ext .js,.jsx,.ts,.tsx --format=pretty ./src "
+    "lint": "eslint --ext .js,.vue --ignore-path .eslintignore .",
+    "lintfix": "eslint --fix --ext .js,.vue --ignore-path .eslintignore ."
   },
   "dependencies": {
     "@fekit/idcard": "^1.0.2",
@@ -38,7 +40,7 @@
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.12.0",
-    "@vitejs/plugin-vue": "^3.2.0",
+    "@vitejs/plugin-vue": "^4.5.1",
     "@vue/tsconfig": "^0.4.0",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.0.0",
@@ -56,7 +58,7 @@
     "unplugin-auto-import": "^0.16.7",
     "unplugin-vue-components": "^0.25.2",
     "unplugin-vue-router": "^0.7.0",
-    "vite": "^3.2.7",
+    "vite": "^5.0.4",
     "vite-plugin-node-polyfills": "^0.17.0",
     "vite-plugin-top-level-await": "^1.3.1"
   }
