@@ -183,5 +183,10 @@
   "blind watermark": "盲水印",
   "Steganography": "隐写术",
   "watermark": "明水印",
-  "decode watermark": "盲水印解密"
+  "decode watermark": "盲水印解密",
+  "Update Table data": "更新数据表",
+  "Help": "使用说明",
+  "Process": "处理",
+  "Process all": "处理全部",
+  "Process part": "处理部分"
 }

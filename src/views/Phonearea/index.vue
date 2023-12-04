@@ -25,78 +25,58 @@ meta:
     299 291a17.85 17.85 0 0 1 5.91 1.21l70 30A16.25 16.25 0 0 1 384 336a17.41
     17.41 0 0 1-.39 3.37z" fill="currentColor"></path></svg>
 </route>
-<template>
-  <Layout ref="layout">
-    <form-select
-      :msg="t('Select Data Table')"
-      v-model:value="store.tableId"
-      :options="store.tableMetaList"
-      @update:value="() => store.getField()" />
-    <form-select
-      :msg="t('Select PhoneNumber field')"
-      v-model:value="store.input"
-      :options="store.filterFields(FieldType.Text)" />
-    <form-select
-      :msg="t('Select output format')"
-      v-model:value="formData.format"
-      :options="formats" />
-    <form-select
-      :msg="t('Select Output Field')"
-      v-model:value="store.output"
-      :options="store.filterFields(FieldType.Text)" />
-    <form-start @update:click="main" :disableds="disableds" />
-  </Layout>
-</template>
 
 <script setup lang="ts">
-import axios from "axios"
-import {computed, onMounted, ref} from "vue"
-import {useI18n} from "vue-i18n"
+import axios from 'axios'
+import { TextFieldToStr } from '@/utils/field'
 
-import Layout from "@/components/layout.vue"
-import {store} from "@/store.js"
-import {TextFieldToStr} from "@/utils"
+import { useData } from '@/hooks/useData'
 
-const layout = ref<InstanceType<typeof Layout> | null>(null)
+const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
-const {t} = useI18n()
+const formData = reactive<ModelType>({
+  input: null,
+  output: null,
+  format: 1,
+})
 
-const formData = reactive({
-  "format": 1
+onGetField(() => {
+  formData.input = null
+  formData.output = null
 })
 
 const formats = computed(() => [
-  {"name": t("Province/City (Carrier)"), "id": 1},
-  {"name": t("Province/City"), "id": 2},
-  {"name": t("Province"), "id": 3},
-  {"name": t("City"), "id": 4},
-  {"name": t("Carrier"), "id": 5},
-  {"name": t("Card Type"), "id": 6}
+  { id: 1, name: t('Province/City (Carrier)') },
+  { id: 2, name: t('Province/City') },
+  { id: 3, name: t('Province') },
+  { id: 4, name: t('City') },
+  { id: 5, name: t('Carrier') },
+  { id: 6, name: t('Card Type') },
 ])
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!store.input, t("Input can not be empty")],
-  [!store.output, t("Output can not be empty")]
+  [!formData.input, t('Input can not be empty')],
+  [!formData.output, t('Output can not be empty')],
 ])
 
 async function request(phone: string, err = 0) {
-  if (err > 2) {
-    return ""
-  }
+  if (err > 2)
+    return ''
+
   try {
     // 来源： https://api.aa1.cn/doc/phone-location-songzixian.html
     // ICP备2022049398号-1
     const res = await axios.get(
-      "https://api.songzixian.com/api/phone-location?dataSource=PHONE_NUMBER_LOCATION&phoneNumber=" +
-        phone
+      `https://api.songzixian.com/api/phone-location?dataSource=PHONE_NUMBER_LOCATION&phoneNumber=${
+      phone}`,
     )
     if (res.status !== 200 || res.data.code !== 200) {
-      if (res.data.code === 10001 || res.data.code === 500) {
-        return t("Wrong mobile number")
-      }
-      throw new Error("status error")
+      if (res.data.code === 10001 || res.data.code === 500)
+        return t('Wrong mobile number')
+
+      throw new Error('status error')
     }
-    const {province, city, carrier, simType} = res.data.data
+    const { carrier, city, province, simType } = res.data.data
     switch (formData.format) {
       case 1:
         return `${province}${city}(${carrier})`
@@ -111,59 +91,88 @@ async function request(phone: string, err = 0) {
       case 6:
         return simType
     }
-  } catch {
+  }
+  catch {
     await new Promise(resolve =>
       setTimeout(() => {
         resolve(void 0)
-      }, 2000)
+      }, 2000),
     )
     return request(phone, err + 1)
   }
-  return ""
+  return ''
 }
 
 async function start(records: IRecord[], pr: any) {
   const processedRecords = await Promise.all(
-    records.map(async record => {
+    records.map(async (record) => {
       pr.add()
-      if (store.check() && store.input in record.fields && store.output in record.fields) {
-        const phone = TextFieldToStr(record.fields[store.input] as IOpenSegment[])
-        const expression =
-          /^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$/
-        if (!expression.test(phone)) {
+      if (formData.input && formData.output && formData.input in record.fields && formData.output in record.fields) {
+        const phone = TextFieldToStr(record.fields[formData.input] as IOpenSegment[])
+        const expression
+          = /^(?:13\d|14[014-9]|15[0-35-9]|16[2567]|17[0-8]|18\d|19[0-35-9])\d{8}$/
+        if (!expression.test(phone))
           return null
-        }
-        record.fields[store.output] = await request(phone)
+
+        record.fields[formData.output] = await request(phone)
         return record
       }
       return null
-    })
+    }),
   )
   return processedRecords.filter(record => record !== null) as IRecord[]
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.update(true, t('Step 1 - Getting Table'))
   layout.value?.init()
-  if (store.check()) {
-    const table = await bitable.base.getTableById(store.tableId)
-    layout.value?.update(true, t("Step 2 - Getting Records"))
+  if (table.value) {
+    layout.value?.update(true, t('Step 2 - Getting Records'))
     await layout.value?.getRecords(
-      table,
-      async ({records, pr}) => {
-        return table.setRecords(await start(records.records, pr))
+      table.value,
+      async ({ pr, records }) => {
+        return table.value!.setRecords(await start(records.records, pr))
       },
       all,
-      30
+      30,
     )
   }
   layout.value?.finish()
 }
 
 onMounted(async () => {
-  store.init(layout.value!)
+  getTable()
 })
 </script>
+
+<template>
+  <Layout ref="layout">
+    <form-select
+      v-model:value="tableId"
+      :msg="t('Select Data Table')"
+      :options="tableMetaList"
+    />
+    <form-select
+      v-model:value="formData.input"
+      :msg="t('Select PhoneNumber field')"
+      :options="filterFields(FieldType.Text)"
+    />
+    <form-select
+      v-model:value="formData.format"
+      :msg="t('Select output format')"
+      :options="formats"
+    />
+    <form-select
+      v-model:value="formData.output"
+      :msg="t('Select Output Field')"
+      :options="filterFields(FieldType.Text)"
+    />
+    <form-start
+      :disableds="disableds"
+      @update:click="main"
+    />
+  </Layout>
+</template>
 
 <i18n locale="zh" lang="json">
 {

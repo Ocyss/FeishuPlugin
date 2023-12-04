@@ -1,7 +1,65 @@
+<script lang="ts" setup>
+const props = withDefaults(defineProps<Props>(), {
+  clearable: true,
+  emptyMsg: window.$t(
+    'There is no data. There is a high probability that the field type has been filtered. Please check whether there are related types.',
+  ),
+  emptyRefresh: () => {
+    window.$message?.info(window.$t('Invalid, refresh method not defined'))
+  },
+  labelField: 'name',
+  msg: '',
+  multiple: false,
+  valueField: 'id',
+})
+
+const emit = defineEmits<{
+  (e: 'create', label: string, f: (v: any) => void): void
+  (e: 'update:value', value: any, option: any): void
+}>()
+
+const { t } = useI18n()
+
+interface Props {
+  clearable?: boolean
+  disabled?: boolean
+  emptyMsg?: string
+  emptyRefresh?: () => void
+  input?: boolean
+  labelField?: string
+  msg: string
+  multiple?: boolean
+  options?: any[]
+  renderLabel?: any
+  renderTag?: any
+  tooltip?: string
+  value: any
+  valueField?: string
+}
+
+function emitUpdate(value: any, option: any) {
+  emit('update:value', value, option)
+}
+
+function emitCreate(label: string) {
+  let res: any
+  emit('create', label, (v: any) => {
+    res = v
+  })
+  return res
+}
+</script>
+
 <template>
-  <n-form-item :label="props.msg" size="large">
+  <n-form-item
+    :label="props.msg"
+    size="large"
+  >
     <template #label>
-      <form-select-label :msg="msg" :tooltip="tooltip" />
+      <form-select-label
+        :msg="msg"
+        :tooltip="tooltip"
+      />
     </template>
     <n-select
       style="width: 100%"
@@ -18,11 +76,15 @@
       :render-label="renderLabel"
       :render-tag="renderTag"
       @update:value="emitUpdate"
-      @create="emitCreate">
+      @create="emitCreate"
+    >
       <template #empty>
         <n-empty :description="emptyMsg">
           <template #extra>
-            <n-button size="small" @click="emptyRefresh">
+            <n-button
+              size="small"
+              @click="emptyRefresh"
+            >
               {{ t("refresh") }}
             </n-button>
           </template>
@@ -31,58 +93,6 @@
     </n-select>
   </n-form-item>
 </template>
-
-<script lang="ts" setup>
-const {t} = useI18n()
-
-interface Props {
-  msg: string
-  value: any
-  options?: any[]
-  multiple?: boolean
-  labelField?: string
-  valueField?: string
-  input?: boolean
-  tooltip?: string
-  clearable?: boolean
-  disabled?: boolean
-  renderTag?: any
-  renderLabel?: any
-  emptyMsg?: string
-  emptyRefresh?: () => void
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  "msg": "",
-  "multiple": false,
-  "labelField": "name",
-  "valueField": "id",
-  "clearable": true,
-  "emptyRefresh": () => {
-    window.$message?.info(window.$t("Invalid, refresh method not defined"))
-  },
-  "emptyMsg": window.$t(
-    "There is no data. There is a high probability that the field type has been filtered. Please check whether there are related types."
-  )
-})
-
-const emit = defineEmits<{
-  (e: "update:value", value: any, option: any): void
-  (e: "create", label: string, f: (v: any) => void): void
-}>()
-
-const emitUpdate = (value: any, option: any) => {
-  emit("update:value", value, option)
-}
-
-const emitCreate = (label: string) => {
-  let res: any
-  emit("create", label, (v: any) => {
-    res = v
-  })
-  return res
-}
-</script>
 
 <style lang="scss" scoped>
 .n-form-item :deep(.n-form-item-label__text) {

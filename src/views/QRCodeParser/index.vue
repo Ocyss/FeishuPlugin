@@ -23,87 +23,101 @@ meta:
     3H19V19h-1.5v-1.5zM22 7h-2V4h-3V2h5v5zm0 15v-5h-2v3h-3v2h5zM2
     22h5v-2H4v-3H2v5zM2 2v5h2V4h3V2H2z" fill="currentColor"></path></svg>
 </route>
-<template>
-  <Layout ref="layout">
-    <form-select
-      :msg="t('Select Data Table')"
-      v-model:value="store.tableId"
-      :options="store.tableMetaList"
-      @update:value="() => store.getField()" />
-    <form-select
-      :msg="t('Select QR Code / Barcode Attachment Field')"
-      v-model:value="store.input"
-      :options="store.filterFields(FieldType.Attachment)" />
-    <form-select
-      :msg="t('Select Output Field')"
-      v-model:value="store.output"
-      :options="store.filterFields(FieldType.Text)" />
-    <form-start @update:click="main" :disableds="disableds" operate />
-  </Layout>
-</template>
 
 <script setup lang="ts">
-import {BrowserMultiFormatReader} from "@zxing/library"
+import { BrowserMultiFormatReader } from '@zxing/library'
+import { useData } from '@/hooks/useData'
 
-import Layout from "@/components/layout.vue"
-import {store} from "@/store.js"
+const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
-const {t} = useI18n()
-const layout = ref<InstanceType<typeof Layout> | null>(null)
+const formData = reactive<ModelType>({
+  input: null,
+  output: null,
+})
+
+onGetField(() => {
+  formData.input = null
+  formData.output = null
+})
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!store.input, t("Input can not be empty")],
-  [!store.output, t("Output can not be empty")]
+  [!formData.input, t('Input can not be empty')],
+  [!formData.output, t('Output can not be empty')],
 ])
 
 async function decode(srcCell: string[], dstCell: ICell, err = 0) {
-  if (err > 10) {
+  if (err > 10)
     return
-  }
+
   try {
-    let content = ""
+    let content = ''
     for (const item of srcCell) {
       const img = new Image()
-      img.crossOrigin = ""
+      img.crossOrigin = ''
       img.src = item
       const reader = new BrowserMultiFormatReader()
       const res = await reader.decodeFromImage(img)
-      content += res.getText() + "\n"
+      content += `${res.getText()}\n`
     }
     content = content.slice(0, -1)
     await dstCell.setValue(content)
-  } catch {
+  }
+  catch {
     await decode(srcCell, dstCell, err + 1)
   }
 }
 
 async function start(table: ITable, record: IRecordType) {
-  if (store.check()) {
+  if (formData.output && formData.input) {
     const [srcCell, dstCell] = await Promise.all([
-      (await table.getField<IAttachmentField>(store.input)).getAttachmentUrls(record),
-      record.getCellByField(store.output)
+      (await table.getField<IAttachmentField>(formData.input)).getAttachmentUrls(record),
+      record.getCellByField(formData.output),
     ])
     await decode(srcCell, dstCell)
   }
 }
 
 async function main() {
-  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.update(true, t('Step 1 - Getting Table'))
   layout.value?.init()
-  if (store.check()) {
-    const table = await bitable.base.getTableById(store.tableId)
-    layout.value?.update(true, t("Step 2 - Getting Records"))
-    const recordList = await table.getRecordList()
+  if (table.value) {
+    layout.value?.update(true, t('Step 2 - Getting Records'))
+    const recordList = await table.value.getRecordList()
     const promises: Array<Promise<unknown>> = []
-    for (const record of recordList) {
-      promises.push(start(table, record))
-    }
+    for (const record of recordList)
+      promises.push(start(table.value, record))
+
     await Promise.all(promises)
   }
   layout.value?.finish()
 }
 
 onMounted(async () => {
-  store.init(layout.value!)
+  getTable()
 })
 </script>
+
+<template>
+  <Layout ref="layout">
+    <form-select
+      v-model:value="tableId"
+      :msg="t('Select Data Table')"
+      :options="tableMetaList"
+    />
+    <form-select
+      v-model:value="formData.input"
+      :msg="t('Select QR Code / Barcode Attachment Field')"
+      :options="filterFields(FieldType.Attachment)"
+    />
+    <form-select
+      v-model:value="formData.output"
+      :msg="t('Select Output Field')"
+      :options="filterFields(FieldType.Text)"
+    />
+    <form-start
+      :disableds="disableds"
+      operate
+      @update:click="main"
+    />
+  </Layout>
+</template>

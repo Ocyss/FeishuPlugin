@@ -27,82 +27,46 @@ meta:
     19.334V17h2v2h2v-8h2v8.334A1.668 1.668 0 0 1 5.333 21z"
     fill="currentColor"></path></svg>
 </route>
-<template>
-  <Layout ref="layout">
-    <form-select
-      :msg="t('Select Data Table')"
-      v-model:value="store.tableId"
-      :options="store.tableMetaList"
-      @update:value="() => store.getView()" />
-    <form-select
-      :msg="t('Select View')"
-      v-model:value="store.viewId"
-      :options="store.viewMetaList"
-      @update:value="() => store.getField()" />
-    <form-select
-      :msg="t('Select Input Field')"
-      v-model:value="store.input"
-      :options="store.filterFields(FieldType.Text)"
-      @update:value="inputUpdate" />
-    <form-select
-      :msg="t('Select Output Field')"
-      v-model:value="formData.fieldList"
-      :options="
-        store.fieldMetaList?.map(item => {
-          // 拷贝防止影响其他值
-          const val: SelectOption = {...item}
-          if (val.id === store.input) {
-            val.disabled = true
-          }
-          return val
-        })
-      "
-      multiple
-      @update:value="fieldUpdate" />
-    <form-start @update:click="main" :disableds="disableds">
-      <n-button type="info" size="large" @click="() => toCopy(true)">
-        {{ t("Copy as Object") }}
-      </n-button>
-      <n-button type="info" size="large" @click="() => toCopy(false)">
-        {{ t("Copy as Array") }}
-      </n-button>
-    </form-start>
-  </Layout>
-</template>
 
 <script lang="ts" setup>
-import {type SelectOption} from "naive-ui"
-import useClipboard from "vue-clipboard3"
-import {useI18n} from "vue-i18n"
+import type { SelectOption } from 'naive-ui'
+import { useClipboard } from '@vueuse/core'
+import type { Progress } from '@/utils'
+import { TextFieldToStr, fieldDefault } from '@/utils/field'
+import { useData } from '@/hooks/useData'
 
-import Layout from "@/components/layout.vue"
-import {store} from "@/store.js"
-import {fieldDefault, type Progress, TextFieldToStr} from "@/utils"
+const { layout, t, table, tableId, viewId, viewMetaList, fieldMetaList, onFieldTraverse, fieldName, onGetField, fieldId, fieldType, getTable, tableMetaList, filterFields, message } = useData({ view: true })
 
-const {t} = useI18n()
-const layout = ref<InstanceType<typeof Layout> | null>(null)
+const { copy } = useClipboard()
 
-const {toClipboard} = useClipboard()
+const formData = reactive<{ input: null | string, fieldList: string[] }>({
+  input: null,
+  fieldList: [],
+})
+onGetField(() => {
+  formData.input = null
+  formData.fieldList = []
+})
+
+onFieldTraverse((item) => {
+  formData.fieldList.push(item.id)
+})
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!store.input, t("Input can not be empty")],
-  [!store.viewId, t("View can not be empty")]
+  [!formData.input, t('Input can not be empty')],
+  [!viewId.value, t('View can not be empty')],
 ])
-
-const formData = reactive<{fieldList: string[]}>({
-  "fieldList": []
-})
 
 function start(records: IRecord[], pr: Progress) {
   return records
-    .map(record => {
+    .map((record) => {
       pr.add()
-      if (store.check(false) && store.input in record.fields) {
-        const text = TextFieldToStr(record.fields[store.input])
+      if (formData.input && formData.input in record.fields) {
+        const text = TextFieldToStr(record.fields[formData.input])
         const track = {
-          "tableId": store.tableId,
-          "viewId": store.viewId,
-          "recordId": record.recordId
+          recordId: record.recordId,
+          tableId: tableId.value,
+          viewId: viewId.value,
         }
         try {
           const obj = JSON.parse(text)
@@ -111,20 +75,22 @@ function start(records: IRecord[], pr: Progress) {
               obj.forEach((value: any, index: number) => {
                 record.fields[formData.fieldList[index]] = value
               })
-            } else {
-              layout.value?.error(t("Array Length Error"), track)
             }
-          } else if (typeof obj === "object" && obj !== null) {
+            else {
+              layout.value?.error(t('Array Length Error'), track)
+            }
+          }
+          else if (typeof obj === 'object' && obj !== null) {
             for (const key in obj) {
-              const fieldId = store.id(key)
-              if (fieldId && formData.fieldList.some(item => item === fieldId)) {
-                record.fields[fieldId] = obj[key]
-              }
+              const id = fieldId(key) as string
+              if (id && formData.fieldList.includes(id))
+                record.fields[id] = obj[key]
             }
           }
           return record
-        } catch (e) {
-          layout.value?.error(t("Not in JSON Format"), track)
+        }
+        catch (e) {
+          layout.value?.error(t('Not in JSON Format'), track)
         }
       }
       return null
@@ -133,31 +99,29 @@ function start(records: IRecord[], pr: Progress) {
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.update(true, t('Step 1 - Getting Table'))
   layout.value?.init()
-  if (store.check(false)) {
-    const table = await bitable.base.getTableById(store.tableId)
-    layout.value?.update(true, t("Step 2 - Getting Records"))
+  if (table.value) {
+    layout.value?.update(true, t('Step 2 - Getting Records'))
     await layout.value?.getRecords(
-      table,
-      ({records, pr}) => {
-        return table.setRecords(start(records.records, pr))
+      table.value,
+      ({ pr, records }) => {
+        return table.value!.setRecords(start(records.records, pr))
       },
       all,
-      3000
+      3000,
     )
   }
   layout.value?.finish()
 }
 
 function inputUpdate() {
-  formData.fieldList =
-    store.fieldMetaList?.map(item => item.id).filter(item => item !== store.input) ?? []
+  formData.fieldList = fieldMetaList.value?.map(item => item.id).filter(item => item !== formData.input) ?? []
 }
 
 function fieldUpdate() {
   const orderMap: any = {}
-  store.fieldMetaList?.forEach((element, index) => {
+  fieldMetaList.value?.forEach((element, index) => {
     orderMap[element.id] = index
   })
   formData.fieldList.sort((a, b) => {
@@ -168,24 +132,74 @@ function fieldUpdate() {
 async function toCopy(flag = true) {
   const res: Record<string, any> = {}
   for (const field of formData.fieldList) {
-    const name = store.name(field)
-    if (name) {
-      res[name] = fieldDefault(store.type(field))
-    }
+    const name = fieldName(field)
+    if (name)
+      res[name] = fieldDefault(fieldType(field))
   }
-  if (flag) {
-    await toClipboard(JSON.stringify(res, null, "  "))
-  } else {
-    await toClipboard(JSON.stringify(Object.values(res), null, "  "))
-  }
-  alert(t("Copy Successful"))
+  if (flag)
+    await copy(JSON.stringify(res, null, '  '))
+  else
+    await copy(JSON.stringify(Object.values(res), null, '  '))
+  message.success(t('Copy Successful'))
 }
 
 onMounted(async () => {
-  const data = await store.init(layout.value!, true)
-  const ids = data.fieldMetaList?.map(item => item.id)
-  if (ids) {
-    formData.fieldList = [...ids]
-  }
+  getTable()
 })
 </script>
+
+<template>
+  <Layout ref="layout">
+    <form-select
+      v-model:value="tableId"
+      :msg="t('Select Data Table')"
+      :options="tableMetaList"
+    />
+    <form-select
+      v-model:value="viewId"
+      :msg="t('Select View')"
+      :options="viewMetaList"
+    />
+    <form-select
+      v-model:value="formData.input"
+      :msg="t('Select Input Field')"
+      :options="filterFields(FieldType.Text)"
+      @update:value="inputUpdate"
+    />
+    <form-select
+      v-model:value="formData.fieldList"
+      :msg="t('Select Output Field')"
+      :options="
+        fieldMetaList?.map(item => {
+          // 拷贝防止影响其他值
+          const val: SelectOption = { ...item }
+          if (val.id === formData.input) {
+            val.disabled = true
+          }
+          return val
+        })
+      "
+      multiple
+      @update:value="fieldUpdate"
+    />
+    <form-start
+      :disableds="disableds"
+      @update:click="main"
+    >
+      <n-button
+        type="info"
+        size="large"
+        @click="() => toCopy(true)"
+      >
+        {{ t("Copy as Object") }}
+      </n-button>
+      <n-button
+        type="info"
+        size="large"
+        @click="() => toCopy(false)"
+      >
+        {{ t("Copy as Array") }}
+      </n-button>
+    </form-start>
+  </Layout>
+</template>

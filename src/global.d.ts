@@ -1,4 +1,5 @@
 interface Window {
+  $message?: MessageApiInjection
   $t?: VueI18nTranslation<
   Messages,
   Locales,
@@ -6,5 +7,18 @@ interface Window {
     [K in keyof DefineLocaleMessage]: DefineLocaleMessage[K];
   }>
   >
-  $message?: MessageApiInjection
+}
+
+interface Track {
+  cellId?: null | string
+  fieldId?: null | string
+  recordId?: null | string
+  tableId?: null | string
+  viewId?: null | string
+}
+
+interface ModelType {
+  input?: null | string
+  output?: null | string
+  [key: string]: any
 }

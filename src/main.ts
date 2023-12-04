@@ -1,54 +1,53 @@
-import { bitable } from "@lark-base-open/js-sdk"
-import { createApp } from "vue"
-import { createI18n } from "vue-i18n"
+import { bitable } from '@lark-base-open/js-sdk'
+import { createApp } from 'vue'
+import { createI18n } from 'vue-i18n'
 import {
   createRouter,
   createWebHashHistory,
-  setupDataFetchingGuard
-} from "vue-router/auto"
+  setupDataFetchingGuard,
+} from 'vue-router/auto'
 
-import zh from "@/locales/zh.json"
-
-import App from "./App.vue"
+import App from '@/App.vue'
+import zh from '@/locales/zh.json'
 
 const router = createRouter({
-  "history": createWebHashHistory()
+  history: createWebHashHistory(),
 })
 
 setupDataFetchingGuard(router)
 
 const i18n = createI18n({
-  "locale": "en",
-  "fallbackLocale": "en",
-  "legacy": false,
-  "allowComposition": true,
-  "silentTranslationWarn": true,
-  "silentFallbackWarn": true,
-  "formatFallbackMessages": true,
-  "messages": {
-    "en": {},
+  allowComposition: true,
+  fallbackLocale: 'en',
+  formatFallbackMessages: true,
+  legacy: false,
+  locale: 'en',
+  messages: {
+    'de': {},
+    'en': {},
+    'es': {},
+    'fr': {},
+    'hi': {},
+    'id': {},
+    'it': {},
+    'ja': {},
+    'ko': {},
+    'pt': {},
+    'ru': {},
+    'th': {},
+    'vi': {},
     zh,
-    "zh-TW": {},
-    "zh-HK": {},
-    "ja": {},
-    "fr": {},
-    "hi": {},
-    "id": {},
-    "it": {},
-    "ko": {},
-    "pt": {},
-    "ru": {},
-    "th": {},
-    "vi": {},
-    "de": {},
-    "es": {}
-  }
+    'zh-HK': {},
+    'zh-TW': {},
+  },
+  silentFallbackWarn: true,
+  silentTranslationWarn: true,
 })
 
-const lang = await bitable.bridge.getLanguage()
-const theme = await bitable.bridge.getTheme()
-i18n.global.locale.value = lang
+bitable.bridge.getLanguage().then((language) => {
+  i18n.global.locale.value = language
+})
 
-const app = createApp(App, { lang, theme })
+const app = createApp(App)
 
-app.use(router).use(i18n).mount("#app")
+app.use(router).use(i18n).mount('#app')

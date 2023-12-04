@@ -1,32 +1,32 @@
-import axios from "axios"
+import axios from 'axios'
 
 const request = axios.create({
-  "timeout": 2000
+  timeout: 2000,
 })
 
 request.interceptors.request.use(
-  function (config) {
+  (config) => {
     return config
   },
-  function (error) {
+  (error) => {
     // return Promise.reject(error);
     return error
-  }
+  },
 )
 
 request.interceptors.response.use(
-  function (res) {
+  (res) => {
     return res
   },
-  function (error) {
+  (error) => {
     // return Promise.reject(error);
     return error
-  }
+  },
 )
 
-declare module "axios" {
+declare module 'axios' {
   interface AxiosInstance {
-    (config: AxiosRequestConfig): any;
+    (config: AxiosRequestConfig): any
   }
 }
 

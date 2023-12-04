@@ -26,55 +26,46 @@ meta:
     20h6"></path></g></svg>
 </route>
 
-<template>
-  <Layout ref="layout">
-    <form-select
-      :msg="t('Select Data Table')"
-      v-model:value="store.tableId"
-      :options="store.tableMetaList"
-      @update:value="() => store.getField()" />
-    <form-select
-      :msg="t('Select Source Field')"
-      v-model:value="store.input"
-      :options="store.filterFields(FieldType.Text)" />
-    <form-select
-      :msg="t('Select Output Field')"
-      v-model:value="store.output"
-      :options="store.filterFields(FieldType.Text)" />
-    <form-start @update:click="main" :disableds="disableds" />
-  </Layout>
-</template>
-
 <script setup lang="ts">
-import {Liquid} from "liquidjs"
+import { Liquid } from 'liquidjs'
+import Layout from '@/components/layout.vue'
+import type { Progress } from '@/utils'
+import { TextFieldToStr } from '@/utils/field'
+import { useData } from '@/hooks/useData'
 
-import Layout from "@/components/layout.vue"
-import {store} from "@/store.js"
-import {Progress, TextFieldToStr} from "@/utils"
+const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields, fieldName, fieldType } = useData()
 
-const {t} = useI18n()
-const layout = ref<InstanceType<typeof Layout> | null>(null)
 const engine = new Liquid()
 
+const formData = reactive<ModelType>({
+  input: null,
+  output: null,
+})
+
+onGetField(() => {
+  formData.input = null
+  formData.output = null
+})
+
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!store.input, t("Input can not be empty")],
-  [!store.output, t("Output can not be empty")]
+  [!formData.input, t('Input can not be empty')],
+  [!formData.output, t('Output can not be empty')],
 ])
 
 async function start(records: IRecord[], pr?: Progress) {
   return records
-    .map(record => {
+    .map((record) => {
       pr?.add()
-      if (!store.input || !(store.input in record.fields)) {
+      if (!formData.input || !(formData.input in record.fields))
         return null
-      }
-      const text = TextFieldToStr(record.fields[store.input] as IOpenSegment[])
+
+      const text = TextFieldToStr(record.fields[formData.input] as IOpenSegment[])
       const engineData: any = {}
       for (const field in record.fields) {
-        const name = store.name(field)
+        const name = fieldName(field)
         if (name) {
           engineData[name] = record.fields[field]
-          switch (store.type(field)) {
+          switch (fieldType(field)) {
             case FieldType.DateTime:
               engineData[name] /= 1000
               break
@@ -82,31 +73,54 @@ async function start(records: IRecord[], pr?: Progress) {
         }
       }
       const res = engine.parseAndRenderSync(text, engineData)
-      record.fields[store.output!] = res
+      record.fields[formData.output!] = res
       return record
     })
     .filter(record => record !== null) as IRecord[]
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.update(true, t('Step 1 - Getting Table'))
   layout.value?.init()
-  if (store.check()) {
-    const table = await bitable.base.getTableById(store.tableId)
-    layout.value?.update(true, t("Step 2 - Getting Records"))
+  if (table.value) {
+    layout.value?.update(true, t('Step 2 - Getting Records'))
     await layout.value?.getRecords(
-      table,
-      async ({records, pr}) => {
-        return table.setRecords(await start(records.records, pr))
+      table.value,
+      async ({ pr, records }) => {
+        return table.value?.setRecords(await start(records.records, pr))
       },
       all,
-      500
+      500,
     )
   }
   layout.value?.finish()
 }
 
 onMounted(() => {
-  store.init(layout.value!)
+  getTable()
 })
 </script>
+
+<template>
+  <Layout ref="layout">
+    <form-select
+      v-model:value="tableId"
+      :msg="t('Select Data Table')"
+      :options="tableMetaList"
+    />
+    <form-select
+      v-model:value="formData.input"
+      :msg="t('Select Source Field')"
+      :options="filterFields(FieldType.Text)"
+    />
+    <form-select
+      v-model:value="formData.output"
+      :msg="t('Select Output Field')"
+      :options="filterFields(FieldType.Text)"
+    />
+    <form-start
+      :disableds="disableds"
+      @update:click="main"
+    />
+  </Layout>
+</template>

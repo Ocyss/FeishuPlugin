@@ -28,152 +28,163 @@ meta:
     44.2c3.2 9.9-5.2 19.8-15.6 19.8H82.7c-10.4 0-18.8-10-15.6-19.8z"
     fill="currentColor"></path></svg>
 </route>
-<template>
-  <Layout ref="layout">
-    <form-select
-      :msg="t('Select Data Table')"
-      v-model:value="store.tableId"
-      :options="store.tableMetaList"
-      @update:value="() => store.getField()" />
-    <form-select
-      :msg="t('Select ID field')"
-      v-model:value="store.input"
-      :options="store.filterFields(FieldType.Text)" />
-    <form-select
-      :msg="t('Select Output Field')"
-      v-model:value="store.output"
-      :options="store.filterFields([FieldType.Text, FieldType.Number, FieldType.DateTime])" />
-    <form-select
-      :msg="t('Select output format')"
-      v-model:value="formData.format"
-      :options="outputFormat"
-      multiple
-      v-if="store.output && store.type(store.output) == FieldType.Text" />
-    <form-select
-      :msg="t('Select output format')"
-      :value="t('age')"
-      disabled
-      v-else-if="store.output && store.type(store.output) == FieldType.Number" />
-    <form-select
-      :msg="t('Select output format')"
-      :value="t('birthday')"
-      disabled
-      v-else-if="store.output && store.type(store.output) == FieldType.DateTime" />
-    <n-form-item label="强校验">
-      <n-switch />
-    </n-form-item>
-    <form-start @update:click="main" :disableds="disableds" />
-  </Layout>
-</template>
 
 <script setup lang="ts">
-import idcard from "@fekit/idcard"
-import parse from "date-fns/parse"
+import idcard from '@fekit/idcard'
+import parse from 'date-fns/parse'
+import { TextFieldToStr } from '@/utils/field'
+import { useData } from '@/hooks/useData'
 
-import Layout from "@/components/layout.vue"
-import {store} from "@/store.js"
-import {TextFieldToStr} from "@/utils"
+const { layout, t, table, tableId, onGetField, fieldType, getTable, tableMetaList, filterFields } = useData()
 
-const {t} = useI18n()
+const formData = reactive<{ input: string | null, output: string | null, format?: InfoField[] }>({
+  input: null,
+  output: null,
+  format: [],
+})
 
-const layout = ref<InstanceType<typeof Layout> | null>(null)
+onGetField(() => {
+  formData.input = null
+  formData.output = null
+})
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!store.input, t("Input can not be empty")],
-  [!store.output, t("Output can not be empty")]
+  [!formData.input, t('Input can not be empty')],
+  [!formData.output, t('Output can not be empty')],
 ])
 
 const InfoFields = [
-  "gender", // 性别
-  "birthday", // 出生日期
-  "age", // 年龄
-  "adreass", // 籍贯
-  "province", // 省
-  "city", // 市
-  "area", // 区县
-  "zodiac", // 生肖
-  "constellation" // 星座
+  'gender', // 性别
+  'birthday', // 出生日期
+  'age', // 年龄
+  'adreass', // 籍贯
+  'province', // 省
+  'city', // 市
+  'area', // 区县
+  'zodiac', // 生肖
+  'constellation', // 星座
 ] as const
 
 type InfoField = (typeof InfoFields)[number]
 
-const formData = reactive<{format?: InfoField[]}>({
-  "format": []
+const outputFormat = InfoFields.map((item) => {
+  return { id: item, name: t(item) }
 })
 
-const outputFormat = InfoFields.map(item => {
-  return {"name": t(item), "id": item}
-})
-
-function start(recordId: string, val: IOpenCellValue): string | number | null {
+function start(recordId: string, val: IOpenCellValue): null | number | string {
   const text = TextFieldToStr(val as IOpenSegment[])
   const info = idcard(text)
   if (!info) {
-    layout.value?.error(t("ID card format error"), {
-      "tableId": store.tableId!,
-      "fieldId": store.input!,
-      recordId
+    layout.value?.error(t('ID card format error'), {
+      fieldId: formData.input as string,
+      recordId,
+      tableId: tableId.value,
     })
     return null
   }
   const getValueByField = (item: InfoField) => {
-    const textFields = ["province", "area", "city"]
-    if (textFields.includes(item)) {
-      return typeof info[item] === "string" ? info[item] : info[item].text
-    }
+    const textFields = ['province', 'area', 'city']
+    if (textFields.includes(item))
+      return typeof info[item] === 'string' ? info[item] : info[item].text
+
     return info[item]
   }
 
   let res: any
-  switch (store.type(store.output)) {
+  switch (fieldType(formData.output as string)) {
     case FieldType.Text:
-      res = formData.format!.map(item => getValueByField(item)).join(" ")
+      res = formData.format!.map(item => getValueByField(item)).join(' ')
       break
 
     case FieldType.Number:
       res = info.age
       break
     case FieldType.DateTime:
-      res = parse(info.birthday, "yyyy-MM-dd", 0).getTime()
+      res = parse(info.birthday, 'yyyy-MM-dd', 0).getTime()
   }
   return res
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.update(true, t('Step 1 - Getting Table'))
   layout.value?.init()
-  if (store.check()) {
-    const table = await bitable.base.getTableById(store.tableId)
-    layout.value?.update(true, t("Step 2 - Getting Records"))
+  if (table.value) {
+    layout.value?.update(true, t('Step 2 - Getting Records'))
     await layout.value?.getRecords(
-      table,
-      ({records, pr}) => {
+      table.value,
+      ({ pr, records }) => {
         const newVals = records.records
-          .map(item => {
+          .map((item) => {
             pr.add()
             if (
-              store.check() &&
-              store.input in item.fields &&
-              store.output in item.fields &&
-              item.fields[store.input]
+              formData.input && formData.output
+              && formData.input in item.fields
+              && formData.output in item.fields
+              && item.fields[formData.input]
             ) {
-              const val = item.fields[store.input]
-              item.fields[store.output] = start(item.recordId, val)
+              const val = item.fields[formData.input]
+              item.fields[formData.output] = start(item.recordId, val)
               return item
             }
             return null
           })
           .filter(item => item !== null) as IRecord[]
-        return table.setRecords(newVals)
+        return table.value!.setRecords(newVals)
       },
       all,
-      5000
+      5000,
     )
   }
   layout.value?.finish()
 }
 
 onMounted(async () => {
-  store.init(layout.value!)
+  getTable()
 })
 </script>
+
+<template>
+  <Layout ref="layout">
+    <form-select
+      v-model:value="tableId"
+      :msg="t('Select Data Table')"
+      :options="tableMetaList"
+    />
+    <form-select
+      v-model:value="formData.input"
+      :msg="t('Select ID field')"
+      :options="filterFields(FieldType.Text)"
+    />
+    <form-select
+      v-model:value="formData.output"
+      :msg="t('Select Output Field')"
+      :options="filterFields([FieldType.Text, FieldType.Number, FieldType.DateTime])"
+    />
+    <form-select
+      v-if="formData.output && fieldType(formData.output) === FieldType.Text"
+      v-model:value="formData.format"
+      :msg="t('Select output format')"
+      :options="outputFormat"
+      multiple
+    />
+    <form-select
+      v-else-if="formData.output && fieldType(formData.output) === FieldType.Number"
+      :msg="t('Select output format')"
+      :value="t('age')"
+      disabled
+    />
+    <form-select
+      v-else-if="formData.output && fieldType(formData.output) === FieldType.DateTime"
+      :msg="t('Select output format')"
+      :value="t('birthday')"
+      disabled
+    />
+    <n-form-item label="强校验">
+      <n-switch />
+    </n-form-item>
+    <form-start
+      :disableds="disableds"
+      @update:click="main"
+    />
+  </Layout>
+</template>

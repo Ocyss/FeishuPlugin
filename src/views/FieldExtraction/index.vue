@@ -20,128 +20,73 @@ meta:
     12H9v2H7v-2H5v-2h2v-2h2v2h2v2zm2-1.5V13h6v1.5h-6zm0 3V16h4v1.5h-4z"
     fill="currentColor"></path></svg>
 </route>
-<template>
-  <Layout ref="layout">
-    <form-select
-      :msg="t('Select Data Table')"
-      v-model:value="store.tableId"
-      :options="store.tableMetaList"
-      @update:value="() => store.getField()" />
-    <form-select
-      :msg="t('Select Extraction Field')"
-      v-model:value="store.input"
-      :options="store.fieldMetaList" />
-    <form-select
-      :msg="t('Select Extraction Attribute')"
-      v-model:value="formData.key"
-      input
-      :tooltip="
-        t(
-          'Select the attributes that need to be extracted. If there are no attributes in the table, they can be entered manually. Some fields have no attributes that can be extracted'
-        )
-      "
-      v-if="store.type(store.input) && store.type(store.input) != FieldType.DateTime"
-      :options="fieldInfos" />
-    <form-select
-      :msg="t('Select date format')"
-      v-model:value="formData.dateKey"
-      input
-      :tooltip="
-        t(
-          `Select the date format, which can be entered manually. For the format, please refer to the document `
-        ) +
-        `<a href=&quot;https://date-fns.org/v2.6.0/docs/format&quot; target=&quot;_blank&quot;>date-fns format</a>`
-      "
-      v-else-if="store.type(store.input)"
-      :options="dateFormatter"
-      :render-label="dateRenderLabel" />
-    <form-select
-      :msg="t('Select Separator')"
-      v-model:value="formData.delimiter"
-      input
-      :tooltip="
-        t(
-          'Select the delimiter for multi-line text, which can be entered manually. \n\\n is a newline, \\t is a tab character'
-        )
-      "
-      :options="delimiter" />
-    <form-select
-      :msg="t('Select Output Field')"
-      v-model:value="store.output"
-      :options="store.filterFields(FieldType.Text)" />
-    <form-start @update:click="main" :disableds="disableds" />
-  </Layout>
-</template>
 
 <script setup lang="ts">
-import {FieldType} from "@lark-base-open/js-sdk"
-import format from "date-fns/format"
-import {NTime, type SelectOption} from "naive-ui"
-import {type VNodeChild} from "vue"
-import {useI18n} from "vue-i18n"
+import { FieldType } from '@lark-base-open/js-sdk'
+import format from 'date-fns/format'
+import { NTime, type SelectOption } from 'naive-ui'
+import type { VNodeChild } from 'vue'
+import { dateFormatterList, delimiterList } from '@/utils/format'
+import { FieldInfos } from '@/utils/field'
+import { useData } from '@/hooks/useData'
 
-import Layout from "@/components/layout.vue"
-import {store} from "@/store.js"
-import {dateFormatterList, delimiterList, FieldInfos} from "@/utils"
-
-const {t} = useI18n()
-const layout = ref<InstanceType<typeof Layout> | null>(null)
-
-const disableds = computed<Array<[boolean, string]>>(() => [
-  [!store.input, t("Input can not be empty")],
-  [!store.output, t("Output can not be empty")]
-])
+const { t, tableId, table, tableMetaList, layout, fieldMetaList, onGetField, fieldType, getTable, filterFields } = useData()
 
 const formData = reactive({
-  "delimiter": "\n",
-  "key": "",
-  "dateKey": ""
+  input: '',
+  output: '',
+  dateKey: '',
+  delimiter: '\n',
+  key: '',
 })
 
+onGetField(() => {
+  formData.input = ''
+  formData.output = ''
+})
+
+const disableds = computed<Array<[boolean, string]>>(() => [
+  [!formData.input, t('Input can not be empty')],
+  [!formData.output, t('Output can not be empty')],
+])
+
 const delimiter = computed(() =>
-  delimiterList.map(item => {
+  delimiterList.map((item) => {
     item.name = t(item.name)
     return item
-  })
+  }),
 )
 
 const fieldInfos = computed(() =>
-  FieldInfos(store.type(store.input) as FieldType).map(item => {
+  FieldInfos(fieldType(formData.input) as FieldType).map((item) => {
     item.name = t(item.id)
     return item
-  })
+  }),
 )
 
 const dateFormatter = computed(() =>
-  dateFormatterList.map(item => {
-    return {"name": item, "id": item}
-  })
+  dateFormatterList.map((item) => {
+    return { id: item, name: item }
+  }),
 )
-const dateRenderLabel = (option: SelectOption): VNodeChild => [
-  h(NTime, {"format": option.name as string, "timeZone": "UTC"}),
-  option.label as string
-]
+function dateRenderLabel(option: SelectOption): VNodeChild {
+  return [
+    h(NTime, { format: option.name as string, timeZone: 'UTC' }),
+    option.label as string,
+  ]
+}
 
 function start(records: IRecord[]): IRecord[] {
   return records
-    .map(item => {
-      if (
-        store.check() &&
-        store.input in item.fields &&
-        store.output in item.fields &&
-        item.fields[store.input]
-      ) {
-        const val = item.fields[store.input]
-        let res = ""
-        if (store.type(store.input) === FieldType.DateTime) {
-          res = format(val as number, formData.dateKey)
-        } else {
-          res = processValue(val)
-        }
-        item.fields[store.output] = res
-        return item
-      }
-      return null
+    .map((item) => {
+      const val = item.fields[formData.input]
+      let res = ''
+      if (fieldType(formData.input) === FieldType.DateTime)
+        res = format(val as number, formData.dateKey)
+      else
+        res = processValue(val)
+      item.fields[formData.output] = res
+      return item
     })
     .filter(item => item !== null) as IRecord[]
 }
@@ -149,33 +94,94 @@ function start(records: IRecord[]): IRecord[] {
 function processValue(val: any): string {
   if (Array.isArray(val)) {
     return val
-      .map(item => (formData.key in item ? item[formData.key] : ""))
+      .map(item => (formData.key in item ? item[formData.key] : ''))
       .join(formData.delimiter)
-  } else {
-    return formData.key === "" ? String(val) : formData.key in val ? val[formData.key] : ""
+  }
+  else {
+    return formData.key === '' ? String(val) : formData.key in val ? val[formData.key] : ''
   }
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.update(true, t('Step 1 - Getting Table'))
   layout.value?.init()
-  if (store.check()) {
-    const table = await bitable.base.getTableById(store.tableId)
-    layout.value?.update(true, t("Step 2 - Getting Records"))
+  if (table.value) {
+    layout.value?.update(true, t('Step 2 - Getting Records'))
     await layout.value?.getRecords(
-      table,
-      ({records, pr}) => {
+      table.value,
+      ({ pr, records }) => {
         pr.add(records.records.length)
-        return table.setRecords(start(records.records))
+        return table.value!.setRecords(start(records.records))
       },
       all,
-      5000
+      5000,
     )
   }
   layout.value?.finish()
 }
 
 onMounted(async () => {
-  store.init(layout.value!)
+  getTable()
 })
 </script>
+
+<template>
+  <Layout ref="layout">
+    <form-select
+      v-model:value="tableId"
+      :msg="t('Select Data Table')"
+      :options="tableMetaList"
+    />
+    <form-select
+      v-model:value="formData.input"
+      :msg="t('Select Extraction Field')"
+      :options="fieldMetaList"
+    />
+    <form-select
+      v-if="fieldType(formData.input) !== FieldType.DateTime"
+      v-model:value="formData.key"
+      :msg="t('Select Extraction Attribute')"
+      input
+      :tooltip="
+        t(
+          'Select the attributes that need to be extracted. If there are no attributes in the table, they can be entered manually. Some fields have no attributes that can be extracted',
+        )
+      "
+      :options="fieldInfos"
+    />
+    <form-select
+      v-else-if="fieldType(formData.input) === FieldType.DateTime"
+      v-model:value="formData.dateKey"
+      :msg="t('Select date format')"
+      input
+      :tooltip="
+        `${t(
+          `Select the date format, which can be entered manually. For the format, please refer to the document `,
+        )
+        }<a href=&quot;https://date-fns.org/v2.6.0/docs/format&quot; target=&quot;_blank&quot;>date-fns format</a>`
+      "
+      :options="dateFormatter"
+      :render-label="dateRenderLabel"
+    />
+    <form-select
+      v-model:value="formData.delimiter"
+      :msg="t('Select Separator')"
+      input
+      :tooltip="
+        t(
+          'Select the delimiter for multi-line text, which can be entered manually. \n\\n is a newline, \\t is a tab character',
+        )
+      "
+      :options="delimiter"
+    />
+    <form-select
+      v-model:value="formData.output"
+      :msg="t('Select Output Field')"
+      :options="filterFields(FieldType.Text)"
+    />
+    <form-start
+      :disableds="disableds"
+      @update:click="main"
+    />
+  </Layout>
+</template>

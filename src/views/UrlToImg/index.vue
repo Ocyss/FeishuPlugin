@@ -23,70 +23,58 @@ meta:
     0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2v-6zM18 28h-4v-4h4z"
     fill="currentColor"></path></svg>
 </route>
-<template>
-  <Layout ref="layout">
-    <form-select
-      :msg="t('Select Data Table')"
-      v-model:value="store.tableId"
-      :options="store.tableMetaList"
-      @update:value="() => store.getField()" />
-    <form-select
-      :msg="t('Select Url Field')"
-      v-model:value="store.input"
-      :options="store.filterFields(FieldType.Url)" />
-    <form-select
-      :msg="t('Select Output Field')"
-      v-model:value="store.output"
-      :options="store.filterFields(FieldType.Attachment)" />
-    <form-start @update:click="main" :disableds="disableds" />
-  </Layout>
-</template>
 
 <script setup lang="ts">
-import axios from "axios"
+import axios from 'axios'
+import type { Progress } from '@/utils'
+import { useData } from '@/hooks/useData'
 
-import Layout from "@/components/layout.vue"
-import {store} from "@/store.js"
-import {Progress} from "@/utils"
+const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
-const layout = ref<InstanceType<typeof Layout> | null>(null)
-const {t} = useI18n()
+const formData = reactive<ModelType>({
+  input: null,
+  output: null,
+})
 
+onGetField(() => {
+  formData.input = null
+  formData.output = null
+})
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!store.input, t("Input can not be empty")],
-  [!store.output, t("Output can not be empty")]
+  [!formData.input, t('Input can not be empty')],
+  [!formData.output, t('Output can not be empty')],
 ])
 
 async function urlTofile(url: string, err = 0): Promise<File | undefined> {
-  if (err > 5) {
+  if (err > 5)
     return undefined
-  }
+
   let errFlag = false
   const res = await axios
     .get(`https://s0.wp.com/mshots/v1/${url}?w=1280&h=960`, {
-      "responseType": "arraybuffer",
-      "maxRedirects": 0
+      maxRedirects: 0,
+      responseType: 'arraybuffer',
     })
     .catch(() => {
       errFlag = true
     })
   if (
-    errFlag ||
-    res?.headers["Content-Type"] === "image/gif" ||
-    res?.headers["content-type"] === "image/gif"
+    errFlag
+    || res?.headers['Content-Type'] === 'image/gif'
+    || res?.headers['content-type'] === 'image/gif'
   ) {
     await new Promise(resolve =>
       setTimeout(() => {
         resolve(undefined)
-      }, 3000)
+      }, 3000),
     )
     return await urlTofile(url, err + 1)
   }
   const blob = new Blob([res?.data], {
-    "type": res?.headers["content-type"]
+    type: res?.headers['content-type'],
   })
-  const f = new File([blob], Date.now() + ".jpeg", {
-    "type": res?.headers["content-type"]
+  const f = new File([blob], `${Date.now()}.jpeg`, {
+    type: res?.headers['content-type'],
   })
   return f
 }
@@ -94,59 +82,82 @@ async function urlTofile(url: string, err = 0): Promise<File | undefined> {
 function isValidHttpUrl(s: string) {
   try {
     const newUrl = new URL(s)
-    return newUrl.protocol === "http:" || newUrl.protocol === "https:"
-  } catch (err) {
+    return newUrl.protocol === 'http:' || newUrl.protocol === 'https:'
+  }
+  catch (err) {
     return false
   }
 }
 
 async function start(field: IAttachmentField, records: IRecord[], pr: Progress) {
   await Promise.all(
-    records.map(async record => {
+    records.map(async (record) => {
       if (
-        store.check() &&
-        record.fields[store.input] &&
-        (!record.fields[store.output] ||
-          (record.fields[store.output] as IOpenAttachment[])?.length === 0)
+        formData.input && formData.output
+        && record.fields[formData.input]
+        && (!record.fields[formData.output]
+        || (record.fields[formData.output] as IOpenAttachment[])?.length === 0)
       ) {
-        const urls = record.fields[store.input] as IOpenUrlSegment[]
+        const urls = record.fields[formData.input] as IOpenUrlSegment[]
         const files: File[] = []
 
         for (const url of urls) {
           if (isValidHttpUrl(url.link)) {
             const f = await urlTofile(url.link)
-            if (f) {
+            if (f)
               files.push(f)
-            }
           }
         }
         await field.setValue(record.recordId, files)
       }
       pr?.add()
-    })
+    }),
   )
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t("Step 1 - Getting Table"))
+  layout.value?.update(true, t('Step 1 - Getting Table'))
   layout.value?.init()
-  if (store.check()) {
-    const table = await bitable.base.getTableById(store.tableId)
-    layout.value?.update(true, t("Step 2 - Getting Records"))
-    const field = await table.getFieldById<IAttachmentField>(store.output)
+  if (table.value && formData.output) {
+    layout.value?.update(true, t('Step 2 - Getting Records'))
+    const field = await table.value?.getFieldById<IAttachmentField>(formData.output)
     await layout.value?.getRecords(
-      table,
-      ({records, pr}) => {
+      table.value,
+      ({ pr, records }) => {
         return start(field, records.records, pr)
       },
       all,
-      50
+      50,
     )
   }
   layout.value?.finish()
 }
 
 onMounted(() => {
-  store.init(layout.value!)
+  getTable()
 })
 </script>
+
+<template>
+  <Layout ref="layout">
+    <form-select
+      v-model:value="tableId"
+      :msg="t('Select Data Table')"
+      :options="tableMetaList"
+    />
+    <form-select
+      v-model:value="formData.input"
+      :msg="t('Select Url Field')"
+      :options="filterFields(FieldType.Url)"
+    />
+    <form-select
+      v-model:value="formData.output"
+      :msg="t('Select Output Field')"
+      :options="filterFields(FieldType.Attachment)"
+    />
+    <form-start
+      :disableds="disableds"
+      @update:click="main"
+    />
+  </Layout>
+</template>

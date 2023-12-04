@@ -4,7 +4,7 @@ name: Deploy static content to Pages
 on:
   # 仅在推送到默认分支时运行。
   push:
-    branches: ['master']
+    branches: [master]
 
   # 这个选项可以使你手动在 Action tab 页面触发工作流
   workflow_dispatch:
@@ -17,7 +17,7 @@ permissions:
 
 # 允许一个并发的部署
 concurrency:
-  group: 'pages'
+  group: pages
   cancel-in-progress: true
 
 jobs:
@@ -40,7 +40,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+          cache: pnpm
       - name: Install dependencies
         run: pnpm install
       - name: Build
@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload dist repository
-          path: './dist'
+          path: ./dist
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
