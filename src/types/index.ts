@@ -9,7 +9,6 @@ export enum LogType {
   Warning = 'warning',
 }
 
-
 export interface LogRowData {
   log: string
   track?: Track

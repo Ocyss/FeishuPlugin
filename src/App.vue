@@ -12,10 +12,14 @@ const darkThemeOverrides: GlobalThemeOverrides = {
   },
 }
 
-const lightThemeOverrides: GlobalThemeOverrides = {}
+const lightThemeOverrides: GlobalThemeOverrides = {
+  common: {
+    primaryColor: '#1E90FF',
+  },
+}
 const themes = ref<GlobalTheme | null>(darkTheme)
 
-bitable.bridge.getTheme().then((theme) => {
+void bitable.bridge.getTheme().then((theme) => {
   themes.value = theme === ThemeModeType.DARK ? darkTheme : null
 })
 

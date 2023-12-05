@@ -40,7 +40,8 @@
     "./auto-imports.d.ts",
     "tsconfig.config.json",
     "vite.config.ts",
-    "vite.config.d.ts"
+    "vite.config.d.ts",
+    "eslint.config.js"
   ],
   "exclude": ["node_modules", "build", "dist"]
 }

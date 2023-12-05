@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { tKey } from '@/keys'
+
 defineProps<{
   datas?: Array<{ label: string, value: any }>
   msg: string
@@ -7,7 +9,7 @@ defineProps<{
 
 const emit = defineEmits(['update:value'])
 
-const { t } = useI18n()
+const t = inject(tKey, () => useI18n().t, true)
 
 function emitUpdate(newValue: any) {
   emit('update:value', newValue)

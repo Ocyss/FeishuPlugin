@@ -1,12 +1,13 @@
 <!-- eslint-disable vue/no-mutating-props -->
 <script lang="ts" setup>
 import { NInput, NInputNumber } from 'naive-ui'
+import { tKey } from '@/keys'
 
 defineProps<{
   data: Record<string, V>
   msg?: string
 }>()
-const { t } = useI18n()
+const t = inject(tKey, () => useI18n().t, true)
 type V = null | number | string | undefined
 function getComponentType(item: V): Component {
   if (typeof item === 'number')

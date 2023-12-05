@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import { tKey } from '@/keys'
+
 const props = withDefaults(defineProps<Props>(), {
   msg: 'Start',
   operate: false,
 })
 const emit = defineEmits<{ (e: 'update:click', all?: boolean): void }>()
-const { t } = useI18n()
+const t = inject(tKey, () => useI18n().t, true)
 const dialog = useDialog()
 
 interface Props {
@@ -63,7 +65,7 @@ function click(all: boolean) {
         >
           <n-button
             type="info"
-            ghost
+            strong
             :disabled="disabled.isDisabled"
             @click="() => click(true)"
           >
@@ -71,7 +73,7 @@ function click(all: boolean) {
           </n-button>
           <n-button
             type="info"
-            ghost
+            strong
             :disabled="disabled.isDisabled"
             @click="() => click(false)"
           >

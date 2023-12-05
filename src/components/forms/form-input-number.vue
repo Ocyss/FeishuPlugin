@@ -1,5 +1,7 @@
 <!-- eslint-disable vue/no-mutating-props -->
 <script lang="ts" setup>
+import { tKey } from '@/keys'
+
 defineProps<{
   data: Record<string, null | number | undefined>
   inputStyle?: string
@@ -7,7 +9,7 @@ defineProps<{
   prefix?: boolean
   vertical?: boolean
 }>()
-const { t } = useI18n()
+const t = inject(tKey, () => useI18n().t, true)
 </script>
 
 <template>

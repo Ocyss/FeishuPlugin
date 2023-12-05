@@ -1,4 +1,11 @@
 <script lang="ts" setup>
+import { NIcon } from 'naive-ui'
+import type { VNodeChild } from 'vue'
+import { tKey } from '@/keys'
+import { fieldIcon } from '@/utils/field'
+import { tableIcon } from '@/utils/table'
+import { viewIcon } from '@/utils/view'
+
 const props = withDefaults(defineProps<Props>(), {
   clearable: true,
   emptyMsg: window.$t(
@@ -11,6 +18,37 @@ const props = withDefaults(defineProps<Props>(), {
   msg: '',
   multiple: false,
   valueField: 'id',
+  renderLabel: () => {
+    const createIcon = (svg: string): VNodeChild => {
+      return h(
+        NIcon,
+        {
+          style: {
+            verticalAlign: '-0.15em',
+            marginRight: '4px',
+          },
+        },
+        h('svg', {
+          innerHTML: svg,
+        }),
+      )
+    }
+    return (option: IFieldMeta | ITableMeta | IViewMeta): VNodeChild => {
+      if ('id' in option && 'name' in option) {
+        let icon: VNodeChild
+        if ('description' in option)
+          icon = createIcon(fieldIcon(option.type))
+        else if ('property' in option)
+          icon = createIcon(viewIcon(option.type))
+        else if ('isSync' in option)
+          icon = createIcon(tableIcon())
+        return [
+          icon,
+          option.name,
+        ]
+      }
+    }
+  },
 })
 
 const emit = defineEmits<{
@@ -18,7 +56,7 @@ const emit = defineEmits<{
   (e: 'update:value', value: any, option: any): void
 }>()
 
-const { t } = useI18n()
+const t = inject(tKey, () => useI18n().t, true)
 
 interface Props {
   clearable?: boolean
@@ -41,7 +79,7 @@ function emitUpdate(value: any, option: any) {
   emit('update:value', value, option)
 }
 
-function emitCreate(label: string) {
+function emitCreate(label: string): any {
   let res: any
   emit('create', label, (v: any) => {
     res = v
@@ -101,3 +139,4 @@ function emitCreate(label: string) {
   align-items: center;
 }
 </style>
+../../keys

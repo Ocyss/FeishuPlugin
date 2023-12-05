@@ -26,7 +26,7 @@ export function fileToBuf(fd: File): Promise<ArrayBuffer> {
     reader.onerror = reject
     reader.onload = () => {
       if (!reader.result || typeof reader.result === 'string')
-        reject()
+        reject(new Error('Invalid'))
       else
         resolve(reader.result)
     }

@@ -4,8 +4,10 @@ import { NTag } from 'naive-ui'
 import { LogType } from '@/types'
 import type { LogRowData } from '@/types'
 import { Progress } from '@/utils'
+import { useInfo } from '@/hooks/useInfo'
+import { tKey } from '@/keys'
 
-const { t } = useI18n()
+const t = inject(tKey, () => useI18n().t, true)
 const columns: DataTableColumns<LogRowData> = [
   {
     type: 'selection',
@@ -36,7 +38,7 @@ const data = ref<LogRowData[]>([])
 const lock = ref(true)
 const message = ref('')
 const progress = ref<Progress[]>([])
-const route = useRoute()
+const { app } = useInfo()
 
 function _log(type: LogType, log: string, track?: Track) {
   data.value.push({
@@ -158,14 +160,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <n-collapse v-if="route.meta.help" style="margin-bottom: 15px;">
+  <n-collapse v-if="app.help" style="margin-bottom: 15px;">
     <n-collapse-item
       :title="t('Help')"
       name="1"
     >
       <n-blockquote
         align-text
-        v-html="t(route.meta.help as string)"
+        v-html="t(app.help as string)"
       />
     </n-collapse-item>
   </n-collapse>
@@ -174,7 +176,7 @@ onMounted(() => {
     class="layout-spin"
   >
     <template #description>
-      <div v-if="progress.length === 0">
+      <div v-if="progress.reduce((sum, e) => sum + e.total, 0) === 0">
         {{ message }}
       </div>
       <div

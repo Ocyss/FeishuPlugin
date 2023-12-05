@@ -1,0 +1,17 @@
+import { ViewType } from '@lark-base-open/js-sdk'
+
+const icons: Record<ViewType, string> = {
+  [ViewType.NotSupport]: '',
+  [ViewType.Grid]: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="BitablegridOutlined"><path d="M2 4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4Zm7.5 0v4H20V4H9.5Zm0 6v4H20v-4H9.5Zm-2 4v-4H4v4h3.5ZM4 16v4h3.5v-4H4Zm5.5 0v4H20v-4H9.5Zm-2-12H4v4h3.5V4Z" fill="currentColor"></path></svg>',
+  [ViewType.Kanban]: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="BitablekanbanOutlined"><path d="M4 16.5h4V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7.5h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10.5a2 2 0 0 0 2 2ZM8 4v10.5H4V4h4Zm6 0v16h-4V4h4Zm2 6.5V4h4v6.5h-4Z" fill="currentColor"></path></svg>',
+  [ViewType.Form]: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="BitableformOutlined"><path d="M16.708 6.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.415 0L7.467 10.38A1 1 0 0 1 8.88 8.966l2.12 2.12 4.293-4.293a1 1 0 0 1 1.414 0ZM6.5 16.5a1 1 0 0 1 1-1h9a1 1 0 1 1 0 2h-9a1 1 0 0 1-1-1Z" fill="currentColor"></path><path d="M2 4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4Zm2 0v16h16V4H4Z" fill="currentColor"></path></svg>',
+  [ViewType.Gallery]: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="BitablegalleryOutlined"><path d="M2 4a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4Zm2 0v5h5V4H4ZM2 15a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5Zm2 0v5h5v-5H4ZM15 2a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-5Zm5 2v5h-5V4h5Zm-7 11a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-5Zm2 0v5h5v-5h-5Z" fill="currentColor"></path></svg>',
+  [ViewType.Gantt]: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="BitableganttOutlined"><path d="M8.5 3.425v2.05h12v-2.05h-12Zm7.51 11.6c.824-.005 1.49-.755 1.49-1.505v-3.045c0-.728-.672-1.475-1.5-1.5H3c-.828.025-1.5.747-1.5 1.5v3.045c0 .754.672 1.505 1.5 1.505h13.01Zm-8.013 1.5h-.01a1.5 1.5 0 0 0-1.49 1.5v3.05a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-3.05a1.5 1.5 0 0 0-1.5-1.5h-13ZM3.5 10.975h12v2.05h-12v-2.05Zm4.997 7.55h12v2.05h-12v-2.05ZM6.5 2.925a1.5 1.5 0 0 1 1.5-1.5h13a1.5 1.5 0 0 1 1.5 1.5v3.05a1.5 1.5 0 0 1-1.5 1.5H8a1.5 1.5 0 0 1-1.5-1.5v-3.05Z" fill="currentColor"></path></svg>',
+  [ViewType.Hierarchy]: '',
+  [ViewType.Calendar]: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-icon="CalendarLineOutlined"><path d="M7 2a1 1 0 0 1 1 1h8a1 1 0 1 1 2 0h2a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2a1 1 0 0 1 1-1Zm9 3H8a1 1 0 0 1-2 0H4v15h16V5h-2a1 1 0 1 1-2 0ZM9 15a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1Zm1.5-5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1Zm3 5a1 1 0 0 0-1-1h-1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1Zm1.5 0a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1Zm3-5a1 1 0 0 0-1-1h-1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1Z" fill="currentColor"></path></svg>',
+  [ViewType.WidgetView]: '',
+}
+
+export function viewIcon(type: ViewType) {
+  return icons[type]
+}

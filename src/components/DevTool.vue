@@ -16,7 +16,7 @@ const routes = [{ name: 'home' }, ...getRoutes(_routes)]
 const apis: DropdownOption[] = [
   {
     f: () => {
-      copy(window.location.href)
+      void copy(window.location.href)
     },
     label: 'copy url',
   },
@@ -28,7 +28,7 @@ const apis: DropdownOption[] = [
   },
   {
     f: () => {
-      bitable.ui.showToast({
+      void bitable.ui.showToast({
         message: 'hello world',
         toastType: ToastType.info,
       })
@@ -72,24 +72,24 @@ const lang = ref<DropdownOption[]>([
 ])
 
 onMounted(() => {
-  bitable.bridge.getTheme().then((theme) => {
+  void bitable.bridge.getTheme().then((theme) => {
     state.theme = theme === ThemeModeType.LIGHT ? '浅色' : '深色'
     state.bridge.theme = theme
     themes.value[0].label = theme
   })
-  bitable.bridge.getLanguage().then((language) => {
+  void bitable.bridge.getLanguage().then((language) => {
     state.lang = language
     state.bridge.lang = language
     lang.value[0].label = language
   })
-  bitable.bridge.getUserId().then((userId) => {
+  void bitable.bridge.getUserId().then((userId) => {
     state.bridge.userId = userId
   })
-  bitable.bridge.getLocale().then((locale) => {
+  void bitable.bridge.getLocale().then((locale) => {
     state.bridge.locale = locale
     lang.value[1].label = locale
   })
-  bitable.bridge.getTenantKey().then((tenantKey) => {
+  void bitable.bridge.getTenantKey().then((tenantKey) => {
     state.bridge.tenantKey = tenantKey
   })
 })
