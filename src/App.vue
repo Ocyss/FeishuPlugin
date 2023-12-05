@@ -8,13 +8,13 @@ const { t } = useI18n()
 const darkThemeOverrides: GlobalThemeOverrides = {
   common: {
     bodyColor: '#1a1a1a',
-    primaryColor: '#1E90FF',
+    primaryColor: '#409eff',
   },
 }
 
 const lightThemeOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: '#1E90FF',
+    primaryColor: '#409eff',
   },
 }
 const themes = ref<GlobalTheme | null>(darkTheme)
