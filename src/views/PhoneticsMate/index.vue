@@ -34,7 +34,7 @@ import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
 const voice = ref<SpeechSynthesisVoice[]>([])
 
@@ -232,11 +232,10 @@ onMounted(async () => {
         display-directive="show"
       >
         <n-blockquote>英语转国际音标</n-blockquote>
-        <form-select
-          v-model:value="tableId"
-          :msg="t('Select Data Table')"
-          :options="tableMetaList"
-        />
+        <n-space justify="space-between">
+          <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
+          <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
+        </n-space>
         <form-select
           v-model:value="modelData.input"
           :msg="t('Select Input Field')"

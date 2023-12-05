@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/no-mutating-props -->
 <script lang="ts" setup>
 import { NInput, NInputNumber } from 'naive-ui'
 import { tKey } from '@/keys'

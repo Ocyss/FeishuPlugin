@@ -31,7 +31,7 @@ import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { tableMetaList, getTable, fieldType, table, tableId, t, filterFields, layout, onGetField, getRecords, errorHandle } = useData()
+const { viewId, viewMetaList, tableMetaList, getTable, fieldType, table, tableId, t, filterFields, layout, onGetField, getRecords, errorHandle } = useData()
 
 const now = new Date()
 
@@ -359,11 +359,10 @@ onMounted(async () => {
 
 <template>
   <Layout ref="layout">
-    <form-select
-      v-model:value="tableId"
-      :msg="t('Select Data Table')"
-      :options="tableMetaList"
-    />
+    <n-space justify="space-between">
+      <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
+      <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
+    </n-space>
     <form-select
       v-model:value="modelData.input"
       :msg="t('Select Download file')"

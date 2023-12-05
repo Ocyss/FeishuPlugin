@@ -14,6 +14,7 @@ declare module 'vue' {
     FormSelect: typeof import('./components/forms/form-select.vue')['default']
     FormSelectLabel: typeof import('./components/forms/form-select-label.vue')['default']
     FormStart: typeof import('./components/forms/form-start.vue')['default']
+    FormTags: typeof import('./components/forms/form-tags.vue')['default']
     Layout: typeof import('./components/layout.vue')['default']
     NA: typeof import('naive-ui')['NA']
     NAlert: typeof import('naive-ui')['NAlert']

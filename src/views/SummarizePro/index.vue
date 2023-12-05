@@ -19,7 +19,7 @@ import request from '@/utils/request'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldId, fieldName, fieldMetaList } = useData()
+const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldId, fieldName, fieldMetaList } = useData()
 
 const modelData = reactive< ModelType<string[], string[]> & { outputs: Record<string, any> }>({
   input: [],
@@ -192,11 +192,10 @@ onMounted(() => {
 
 <template>
   <Layout ref="layout">
-    <form-select
-      v-model:value="tableId"
-      :msg="t('Select Data Table')"
-      :options="tableMetaList"
-    />
+    <n-space justify="space-between">
+      <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
+      <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
+    </n-space>
     <n-tabs type="segment">
       <n-tab-pane
         name="chap1"

@@ -37,7 +37,7 @@ import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
-const { t, filterFields, getTable, layout, tableId, tableMetaList, table, onGetField, errorHandle, getRecords } = useData()
+const { viewId, viewMetaList, t, filterFields, getTable, layout, tableId, tableMetaList, table, onGetField, errorHandle, getRecords } = useData()
 const { store } = useStore()
 
 enum ActionType {
@@ -214,7 +214,11 @@ onMounted(async () => {
 
 <template>
   <Layout ref="layout">
-    <form-select v-model:value="tableId" :msg="t('Select Data Table')" :options="tableMetaList" />
+    <n-space justify="space-between">
+      <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
+      <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
+    </n-space>
+
     <form-radios
       v-model:value="storeData.action" :msg="t('Select action')" :datas="radios" @update:value="() => {
         modelData.output = null

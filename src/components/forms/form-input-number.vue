@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/no-mutating-props -->
 <script lang="ts" setup>
 import { tKey } from '@/keys'
 

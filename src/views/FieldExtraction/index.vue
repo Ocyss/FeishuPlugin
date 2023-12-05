@@ -30,7 +30,7 @@ import { dateFormatterList, delimiterList } from '@/utils/format'
 import { FieldInfos } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { getRecords, errorHandle, t, tableId, table, tableMetaList, layout, fieldMetaList, onGetField, fieldType, getTable, filterFields } = useData()
+const { viewId, viewMetaList, getRecords, errorHandle, t, tableId, table, tableMetaList, layout, fieldMetaList, onGetField, fieldType, getTable, filterFields } = useData()
 
 const modelData = reactive<ModelType & {
   dateKey: string
@@ -130,11 +130,10 @@ onMounted(async () => {
 
 <template>
   <Layout ref="layout">
-    <form-select
-      v-model:value="tableId"
-      :msg="t('Select Data Table')"
-      :options="tableMetaList"
-    />
+    <n-space justify="space-between">
+      <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
+      <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
+    </n-space>
     <form-select
       v-model:value="modelData.input"
       :msg="t('Select Extraction Field')"

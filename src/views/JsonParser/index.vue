@@ -35,7 +35,7 @@ import type { Progress } from '@/utils'
 import { TextFieldToStr, fieldDefault } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { getRecords, errorHandle, layout, t, table, tableId, viewId, viewMetaList, fieldMetaList, onFieldTraverse, fieldName, onGetField, fieldId, fieldType, getTable, tableMetaList, filterFields, message } = useData({ view: true })
+const { getRecords, errorHandle, layout, t, table, tableId, viewId, viewMetaList, fieldMetaList, onFieldTraverse, fieldName, onGetField, fieldId, fieldType, getTable, tableMetaList, filterFields, message } = useData()
 
 const { copy } = useClipboard()
 
@@ -150,16 +150,10 @@ onMounted(async () => {
 
 <template>
   <Layout ref="layout">
-    <form-select
-      v-model:value="tableId"
-      :msg="t('Select Data Table')"
-      :options="tableMetaList"
-    />
-    <form-select
-      v-model:value="viewId"
-      :msg="t('Select View')"
-      :options="viewMetaList"
-    />
+    <n-space justify="space-between">
+      <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
+      <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
+    </n-space>
     <form-select
       v-model:value="modelData.input"
       :msg="t('Select Input Field')"

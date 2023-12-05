@@ -15,9 +15,7 @@ function getFieldMapValue(
   return map && fieldId ? map[key][fieldId] || null : null
 }
 
-export function useData(options = {
-  view: false,
-}) {
+export function useData() {
   const { app } = useInfo()
   const { t } = useI18n()
   provide(tKey, t)
@@ -34,19 +32,13 @@ export function useData(options = {
     async set(tableId: string | null) {
       if (tableId) {
         table.value = await bitable.base.getTableById(tableId)
-        const get = async () => {
-          if (options.view)
-            await getView()
-          else
-            await getField()
-        }
         offCalls.forEach(call => call())
         offCalls.push(
-          table.value.onFieldAdd(get),
-          table.value.onFieldDelete(get),
-          table.value.onFieldModify(get),
+          table.value.onFieldAdd(getView),
+          table.value.onFieldDelete(getView),
+          table.value.onFieldModify(getView),
         )
-        await get()
+        await getView()
       }
     },
   })
@@ -153,12 +145,9 @@ export function useData(options = {
     return handleAsyncError('get Field Failed', async () => {
       layout.value?.update(true, t('Update field data'))
       callHook('beforeGetField')
-      if (!table.value || !tableId.value || (options.view && (!viewId.value || !view.value)))
+      if (!table.value || !view.value)
         throw new Error('table or view is empty')
-      if (options.view && viewId.value && view.value)
-        fieldMetaList.value = await view.value.getFieldMetaList()
-      else
-        fieldMetaList.value = await table.value.getFieldMetaList()
+      fieldMetaList.value = await view.value.getFieldMetaList()
       fieldMap.value = fieldMaps(fieldMetaList.value)
       callHook('getField')
       fieldMetaList.value.forEach(item => callHook('fieldTraverse', item))

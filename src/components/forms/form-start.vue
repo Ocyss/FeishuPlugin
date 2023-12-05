@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import { tKey } from '@/keys'
 
+interface Props {
+  disableds?: Array<[boolean, string]>
+  msg: string
+  operate?: boolean
+}
+
 const props = withDefaults(defineProps<Props>(), {
   msg: 'Start',
   operate: false,
@@ -8,12 +14,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{ (e: 'update:click', all?: boolean): void }>()
 const t = inject(tKey, () => useI18n().t, true)
 const dialog = useDialog()
-
-interface Props {
-  disableds?: Array<[boolean, string]>
-  msg: string
-  operate?: boolean
-}
 
 const disabled = computed(() => {
   const isDisabled = props.disableds?.some(disabled => disabled[0])

@@ -23,7 +23,7 @@ import {
 import * as randomEase from 'random-ease'
 import { useData } from '@/hooks/useData'
 
-const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldMetaList } = useData()
+const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldMetaList } = useData()
 
 const modelData = reactive<ModelType & { total: number }>({
   input: null,
@@ -170,11 +170,10 @@ onMounted(() => {
 
 <template>
   <Layout ref="layout">
-    <form-select
-      v-model:value="tableId"
-      :msg="t('Select Data Table')"
-      :options="tableMetaList"
-    />
+    <n-space justify="space-between">
+      <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
+      <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
+    </n-space>
     <n-form-item :label="t('number of generated')">
       <n-input-number
         v-model:value="modelData.total"

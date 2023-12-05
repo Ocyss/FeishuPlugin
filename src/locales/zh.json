@@ -188,5 +188,7 @@
   "Help": "使用说明",
   "Process": "处理",
   "Process all": "处理全部",
-  "Process part": "处理部分"
+  "Process part": "处理部分",
+  "Table": "数据库",
+  "View": "视图"
 }

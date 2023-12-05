@@ -15,7 +15,7 @@ meta:
 import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
 
-const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 // const { store } = useStore()
 
 const modelData = reactive<ModelType>({
@@ -72,11 +72,10 @@ onMounted(() => {
 
 <template>
   <Layout ref="layout">
-    <form-select
-      v-model:value="tableId"
-      :msg="t('Select Data Table')"
-      :options="tableMetaList"
-    />
+    <n-space justify="space-between">
+      <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
+      <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
+    </n-space>
     <form-select
       v-model:value="modelData.input"
       :msg="t('Select Source Field')"
