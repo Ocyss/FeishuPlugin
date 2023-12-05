@@ -30,7 +30,7 @@ import { dateFormatterList, delimiterList } from '@/utils/format'
 import { FieldInfos } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { t, tableId, table, tableMetaList, layout, fieldMetaList, onGetField, fieldType, getTable, filterFields } = useData()
+const { getRecords, errorHandle, t, tableId, table, tableMetaList, layout, fieldMetaList, onGetField, fieldType, getTable, filterFields } = useData()
 
 const formData = reactive({
   input: '',
@@ -88,7 +88,7 @@ function start(records: IRecord[]): IRecord[] {
       item.fields[formData.output] = res
       return item
     })
-    .filter(item => item !== null) as IRecord[]
+    .filter(item => item !== null)
 }
 
 function processValue(val: any): string {
@@ -102,22 +102,21 @@ function processValue(val: any): string {
   }
 }
 
-async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    await layout.value?.getRecords(
-      table.value,
-      ({ pr, records }) => {
-        pr.add(records.records.length)
-        return table.value!.setRecords(start(records.records))
-      },
-      all,
-      5000,
-    )
-  }
-  layout.value?.finish()
+function main(all?: boolean) {
+  getRecords(
+    ({ pr, records }) => {
+      pr.add(records.records.length)
+      return table.value!.setRecords(start(records.records))
+    },
+    all,
+    5000,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 onMounted(async () => {

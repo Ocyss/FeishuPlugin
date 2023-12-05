@@ -22,7 +22,7 @@ import { useData } from '@/hooks/useData'
 
 let page: any
 
-const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 const record = ref<IRecordValue>({
   fields: {},
 })
@@ -124,8 +124,9 @@ async function start(
         const urls = await fieldI.getAttachmentUrls(record.recordId)
         const list: File[] = []
         const files = record.fields[formData.input] as IOpenAttachment[]
-        for (const index in urls) {
-          const url = urls[index]
+
+        for (let i = 0; i < urls.length; i++) {
+          const url = urls[i]
           const text = formData.text
             .map((item) => {
               if (item.startsWith('$BDAT$'))
@@ -144,7 +145,7 @@ async function start(
             fontSize: formData.options.fontSize,
             secret: formData.action === 1,
             success: (data) => {
-              list.push(blobToFile(base64ToBlob(data), files[index].name))
+              list.push(blobToFile(base64ToBlob(data), files[i].name))
             },
             target: url,
             text,
@@ -159,22 +160,26 @@ async function start(
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
   if (table.value && formData.input && formData.output) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
     const fieldI = await table.value.getFieldById<IAttachmentField>(formData.input)
     const fieldO = await table.value.getFieldById<IAttachmentField>(formData.output)
-    await layout.value?.getRecords(
-      table.value,
+    getRecords(
       ({ pr, records }) => {
         return start(records.records, fieldI, fieldO, pr)
       },
       all,
-      1000, // 每次处理多少条记录 max:5000
+      15,
     )
+      .catch((error: Error) => {
+        errorHandle('main', error)
+      })
+      .finally(() => {
+        layout.value?.finish()
+      })
   }
-  layout.value?.finish()
+  else {
+    errorHandle('main', new Error('table or input or output is null'))
+  }
 }
 
 function upPreview() {

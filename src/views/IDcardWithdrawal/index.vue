@@ -35,7 +35,7 @@ import parse from 'date-fns/parse'
 import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { layout, t, table, tableId, onGetField, fieldType, getTable, tableMetaList, filterFields } = useData()
+const { getRecords, errorHandle, layout, t, table, tableId, onGetField, fieldType, getTable, tableMetaList, filterFields } = useData()
 
 const formData = reactive<{ input: string | null, output: string | null, format?: InfoField[] }>({
   input: null,
@@ -105,37 +105,36 @@ function start(recordId: string, val: IOpenCellValue): null | number | string {
   return res
 }
 
-async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    await layout.value?.getRecords(
-      table.value,
-      ({ pr, records }) => {
-        const newVals = records.records
-          .map((item) => {
-            pr.add()
-            if (
-              formData.input && formData.output
-              && formData.input in item.fields
-              && formData.output in item.fields
-              && item.fields[formData.input]
-            ) {
-              const val = item.fields[formData.input]
-              item.fields[formData.output] = start(item.recordId, val)
-              return item
-            }
-            return null
-          })
-          .filter(item => item !== null) as IRecord[]
-        return table.value!.setRecords(newVals)
-      },
-      all,
-      5000,
-    )
-  }
-  layout.value?.finish()
+function main(all?: boolean) {
+  getRecords(
+    ({ pr, records }) => {
+      const newVals = records.records
+        .map((item) => {
+          pr.add()
+          if (
+            formData.input && formData.output
+            && formData.input in item.fields
+            && formData.output in item.fields
+            && item.fields[formData.input]
+          ) {
+            const val = item.fields[formData.input]
+            item.fields[formData.output] = start(item.recordId, val)
+            return item
+          }
+          return null
+        })
+        .filter(item => item !== null) as IRecord[]
+      return table.value!.setRecords(newVals)
+    },
+    all,
+    5000,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 onMounted(async () => {

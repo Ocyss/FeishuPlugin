@@ -32,7 +32,7 @@ import request from '@/utils/request'
 
 import { useData } from '@/hooks/useData'
 
-const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
 const voice = ref<SpeechSynthesisVoice[]>([])
 
@@ -93,21 +93,20 @@ async function start(records: IRecord[]) {
     .filter(item => item !== null)
 }
 
-async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    await layout.value?.getRecords(
-      table.value,
-      async ({ records }) => {
-        return await table.value!.setRecords(await start(records.records))
-      },
-      all,
-      30,
-    )
-  }
-  layout.value?.finish()
+function main(all?: boolean) {
+  getRecords(
+    async ({ records }) => {
+      return await table.value!.setRecords(await start(records.records))
+    },
+    all,
+    30,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 onMounted(async () => {

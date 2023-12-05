@@ -36,15 +36,21 @@ import { dateFormatterList } from '@/utils/format'
 import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { t, filterFields, getTable, layout, tableId, tableMetaList, onGetField, table } = useData()
-
+const { t, filterFields, getTable, layout, tableId, tableMetaList, table, onGetField, errorHandle, getRecords } = useData()
+enum ActionType {
+  Format = 0,
+  Add = 1,
+  Parse = 2,
+  SetMonth = 3,
+  Randomize = 4,
+}
 const formData = reactive<{
-  'action': number
+  'action': ActionType
   'dateKey': null | string
   'input': null | string
   'output': null | string
 }>({
-  action: 0,
+  action: ActionType.Format,
   dateKey: null,
   input: null,
   output: null,
@@ -117,15 +123,34 @@ function dateRenderLabel(option: SelectOption): VNodeChild {
 }
 
 function start(records: IRecord[]): IRecord[] {
-  const rand = () => {
-    return {
+  const actionOptions = {
+    [ActionType.Format]: (val: number) => format(val, formData.dateKey!),
+    [ActionType.Add]: (val: number) => add(val, dateAdd).getTime(),
+    [ActionType.Parse]: (val: IOpenSegment[]) => {
+      for (const format of dateFormatterList) {
+        try {
+          const result = parse(TextFieldToStr(val), format, 0).getTime()
+          if (!Number.isNaN(result))
+            return result
+        }
+        catch (err) {
+          /* Ignore parsing errors */
+        }
+      }
+      return null
+    },
+    [ActionType.SetMonth]: (val: number) => set(val, {
+      ...dateSet,
+      month: dateSet.month !== undefined ? dateSet.month - 1 : undefined,
+    }).getTime(),
+    [ActionType.Randomize]: (val: number) => set(val, {
       date: dateRand.date ? generateNumber(1, 28) : undefined,
       hours: dateRand.hours ? generateNumber(0, 23) : undefined,
       minutes: dateRand.minutes ? generateNumber(0, 59) : undefined,
       month: dateRand.month ? generateNumber(0, 11) : undefined,
       seconds: dateRand.seconds ? generateNumber(0, 59) : undefined,
       year: dateRand.year ? generateNumber(1971, 2030) : undefined,
-    }
+    }).getTime(),
   }
   return records
     .map((item) => {
@@ -136,40 +161,7 @@ function start(records: IRecord[]): IRecord[] {
         && item.fields[formData.input]
       ) {
         const val = item.fields[formData.input]
-        let res: any
-        switch (formData.action) {
-          case 0:
-            res = format(val as number, formData.dateKey!)
-            break
-          case 1:
-            res = add(val as number, dateAdd).getTime()
-            break
-          case 2:
-            for (const f of dateFormatterList) {
-              try {
-                res = parse(TextFieldToStr(val as IOpenSegment[]), f, 0).getTime()
-                if (!Number.isNaN(res))
-                  break
-              }
-              catch (err) {
-                /* empty */
-              }
-            }
-            if (typeof res !== 'number' || Number.isNaN(res))
-              return null
-
-            break
-          case 3:
-            res = set(val as number, {
-              ...dateSet,
-              month: dateSet.month !== undefined ? dateSet.month - 1 : undefined,
-            }).getTime()
-            break
-          case 4:
-            res = set(val as number, rand()).getTime()
-            break
-        }
-        item.fields[formData.output] = res
+        item.fields[formData.output] = actionOptions[formData.action](val as number & IOpenSegment[])
         return item
       }
       return null
@@ -177,110 +169,70 @@ function start(records: IRecord[]): IRecord[] {
     .filter(item => item !== null) as IRecord[]
 }
 
-async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    await layout.value?.getRecords(
-      table.value,
-      ({ pr, records }) => {
-        pr.add(records.records.length)
-        return table.value!.setRecords(start(records.records))
-      },
-      all,
-      5000,
-    )
-  }
-  layout.value?.finish()
+function main(all?: boolean) {
+  getRecords(
+    ({ pr, records }) => {
+      pr.add(records.records.length)
+      return table.value!.setRecords(start(records.records))
+    },
+    all,
+    5000,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 onMounted(async () => {
-  getTable()
+  void getTable()
 })
 </script>
 
 <template>
   <Layout ref="layout">
-    <form-select
-      v-model:value="tableId"
-      :msg="t('Select Data Table')"
-      :options="tableMetaList"
-    />
+    <form-select v-model:value="tableId" :msg="t('Select Data Table')" :options="tableMetaList" />
     <form-radios
-      v-model:value="formData.action"
-      :msg="t('Select action')"
-      :datas="radios"
-      @update:value="
-        () => {
-          formData.output = null
-          formData.input = null
-        }
+      v-model:value="formData.action" :msg="t('Select action')" :datas="radios" @update:value="() => {
+        formData.output = null
+        formData.input = null
+      }
       "
     />
     <form-select
-      v-model:value="formData.input"
-      :msg="t('Select action field')"
-      :options="
-        filterFields(formData.action, {
-          [FieldType.DateTime]: [0, 1, 3, 4],
-          [FieldType.Text]: [2],
-        })
+      v-model:value="formData.input" :msg="t('Select action field')" :options="filterFields(formData.action, {
+        [FieldType.DateTime]: [0, 1, 3, 4],
+        [FieldType.Text]: [2],
+      })
       "
     />
     <form-select
-      v-if="formData.action === 0"
-      v-model:value="formData.dateKey"
-      :msg="t('Select date format')"
-      input
-      :tooltip="
-        `${t(
-          `Select the date format, which can be entered manually. For the format, please refer to the document `,
-        )
-        }<a href=&quot;https://date-fns.org/v2.6.0/docs/format&quot; target=&quot;_blank&quot;>date-fns format</a>`
-      "
-      :options="dateFormatter"
-      :render-label="dateRenderLabel"
+      v-if="formData.action === 0" v-model:value="formData.dateKey" :msg="t('Select date format')" input
+      :tooltip="`${t(
+        `Select the date format, which can be entered manually. For the format, please refer to the document `,
+      )
+      }<a href=&quot;https://date-fns.org/v2.6.0/docs/format&quot; target=&quot;_blank&quot;>date-fns format</a>`
+      " :options="dateFormatter" :render-label="dateRenderLabel"
     />
     <form-input-number
-      v-else-if="formData.action === 1"
-      :msg="t('Time addition and subtraction operations')"
+      v-else-if="formData.action === 1" :msg="t('Time addition and subtraction operations')"
       :data="dateAdd"
     />
-    <form-input-number
-      v-else-if="formData.action === 3"
-      :msg="t('Time setting operation')"
-      :data="dateSet"
-    />
-    <n-form-item
-      v-else-if="formData.action === 4"
-      :label="t('Time random operation')"
-    >
-      <n-space
-        item-style="display: flex;"
-        align="center"
-      >
-        <n-checkbox
-          v-for="(_, key) in dateRand"
-          :key="key"
-          v-model:checked="dateRand[key]"
-          :label="t(key)"
-        />
+    <form-input-number v-else-if="formData.action === 3" :msg="t('Time setting operation')" :data="dateSet" />
+    <n-form-item v-else-if="formData.action === 4" :label="t('Time random operation')">
+      <n-space item-style="display: flex;" align="center">
+        <n-checkbox v-for="(_, key) in dateRand" :key="key" v-model:checked="dateRand[key]" :label="t(key)" />
       </n-space>
     </n-form-item>
     <form-select
-      v-model:value="formData.output"
-      :msg="t('Select Output Field')"
-      :options="
-        filterFields(formData.action, {
-          [FieldType.DateTime]: [1, 2, 3, 4],
-          [FieldType.Text]: [0],
-        })
+      v-model:value="formData.output" :msg="t('Select Output Field')" :options="filterFields(formData.action, {
+        [FieldType.DateTime]: [1, 2, 3, 4],
+        [FieldType.Text]: [0],
+      })
       "
     />
-    <form-start
-      :disableds="disableds"
-      @update:click="main"
-    />
+    <form-start :disableds="disableds" @update:click="main" />
   </Layout>
 </template>

@@ -29,7 +29,7 @@ import axios from 'axios'
 import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
 
-const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
 const formData = reactive<ModelType>({
   input: null,
@@ -116,21 +116,25 @@ async function start(field: IAttachmentField, records: IRecord[], pr: Progress) 
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value && formData.output) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    const field = await table.value?.getFieldById<IAttachmentField>(formData.output)
-    await layout.value?.getRecords(
-      table.value,
+  if (formData.output && table.value) {
+    const field = await table.value.getFieldById<IAttachmentField>(formData.output)
+    getRecords(
       ({ pr, records }) => {
         return start(field, records.records, pr)
       },
       all,
-      50,
+      3000,
     )
+      .catch((error: Error) => {
+        errorHandle('main', error)
+      })
+      .finally(() => {
+        layout.value?.finish()
+      })
   }
-  layout.value?.finish()
+  else {
+    errorHandle('main', new Error('output or table is null'))
+  }
 }
 
 onMounted(() => {

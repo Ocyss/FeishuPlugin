@@ -17,7 +17,7 @@ import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import request from '@/utils/request'
 
-const { layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldId, fieldName, fieldMetaList } = useData()
+const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldId, fieldName, fieldMetaList } = useData()
 
 const formData = reactive<{ input: string[], output: string[], outputs: Record<string, any> }>({
   input: [],
@@ -98,7 +98,7 @@ interface Res {
       return record
     }),
   )
-  return processedRecords.filter(record => record !== null) as IRecord[]
+  return processedRecords.filter(record => record !== null)
 }
 
 function generator(name: string, field: IFieldMeta, options: Record<string, any>) {
@@ -134,42 +134,39 @@ function generator(name: string, field: IFieldMeta, options: Record<string, any>
 }
 
 async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value && formData.input.length > 0 && formData.output.length > 0) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    const options: Record<string, any> = {}
-    if (fieldMetaList.value) {
-      for (const mate of fieldMetaList.value) {
-        if (mate.type === FieldType.SingleSelect || mate.type === FieldType.MultiSelect) {
-          const field = await table.value.getFieldById<IMultiSelectField | ISingleSelectField>(mate.id)
-          options[mate.id] = await field.getOptions()
-        }
+  const options: Record<string, any> = {}
+  if (fieldMetaList.value) {
+    for (const mate of fieldMetaList.value) {
+      if (mate.type === FieldType.SingleSelect || mate.type === FieldType.MultiSelect) {
+        const field = await table.value!.getFieldById<IMultiSelectField | ISingleSelectField>(mate.id)
+        options[mate.id] = await field.getOptions()
       }
     }
-    const req = formData.output
-      .map((item) => {
-        return generator(
-          fieldName(item) as string,
-          fieldMetaList.value!.find(v => item === v.id)!,
-          options,
-        )
-      })
-      .join('\n  ')
-    console.log(req)
-
-    await layout.value?.getRecords(
-      table.value,
-      async ({ pr, records }) => {
-        console.log(records)
-
-        return table.value!.setRecords(await start(req, records.records, pr))
-      },
-      all,
-      10,
-    )
   }
-  layout.value?.finish()
+  const req = formData.output
+    .map((item) => {
+      return generator(
+        fieldName(item) as string,
+        fieldMetaList.value.find(v => item === v.id)!,
+        options,
+      )
+    })
+    .join('\n  ')
+  console.log(req)
+  getRecords(
+    async ({ pr, records }) => {
+      console.log(records)
+      return table.value!.setRecords(await start(req, records.records, pr))
+    },
+    all,
+    10,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 onMounted(() => {

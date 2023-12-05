@@ -23,7 +23,7 @@ import {
 import * as randomEase from 'random-ease'
 import { useData } from '@/hooks/useData'
 
-const { layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldMetaList } = useData()
+const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldMetaList } = useData()
 
 const formData = reactive<ModelType>({
   input: null,
@@ -142,26 +142,25 @@ async function main() {
   layout.value?.finish()
 }
 
-async function delMain() {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    await layout.value?.getRecords(
-      table.value,
-      ({ pr, records }) => {
-        pr.add(records.records.length)
-        return table.value!.deleteRecords(
-          records.records
-            .filter(record => Object.values(record.fields).every(value => value === null))
-            .map(record => record.recordId),
-        )
-      },
-      true,
-      1000,
-    )
-  }
-  layout.value?.finish()
+function delMain() {
+  getRecords(
+    ({ pr, records }) => {
+      pr.add(records.records.length)
+      return table.value!.deleteRecords(
+        records.records
+          .filter(record => Object.values(record.fields).every(value => value === null))
+          .map(record => record.recordId),
+      )
+    },
+    true,
+    1000,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 onMounted(() => {

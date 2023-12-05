@@ -33,7 +33,7 @@ import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields, fieldName, fieldType } = useData()
+const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields, fieldName, fieldType } = useData()
 
 const engine = new Liquid()
 
@@ -79,23 +79,21 @@ async function start(records: IRecord[], pr?: Progress) {
     .filter(record => record !== null) as IRecord[]
 }
 
-async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    await layout.value?.getRecords(
-      table.value,
-      async ({ pr, records }) => {
-        return table.value?.setRecords(await start(records.records, pr))
-      },
-      all,
-      500,
-    )
-  }
-  layout.value?.finish()
+function main(all?: boolean) {
+  getRecords(
+    async ({ pr, records }) => {
+      return table.value?.setRecords(await start(records.records, pr))
+    },
+    all,
+    1000,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
-
 onMounted(() => {
   getTable()
 })

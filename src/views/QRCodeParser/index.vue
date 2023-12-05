@@ -86,7 +86,6 @@ async function main() {
     const promises: Array<Promise<unknown>> = []
     for (const record of recordList)
       promises.push(start(table.value, record))
-
     await Promise.all(promises)
   }
   layout.value?.finish()

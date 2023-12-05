@@ -29,7 +29,7 @@ import { FieldEmptyMsg, TextFieldToStr } from '@/utils/field'
 import request from '@/utils/request'
 import { useData } from '@/hooks/useData'
 
-const { tableMetaList, getTable, fieldType, table, tableId, t, filterFields, layout, onGetField } = useData()
+const { tableMetaList, getTable, fieldType, table, tableId, t, filterFields, layout, onGetField, getRecords, errorHandle } = useData()
 
 const now = new Date()
 
@@ -154,7 +154,7 @@ function generateFileName(index: number, record: IRecord, item: string): string 
     case 'recordID':
       return record.recordId
     case 'fieldID':
-      return (formData.input as string) || ''
+      return (formData.input) ?? ''
     case 'date0':
       return now.getTime().toString()
     case 'date1':
@@ -247,20 +247,13 @@ async function startUrl(records: IRecord[]) {
   return await port(formData.AriaConf.aria2Url, res)
 }
 
-async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Verification Aria2 status'))
-  await aria2Stat()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Table'))
-    layout.value?.init()
-    count = 0
-    layout.value?.update(true, t('Step 3 - Getting Records'))
-    let field: IAttachmentField // 性能优化，只在需要时取一次
-
-    await layout.value?.getRecords(
-      table.value,
+function main(all?: boolean) {
+  count = 0
+  let field: IAttachmentField
+  aria2Stat(true).then(() => {
+    return getRecords(
       async ({ pr, records }) => {
-        switch (fieldType(formData.input as string)) {
+        switch (fieldType(formData.input)) {
           case FieldType.Url:
             await startUrl(records.records).catch((err) => {
               message.error(err)
@@ -268,7 +261,7 @@ async function main(all?: boolean) {
             break
           case FieldType.Attachment:
             if (!field)
-              field = await table.value!.getField<IAttachmentField>(formData.input as string)
+              field = await table.value!.getField<IAttachmentField>(formData.input)
             await startAttachment(field, records.records).catch((err) => {
               message.error(err)
             })
@@ -280,9 +273,13 @@ async function main(all?: boolean) {
       all,
       15,
     )
-    layout.value?.finish()
-  }
-  layout.value?.update(false)
+  })
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 async function aria2Stat(msg = false, url = '') {
@@ -309,7 +306,7 @@ async function aria2Stat(msg = false, url = '') {
   return aria.value || !!res?.response?.data?.error
 }
 
-async function port(url: string, data: any, config?: AxiosRequestConfig) {
+async function port(url: string, data: any, config?: AxiosRequestConfig): Promise<any> {
   const res: any = await request.post(url, data, config)
 
   if (res?.response?.data?.error?.message)
@@ -319,7 +316,7 @@ async function port(url: string, data: any, config?: AxiosRequestConfig) {
 }
 
 onMounted(async () => {
-  getTable()
+  void getTable()
   await aria2Stat()
   if (!aria.value) {
     const urls = ['http://localhost:16800/jsonrpc', 'http://localhost:6800/rpc']
@@ -331,7 +328,7 @@ onMounted(async () => {
     }
   }
   const timer = setInterval(() => {
-    aria2Stat()
+    void aria2Stat()
   }, 5000)
   onBeforeUnmount(() => {
     clearInterval(timer)

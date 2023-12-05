@@ -22,7 +22,7 @@ import { blobToFile, fileToBuf } from '@/utils/files'
 import request from '@/utils/request'
 import { useData } from '@/hooks/useData'
 
-const { table, layout, t, fieldName, fieldType, onGetField, tableId, fieldMetaList, filterFields, getTable, onFieldTraverse } = useData()
+const { getRecords, errorHandle, table, layout, t, fieldName, fieldType, onGetField, tableId, fieldMetaList, filterFields, getTable, onFieldTraverse } = useData()
 
 const attachments: Record<string, IAttachmentField> = {}
 let wordFile: ArrayBuffer
@@ -43,7 +43,7 @@ onGetField(() => {
 
 onFieldTraverse((item) => {
   if (item.type === FieldType.Attachment) {
-    table.value?.getFieldById<IAttachmentField>(item.id).then((field) => {
+    void table.value?.getFieldById<IAttachmentField>(item.id).then((field) => {
       attachments[item.id] = field
     })
   }
@@ -68,21 +68,21 @@ async function start(records: IRecord[], pr?: Progress) {
   )
 }
 
-async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    await layout.value?.getRecords(
-      table.value,
-      ({ pr, records }) => {
-        return start(records.records, pr)
-      },
-      all,
-      10,
-    )
-  }
-  layout.value?.finish()
+function main(all?: boolean) {
+  getRecords(
+    ({ pr, records }) => {
+      pr.add(records.records.length)
+      return start(records.records, pr)
+    },
+    all,
+    10,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 function savePreview() {
@@ -223,7 +223,7 @@ async function create(
 }
 
 onMounted(async () => {
-  getTable()
+  void getTable()
 
   const off = bitable.base.onSelectionChange(async ({ data }) => {
     wordPreviewSpin.value = true

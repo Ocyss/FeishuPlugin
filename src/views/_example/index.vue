@@ -15,7 +15,7 @@ meta:
 import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
 
-const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
 const formData = reactive<ModelType>({
   input: null,
@@ -39,28 +39,27 @@ async function start(records: IRecord[], pr?: Progress) {
       pr?.add()
       return record
     })
-    .filter(record => record !== null) as IRecord[]
+    .filter(record => record !== null)
 }
 
-async function main(all?: boolean) {
-  layout.value?.update(true, t('Step 1 - Getting Table'))
-  layout.value?.init()
-  if (table.value) {
-    layout.value?.update(true, t('Step 2 - Getting Records'))
-    await layout.value?.getRecords(
-      table.value,
-      async ({ pr, records }) => {
-        return table.value!.setRecords(await start(records.records, pr))
-      },
-      all,
-      1000, // 每次处理多少条记录 max:5000
-    )
-  }
-  layout.value?.finish()
+function main(all?: boolean) {
+  getRecords(
+    async ({ pr, records }) => {
+      return table.value!.setRecords(await start(records.records, pr))
+    },
+    all,
+    100,
+  )
+    .catch((error: Error) => {
+      errorHandle('main', error)
+    })
+    .finally(() => {
+      layout.value?.finish()
+    })
 }
 
 onMounted(() => {
-  getTable()
+  void getTable()
 })
 </script>
 
