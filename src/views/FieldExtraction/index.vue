@@ -32,7 +32,11 @@ import { useData } from '@/hooks/useData'
 
 const { getRecords, errorHandle, t, tableId, table, tableMetaList, layout, fieldMetaList, onGetField, fieldType, getTable, filterFields } = useData()
 
-const formData = reactive({
+const modelData = reactive<ModelType & {
+  dateKey: string
+  delimiter: string
+  key: string
+}>({
   input: '',
   output: '',
   dateKey: '',
@@ -41,13 +45,13 @@ const formData = reactive({
 })
 
 onGetField(() => {
-  formData.input = ''
-  formData.output = ''
+  modelData.input = ''
+  modelData.output = ''
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
 
 const delimiter = computed(() =>
@@ -58,7 +62,7 @@ const delimiter = computed(() =>
 )
 
 const fieldInfos = computed(() =>
-  FieldInfos(fieldType(formData.input) as FieldType).map((item) => {
+  FieldInfos(fieldType(modelData.input) as FieldType).map((item) => {
     item.name = t(item.id)
     return item
   }),
@@ -79,13 +83,13 @@ function dateRenderLabel(option: SelectOption): VNodeChild {
 function start(records: IRecord[]): IRecord[] {
   return records
     .map((item) => {
-      const val = item.fields[formData.input]
+      const val = item.fields[modelData.input!]
       let res = ''
-      if (fieldType(formData.input) === FieldType.DateTime)
-        res = format(val as number, formData.dateKey)
+      if (fieldType(modelData.input) === FieldType.DateTime)
+        res = format(val as number, modelData.dateKey)
       else
         res = processValue(val)
-      item.fields[formData.output] = res
+      item.fields[modelData.output!] = res
       return item
     })
     .filter(item => item !== null)
@@ -94,11 +98,11 @@ function start(records: IRecord[]): IRecord[] {
 function processValue(val: any): string {
   if (Array.isArray(val)) {
     return val
-      .map(item => (formData.key in item ? item[formData.key] : ''))
-      .join(formData.delimiter)
+      .map(item => (modelData.key in item ? item[modelData.key] : ''))
+      .join(modelData.delimiter)
   }
   else {
-    return formData.key === '' ? String(val) : formData.key in val ? val[formData.key] : ''
+    return modelData.key === '' ? String(val) : modelData.key in val ? val[modelData.key] : ''
   }
 }
 
@@ -132,13 +136,13 @@ onMounted(async () => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select Extraction Field')"
       :options="fieldMetaList"
     />
     <form-select
-      v-if="fieldType(formData.input) !== FieldType.DateTime"
-      v-model:value="formData.key"
+      v-if="fieldType(modelData.input) !== FieldType.DateTime"
+      v-model:value="modelData.key"
       :msg="t('Select Extraction Attribute')"
       input
       :tooltip="
@@ -149,8 +153,8 @@ onMounted(async () => {
       :options="fieldInfos"
     />
     <form-select
-      v-else-if="fieldType(formData.input) === FieldType.DateTime"
-      v-model:value="formData.dateKey"
+      v-else-if="fieldType(modelData.input) === FieldType.DateTime"
+      v-model:value="modelData.dateKey"
       :msg="t('Select date format')"
       input
       :tooltip="
@@ -163,7 +167,7 @@ onMounted(async () => {
       :render-label="dateRenderLabel"
     />
     <form-select
-      v-model:value="formData.delimiter"
+      v-model:value="modelData.delimiter"
       :msg="t('Select Separator')"
       input
       :tooltip="
@@ -174,7 +178,7 @@ onMounted(async () => {
       :options="delimiter"
     />
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields(FieldType.Text)"
     />

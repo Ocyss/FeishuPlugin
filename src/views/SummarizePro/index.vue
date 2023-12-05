@@ -16,52 +16,68 @@ import { useData } from '@/hooks/useData'
 import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import request from '@/utils/request'
+import { useStore } from '@/hooks/useStore'
 
+const { store } = useStore()
 const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldId, fieldName, fieldMetaList } = useData()
 
-const formData = reactive<{ input: string[], output: string[], outputs: Record<string, any> }>({
+const modelData = reactive< ModelType<string[], string[]> & { outputs: Record<string, any> }>({
   input: [],
   output: [],
   outputs: {},
 })
 
 onGetField(() => {
-  formData.input = []
-  formData.output = []
+  modelData.input = []
+  modelData.output = []
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [formData.input.length === 0, t('Input can not be empty')],
+  [modelData.input?.length === 0, t('Input can not be empty')],
 ])
 
-const conf = reactive<Record<string, any>>({
-  'API Key': '',
-  'API请求地址': 'https://api.chatanywhere.com.cn',
-  'model': 'gpt-4',
-})
-
-const parameter = reactive<Record<string, number | undefined>>({
-  frequency_penalty: undefined,
-  logit_bias: undefined,
-  max_tokens: undefined,
-  temperature: undefined,
-  top_p: undefined,
+const storeData = store<{
+  conf: {
+    APIKey: string
+    API请求地址: string
+    model: string
+  }
+  parameter: {
+    frequency_penalty: null | number
+    logit_bias: null | number
+    max_tokens: null | number
+    temperature: null | number
+    top_p: null | number
+  }
+}>('data', {
+  conf: {
+    APIKey: '',
+    API请求地址: 'https://api.chatanywhere.com.cn',
+    model: 'gpt-4',
+  },
+  parameter: {
+    frequency_penalty: null,
+    logit_bias: null,
+    max_tokens: null,
+    temperature: null,
+    top_p: null,
+  },
 })
 
 async function start(req: string, records: IRecord[], pr: Progress) {
   const processedRecords = await Promise.all(
     records.map(async (record) => {
       pr.add()
-      const text = formData.input
-        .map(v => TextFieldToStr(record.fields[v]))
+      const text = modelData.input
+        ?.map(v => TextFieldToStr(record.fields[v]))
         .join('\t\t')
         .slice(0, 4000)
       const res = await request.post(
-        `${conf['API请求地址']}/v1/chat/completions`,
+        `${storeData.value.conf.API请求地址}/v1/chat/completions`,
         {
-          frequency_penalty: parameter.frequency_penalty,
-          logit_bias: parameter.logit_bias,
-          max_tokens: parameter.max_tokens,
+          frequency_penalty: storeData.value.parameter.frequency_penalty,
+          logit_bias: storeData.value.parameter.logit_bias,
+          max_tokens: storeData.value.parameter.max_tokens,
           messages: [
             {
               content: `你叫做“智能总结大师”，是一款智能助手，接下来你会分析下面的文章：
@@ -77,13 +93,13 @@ interface Res {
               role: 'user',
             },
           ],
-          model: conf.model,
-          temperature: parameter.temperature,
-          top_p: parameter.top_p,
+          model: storeData.value.conf.model,
+          temperature: storeData.value.parameter.temperature,
+          top_p: storeData.value.parameter.top_p,
         },
         {
           headers: {
-            'Authorization': `Bearer ${conf['API Key']}`,
+            'Authorization': `Bearer ${storeData.value.conf.APIKey}`,
             'Content-Type': 'application/json',
           },
           timeout: 120000,
@@ -107,28 +123,28 @@ function generator(name: string, field: IFieldMeta, options: Record<string, any>
       if (field.id in options && Array.isArray(options[field.id])) {
         return `${name}?: {id:string,name:string}[] //多选多 ${JSON.stringify(
           options[field.id],
-        ).replace(/\s+/g, '')} ${formData.outputs[name]}`
+        ).replace(/\s+/g, '')} ${modelData.outputs[name]}`
       }
       break
     case FieldType.SingleSelect:
       if (field.id in options && Array.isArray(options[field.id])) {
         return `${name}?: {id:string,name:string} //多选一  ${JSON.stringify(
           options[field.id],
-        ).replace(/\s+/g, '')} ${formData.outputs[name]}`
+        ).replace(/\s+/g, '')} ${modelData.outputs[name]}`
       }
       break
     case FieldType.Text:
-      return `${name}?: string // ${formData.outputs[name]}`
+      return `${name}?: string // ${modelData.outputs[name]}`
     case FieldType.Number:
-      return `${name}?: number // ${formData.outputs[name]}`
+      return `${name}?: number // ${modelData.outputs[name]}`
     case FieldType.DateTime:
-      return `${name}?: number //日期毫秒级时间戳  ${formData.outputs[name]}`
+      return `${name}?: number //日期毫秒级时间戳  ${modelData.outputs[name]}`
     case FieldType.Checkbox:
-      return `${name}?: boolean // ${formData.outputs[name]}`
+      return `${name}?: boolean // ${modelData.outputs[name]}`
     case FieldType.Progress:
-      return `${name}?: number // ${formData.outputs[name]}`
+      return `${name}?: number // ${modelData.outputs[name]}`
     case FieldType.Rating:
-      return `${name}?: number // ${formData.outputs[name]}`
+      return `${name}?: number // ${modelData.outputs[name]}`
   }
   return '\n'
 }
@@ -143,7 +159,7 @@ async function main(all?: boolean) {
       }
     }
   }
-  const req = formData.output
+  const req = modelData.output!
     .map((item) => {
       return generator(
         fieldName(item) as string,
@@ -188,25 +204,25 @@ onMounted(() => {
         display-directive="show"
       >
         <form-select
-          v-model:value="formData.input"
+          v-model:value="modelData.input"
           :msg="t('选择总结内容')"
           multiple
           :options="fieldMetaList"
-          @update:value="formData.outputs = {}"
+          @update:value="modelData.outputs = {}"
         />
         <form-select
-          v-model:value="formData.output"
+          v-model:value="modelData.output"
           :msg="t('选择输出字段')"
           multiple
           :options="fieldMetaList"
         />
         <template
-          v-for="id in formData.output"
+          v-for="id in modelData.output"
           :key="id"
         >
           <n-form-item :label="`${fieldName(id)!} 描述`">
             <n-input
-              v-model:value="formData.outputs[fieldName(id)!]"
+              v-model:value="modelData.outputs[fieldName(id)!]"
               style="width: 100%"
               placeholder=""
             />
@@ -231,7 +247,7 @@ onMounted(() => {
       >
         <form-input-number
           msg="模型参数"
-          :data="parameter"
+          :data="storeData.parameter"
           vertical
           input-style="width: 100%"
           prefix
@@ -242,7 +258,7 @@ onMounted(() => {
         tab="配置"
         display-directive="show"
       >
-        <form-input :data="conf" />
+        <form-input :data="storeData.conf" />
       </n-tab-pane>
     </n-tabs>
   </Layout>

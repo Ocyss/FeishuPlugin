@@ -16,20 +16,27 @@ import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
 
 const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+// const { store } = useStore()
 
-const formData = reactive<ModelType>({
+const modelData = reactive<ModelType>({
   input: null,
   output: null,
 })
 
+// const storeData = store<{
+//   action: 0 | 1
+// }>('data', {
+//   action: 0,
+// })
+
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
 
 async function start(records: IRecord[], pr?: Progress) {
@@ -71,12 +78,12 @@ onMounted(() => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select Source Field')"
       :options="filterFields(FieldType.Text)"
     />
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields(FieldType.Text)"
     />

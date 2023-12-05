@@ -25,16 +25,16 @@ import { useData } from '@/hooks/useData'
 
 const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldMetaList } = useData()
 
-const formData = reactive<ModelType>({
+const modelData = reactive<ModelType & { total: number }>({
   input: null,
   output: null,
   total: 0,
 })
 
 onGetField(() => {
-  formData.input = null
-  formData.output = null
-  formData.total = 0
+  modelData.input = null
+  modelData.output = null
+  modelData.total = 0
 })
 
 function generator(options: Record<string, any>): IRecordValue {
@@ -125,7 +125,7 @@ async function main() {
         }
       }
     }
-    const numRecords = formData.total
+    const numRecords = modelData.total
     const pr = layout.value?.spin('正在生成', numRecords)
     const records: IRecordValue[] = []
     for (let i = 0; i < numRecords; i++) {
@@ -177,7 +177,7 @@ onMounted(() => {
     />
     <n-form-item :label="t('number of generated')">
       <n-input-number
-        v-model:value="formData.total"
+        v-model:value="modelData.total"
         style="width: 100%"
         :min="0"
         :max="20000"

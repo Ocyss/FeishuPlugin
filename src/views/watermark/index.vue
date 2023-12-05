@@ -19,20 +19,32 @@ import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import { base64ToBlob, blobToFile } from '@/utils/files'
 import { useData } from '@/hooks/useData'
+import { useStore } from '@/hooks/useStore'
 
 let page: any
-
+const { store } = useStore()
 const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 const record = ref<IRecordValue>({
   fields: {},
 })
 
-const formData = reactive<ModelType & {
-  urls: string[]
-  text: string[]
-}>({
+const modelData = reactive<ModelType>({
   input: null,
   output: null,
+})
+
+const storeData = store<{
+  urls: string[]
+  text: string[]
+  action: number
+  decodeUrls: string[]
+  options: {
+    cSpace: number
+    color: string
+    fontSize: number
+    vSpace: number
+  }
+}>('data', {
   action: 0,
   decodeUrls: [''],
   options: {
@@ -46,14 +58,14 @@ const formData = reactive<ModelType & {
 })
 
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
-  [!!formData.input && formData.output === formData.input, 'Input and output cannot be the same'],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
+  [!!modelData.input && modelData.output === modelData.input, 'Input and output cannot be the same'],
 ])
 
 const previewDiv = ref()
@@ -120,14 +132,14 @@ async function start(
 ) {
   await Promise.all(
     records.map(async (record) => {
-      if (formData.input && record.fields[formData.input]) {
+      if (modelData.input && record.fields[modelData.input]) {
         const urls = await fieldI.getAttachmentUrls(record.recordId)
         const list: File[] = []
-        const files = record.fields[formData.input] as IOpenAttachment[]
+        const files = record.fields[modelData.input] as IOpenAttachment[]
 
         for (let i = 0; i < urls.length; i++) {
           const url = urls[i]
-          const text = formData.text
+          const text = storeData.value.text
             .map((item) => {
               if (item.startsWith('$BDAT$'))
                 return item.slice(6)
@@ -140,16 +152,16 @@ async function start(
             })
             .join('')
           await WaterMark.image({
-            cSpace: formData.options.cSpace,
-            color: formData.options.color,
-            fontSize: formData.options.fontSize,
-            secret: formData.action === 1,
+            cSpace: storeData.value.options.cSpace,
+            color: storeData.value.options.color,
+            fontSize: storeData.value.options.fontSize,
+            secret: storeData.value.action === 1,
             success: (data) => {
               list.push(blobToFile(base64ToBlob(data), files[i].name))
             },
             target: url,
             text,
-            vSpace: formData.options.vSpace,
+            vSpace: storeData.value.options.vSpace,
           })
         }
         await fieldO.setValue(record.recordId, list)
@@ -160,9 +172,9 @@ async function start(
 }
 
 async function main(all?: boolean) {
-  if (table.value && formData.input && formData.output) {
-    const fieldI = await table.value.getFieldById<IAttachmentField>(formData.input)
-    const fieldO = await table.value.getFieldById<IAttachmentField>(formData.output)
+  if (table.value && modelData.input && modelData.output) {
+    const fieldI = await table.value.getFieldById<IAttachmentField>(modelData.input)
+    const fieldO = await table.value.getFieldById<IAttachmentField>(modelData.output)
     getRecords(
       ({ pr, records }) => {
         return start(records.records, fieldI, fieldO, pr)
@@ -186,15 +198,15 @@ function upPreview() {
   if (page)
     page.remove()
 
-  if (formData.action > 1)
+  if (storeData.value.action > 1)
     return
 
   page = WaterMark.page({
-    cSpace: formData.options.cSpace,
-    color: formData.options.color,
-    fontSize: formData.options.fontSize,
+    cSpace: storeData.value.options.cSpace,
+    color: storeData.value.options.color,
+    fontSize: storeData.value.options.fontSize,
     target: previewDiv.value,
-    text: formData.text.map((item) => {
+    text: storeData.value.text.map((item) => {
       if (item.startsWith('$BDAT$'))
         return item.slice(6)
       else if (item === 'i')
@@ -203,15 +215,15 @@ function upPreview() {
         return TextFieldToStr(record.value.fields[item] as IOpenSegment[])
       return ''
     }).join(''),
-    vSpace: formData.options.vSpace,
+    vSpace: storeData.value.options.vSpace,
     zIndex: 500,
   })
 }
 
 async function upDecodePreview() {
-  formData.decodeUrls = (
+  storeData.value.decodeUrls = (
     await Promise.all(
-      formData.urls.map(async (item) => {
+      storeData.value.urls.map(async (item) => {
         if (item)
           return await WaterMark.utils.decodeImage(item)
 
@@ -233,8 +245,8 @@ onMounted(async () => {
         )) as IOpenAttachment[]
         if (cellValue && cellValue.length > 0) {
           record.value = await table.value.getRecordById(data.recordId)
-          formData.urls = await field.getAttachmentUrls(data.recordId)
-          if (formData.action === 2)
+          storeData.value.urls = await field.getAttachmentUrls(data.recordId)
+          if (storeData.value.action === 2)
             await upDecodePreview()
           upPreview()
         }
@@ -256,12 +268,12 @@ onMounted(async () => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select Source Field')"
       :options="filterFields(FieldType.Attachment)"
     />
     <form-radios
-      v-model:value="formData.action"
+      v-model:value="storeData.action"
       :msg="t('Select action')"
       :datas="actions"
       @update:value="val => {
@@ -271,9 +283,9 @@ onMounted(async () => {
       }
       "
     />
-    <div v-if="formData.action === 0 || formData.action === 1">
+    <div v-if="storeData.action === 0 || storeData.action === 1">
       <form-select
-        v-model:value="formData.text"
+        v-model:value="storeData.text"
         :msg="t('watermark text')"
         input
         multiple
@@ -285,13 +297,13 @@ onMounted(async () => {
       />
       <n-form-item :label="t('水印颜色')">
         <n-color-picker
-          v-model:value="formData.options.color"
+          v-model:value="storeData.options.color"
           @update:value="upPreview"
         />
       </n-form-item>
       <n-form-item :label="t('水印大小')">
         <n-slider
-          v-model:value="formData.options.fontSize"
+          v-model:value="storeData.options.fontSize"
           :step="1"
           :min="2"
           @update:value="upPreview"
@@ -299,14 +311,14 @@ onMounted(async () => {
       </n-form-item>
       <n-form-item :label="t('横向间距')">
         <n-slider
-          v-model:value="formData.options.cSpace"
+          v-model:value="storeData.options.cSpace"
           :step="1"
           @update:value="upPreview"
         />
       </n-form-item>
       <n-form-item :label="t('纵向间距')">
         <n-slider
-          v-model:value="formData.options.vSpace"
+          v-model:value="storeData.options.vSpace"
           :step="1"
           @update:value="upPreview"
         />
@@ -317,25 +329,25 @@ onMounted(async () => {
           class="preview"
         >
           <img
-            v-for="item in formData.urls"
+            v-for="item in storeData.urls"
             :key="item"
             :src="item"
           >
         </n-carousel>
       </div>
     </div>
-    <div v-if="formData.action === 2">
+    <div v-if="storeData.action === 2">
       解密内容:
       <n-carousel
         class="preview"
         draggable
       >
         <div
-          v-for="(item, index) in formData.decodeUrls"
+          v-for="(item, index) in storeData.decodeUrls"
           :key="item"
           style="position: relative"
         >
-          <img :src="formData.urls[index]">
+          <img :src="storeData.urls[index]">
           <img
             class="watermark"
             :src="item"
@@ -344,13 +356,13 @@ onMounted(async () => {
       </n-carousel>
     </div>
     <n-alert
-      v-if="formData.action === 3"
+      v-if="storeData.action === 3"
       type="error"
     >
       未完成
     </n-alert>
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields(FieldType.Attachment)"
     />

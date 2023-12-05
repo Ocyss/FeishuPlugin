@@ -4,7 +4,6 @@ import { createI18n } from 'vue-i18n'
 import {
   createRouter,
   createWebHashHistory,
-  setupDataFetchingGuard,
 } from 'vue-router/auto'
 
 import App from '@/App.vue'
@@ -13,8 +12,6 @@ import zh from '@/locales/zh.json'
 const router = createRouter({
   history: createWebHashHistory(),
 })
-
-setupDataFetchingGuard(router)
 
 const i18n = createI18n({
   allowComposition: true,

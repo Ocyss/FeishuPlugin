@@ -37,29 +37,29 @@ const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable
 
 const engine = new Liquid()
 
-const formData = reactive<ModelType>({
+const modelData = reactive<ModelType>({
   input: null,
   output: null,
 })
 
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
 
 async function start(records: IRecord[], pr?: Progress) {
   return records
     .map((record) => {
       pr?.add()
-      if (!formData.input || !(formData.input in record.fields))
+      if (!modelData.input || !(modelData.input in record.fields))
         return null
 
-      const text = TextFieldToStr(record.fields[formData.input] as IOpenSegment[])
+      const text = TextFieldToStr(record.fields[modelData.input] as IOpenSegment[])
       const engineData: any = {}
       for (const field in record.fields) {
         const name = fieldName(field)
@@ -73,7 +73,7 @@ async function start(records: IRecord[], pr?: Progress) {
         }
       }
       const res = engine.parseAndRenderSync(text, engineData)
-      record.fields[formData.output!] = res
+      record.fields[modelData.output!] = res
       return record
     })
     .filter(record => record !== null) as IRecord[]
@@ -107,12 +107,12 @@ onMounted(() => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select Source Field')"
       :options="filterFields(FieldType.Text)"
     />
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields(FieldType.Text)"
     />

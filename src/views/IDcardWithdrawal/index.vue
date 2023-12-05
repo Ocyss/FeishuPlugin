@@ -37,20 +37,20 @@ import { useData } from '@/hooks/useData'
 
 const { getRecords, errorHandle, layout, t, table, tableId, onGetField, fieldType, getTable, tableMetaList, filterFields } = useData()
 
-const formData = reactive<{ input: string | null, output: string | null, format?: InfoField[] }>({
+const modelData = reactive< ModelType & { format?: InfoField[] }>({
   input: null,
   output: null,
   format: [],
 })
 
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
 
 const InfoFields = [
@@ -76,7 +76,7 @@ function start(recordId: string, val: IOpenCellValue): null | number | string {
   const info = idcard(text)
   if (!info) {
     layout.value?.error(t('ID card format error'), {
-      fieldId: formData.input as string,
+      fieldId: modelData.input as string,
       recordId,
       tableId: tableId.value,
     })
@@ -91,9 +91,9 @@ function start(recordId: string, val: IOpenCellValue): null | number | string {
   }
 
   let res: any
-  switch (fieldType(formData.output as string)) {
+  switch (fieldType(modelData.output as string)) {
     case FieldType.Text:
-      res = formData.format!.map(item => getValueByField(item)).join(' ')
+      res = modelData.format!.map(item => getValueByField(item)).join(' ')
       break
 
     case FieldType.Number:
@@ -112,13 +112,13 @@ function main(all?: boolean) {
         .map((item) => {
           pr.add()
           if (
-            formData.input && formData.output
-            && formData.input in item.fields
-            && formData.output in item.fields
-            && item.fields[formData.input]
+            modelData.input && modelData.output
+            && modelData.input in item.fields
+            && modelData.output in item.fields
+            && item.fields[modelData.input]
           ) {
-            const val = item.fields[formData.input]
-            item.fields[formData.output] = start(item.recordId, val)
+            const val = item.fields[modelData.input]
+            item.fields[modelData.output] = start(item.recordId, val)
             return item
           }
           return null
@@ -150,30 +150,30 @@ onMounted(async () => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select ID field')"
       :options="filterFields(FieldType.Text)"
     />
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields([FieldType.Text, FieldType.Number, FieldType.DateTime])"
     />
     <form-select
-      v-if="formData.output && fieldType(formData.output) === FieldType.Text"
-      v-model:value="formData.format"
+      v-if="modelData.output && fieldType(modelData.output) === FieldType.Text"
+      v-model:value="modelData.format"
       :msg="t('Select output format')"
       :options="outputFormat"
       multiple
     />
     <form-select
-      v-else-if="formData.output && fieldType(formData.output) === FieldType.Number"
+      v-else-if="modelData.output && fieldType(modelData.output) === FieldType.Number"
       :msg="t('Select output format')"
       :value="t('age')"
       disabled
     />
     <form-select
-      v-else-if="formData.output && fieldType(formData.output) === FieldType.DateTime"
+      v-else-if="modelData.output && fieldType(modelData.output) === FieldType.DateTime"
       :msg="t('Select output format')"
       :value="t('birthday')"
       disabled

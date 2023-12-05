@@ -30,19 +30,19 @@ import { useData } from '@/hooks/useData'
 
 const { layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
-const formData = reactive<ModelType>({
+const modelData = reactive<ModelType>({
   input: null,
   output: null,
 })
 
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
 
 async function decode(srcCell: string[], dstCell: ICell, err = 0) {
@@ -68,10 +68,10 @@ async function decode(srcCell: string[], dstCell: ICell, err = 0) {
 }
 
 async function start(table: ITable, record: IRecordType) {
-  if (formData.output && formData.input) {
+  if (modelData.output && modelData.input) {
     const [srcCell, dstCell] = await Promise.all([
-      (await table.getField<IAttachmentField>(formData.input)).getAttachmentUrls(record),
-      record.getCellByField(formData.output),
+      (await table.getField<IAttachmentField>(modelData.input)).getAttachmentUrls(record),
+      record.getCellByField(modelData.output),
     ])
     await decode(srcCell, dstCell)
   }
@@ -104,12 +104,12 @@ onMounted(async () => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select QR Code / Barcode Attachment Field')"
       :options="filterFields(FieldType.Attachment)"
     />
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields(FieldType.Text)"
     />

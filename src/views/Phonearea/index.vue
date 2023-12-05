@@ -31,18 +31,23 @@ import axios from 'axios'
 import { TextFieldToStr } from '@/utils/field'
 
 import { useData } from '@/hooks/useData'
+import { useStore } from '@/hooks/useStore'
 
+const { store } = useStore()
 const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
-const formData = reactive<ModelType>({
+const modelData = reactive<ModelType>({
   input: null,
   output: null,
+})
+
+const storeData = store<{ format: number }>('data', {
   format: 1,
 })
 
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 
 const formats = computed(() => [
@@ -55,8 +60,8 @@ const formats = computed(() => [
 ])
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
 
 async function request(phone: string, err = 0) {
@@ -77,7 +82,7 @@ async function request(phone: string, err = 0) {
       throw new Error('status error')
     }
     const { carrier, city, province, simType } = res.data.data
-    switch (formData.format) {
+    switch (storeData.value.format) {
       case 1:
         return `${province}${city}(${carrier})`
       case 2:
@@ -107,14 +112,14 @@ async function start(records: IRecord[], pr: any) {
   const processedRecords = await Promise.all(
     records.map(async (record) => {
       pr.add()
-      if (formData.input && formData.output && formData.input in record.fields && formData.output in record.fields) {
-        const phone = TextFieldToStr(record.fields[formData.input] as IOpenSegment[])
+      if (modelData.input && modelData.output && modelData.input in record.fields && modelData.output in record.fields) {
+        const phone = TextFieldToStr(record.fields[modelData.input] as IOpenSegment[])
         const expression
           = /^(?:13\d|14[014-9]|15[0-35-9]|16[2567]|17[0-8]|18\d|19[0-35-9])\d{8}$/
         if (!expression.test(phone))
           return null
 
-        record.fields[formData.output] = await request(phone)
+        record.fields[modelData.output] = await request(phone)
         return record
       }
       return null
@@ -151,17 +156,17 @@ onMounted(async () => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select PhoneNumber field')"
       :options="filterFields(FieldType.Text)"
     />
     <form-select
-      v-model:value="formData.format"
+      v-model:value="storeData.format"
       :msg="t('Select output format')"
       :options="formats"
     />
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields(FieldType.Text)"
     />

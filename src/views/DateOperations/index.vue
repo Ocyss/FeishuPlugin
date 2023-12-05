@@ -35,8 +35,11 @@ import type { VNodeChild } from 'vue'
 import { dateFormatterList } from '@/utils/format'
 import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
+import { useStore } from '@/hooks/useStore'
 
 const { t, filterFields, getTable, layout, tableId, tableMetaList, table, onGetField, errorHandle, getRecords } = useData()
+const { store } = useStore()
+
 enum ActionType {
   Format = 0,
   Add = 1,
@@ -44,70 +47,88 @@ enum ActionType {
   SetMonth = 3,
   Randomize = 4,
 }
-const formData = reactive<{
-  'action': ActionType
-  'dateKey': null | string
-  'input': null | string
-  'output': null | string
-}>({
-  action: ActionType.Format,
-  dateKey: null,
+interface StoreData {
+  action: ActionType
+  dateKey: null | string
+  add: {
+    days: number
+    hours: number
+    minutes: number
+    months: number
+    seconds: number
+    weeks: number
+    years: number
+  }
+  set: {
+    date: undefined | number
+    hours: undefined | number
+    minutes: undefined | number
+    month: undefined | number
+    seconds: undefined | number
+    year: undefined | number
+  }
+  rand: {
+    date: boolean
+    hours: boolean
+    minutes: boolean
+    month: boolean
+    seconds: boolean
+    year: boolean
+  }
+}
+
+const modelData = reactive<ModelType>({
   input: null,
   output: null,
 })
 
+const storeData = store<StoreData>('data', {
+  action: ActionType.Format,
+  dateKey: null,
+  add: {
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    months: 0,
+    seconds: 0,
+    weeks: 0,
+    years: 0,
+  },
+  set: {
+    date: undefined,
+    hours: undefined,
+    minutes: undefined,
+    month: undefined,
+    seconds: undefined,
+    year: undefined,
+  },
+  rand: {
+    date: false,
+    hours: false,
+    minutes: false,
+    month: false,
+    seconds: false,
+    year: false,
+  },
+})
+
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 
 const radios = [
-  { label: 'format', value: 0 },
-  { label: 'add-subtract', value: 1 },
-  { label: 'text to time', value: 2 },
-  { label: 'settings', value: 3 },
-  { label: 'random', value: 4 },
+  { label: 'format', value: ActionType.Format },
+  { label: 'add-subtract', value: ActionType.Add },
+  { label: 'text to time', value: ActionType.Parse },
+  { label: 'settings', value: ActionType.SetMonth },
+  { label: 'random', value: ActionType.Randomize },
 ]
 
-const dateAdd = reactive({
-  days: 0,
-  hours: 0,
-  minutes: 0,
-  months: 0,
-  seconds: 0,
-  weeks: 0,
-  years: 0,
-})
-
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
-
-const dateSet = reactive<{
-  date?: number
-  hours?: number
-  minutes?: number
-  month?: number
-  seconds?: number
-  year?: number
-}>({
-  date: undefined,
-  hours: undefined,
-  minutes: undefined,
-  month: undefined,
-  seconds: undefined,
-  year: undefined,
-})
-
-const dateRand = reactive({
-  date: false,
-  hours: false,
-  minutes: false,
-  month: false,
-  seconds: false,
-  year: false,
-})
 
 const dateFormatter = computed(() =>
   dateFormatterList.map((item) => {
@@ -124,8 +145,8 @@ function dateRenderLabel(option: SelectOption): VNodeChild {
 
 function start(records: IRecord[]): IRecord[] {
   const actionOptions = {
-    [ActionType.Format]: (val: number) => format(val, formData.dateKey!),
-    [ActionType.Add]: (val: number) => add(val, dateAdd).getTime(),
+    [ActionType.Format]: (val: number) => format(val, storeData.value.dateKey!),
+    [ActionType.Add]: (val: number) => add(val, storeData.value.add).getTime(),
     [ActionType.Parse]: (val: IOpenSegment[]) => {
       for (const format of dateFormatterList) {
         try {
@@ -140,28 +161,28 @@ function start(records: IRecord[]): IRecord[] {
       return null
     },
     [ActionType.SetMonth]: (val: number) => set(val, {
-      ...dateSet,
-      month: dateSet.month !== undefined ? dateSet.month - 1 : undefined,
+      ...storeData.value.set,
+      month: storeData.value.set.month !== undefined ? storeData.value.set.month - 1 : undefined,
     }).getTime(),
     [ActionType.Randomize]: (val: number) => set(val, {
-      date: dateRand.date ? generateNumber(1, 28) : undefined,
-      hours: dateRand.hours ? generateNumber(0, 23) : undefined,
-      minutes: dateRand.minutes ? generateNumber(0, 59) : undefined,
-      month: dateRand.month ? generateNumber(0, 11) : undefined,
-      seconds: dateRand.seconds ? generateNumber(0, 59) : undefined,
-      year: dateRand.year ? generateNumber(1971, 2030) : undefined,
+      date: storeData.value.rand.date ? generateNumber(1, 28) : undefined,
+      hours: storeData.value.rand.hours ? generateNumber(0, 23) : undefined,
+      minutes: storeData.value.rand.minutes ? generateNumber(0, 59) : undefined,
+      month: storeData.value.rand.month ? generateNumber(0, 11) : undefined,
+      seconds: storeData.value.rand.seconds ? generateNumber(0, 59) : undefined,
+      year: storeData.value.rand.year ? generateNumber(1971, 2030) : undefined,
     }).getTime(),
   }
   return records
     .map((item) => {
       if (
-        formData.input && formData.output
-        && formData.input in item.fields
-        && formData.output in item.fields
-        && item.fields[formData.input]
+        modelData.input && modelData.output
+        && modelData.input in item.fields
+        && modelData.output in item.fields
+        && item.fields[modelData.input]
       ) {
-        const val = item.fields[formData.input]
-        item.fields[formData.output] = actionOptions[formData.action](val as number & IOpenSegment[])
+        const val = item.fields[modelData.input]
+        item.fields[modelData.output] = actionOptions[storeData.value.action](val as number & IOpenSegment[])
         return item
       }
       return null
@@ -195,21 +216,21 @@ onMounted(async () => {
   <Layout ref="layout">
     <form-select v-model:value="tableId" :msg="t('Select Data Table')" :options="tableMetaList" />
     <form-radios
-      v-model:value="formData.action" :msg="t('Select action')" :datas="radios" @update:value="() => {
-        formData.output = null
-        formData.input = null
+      v-model:value="storeData.action" :msg="t('Select action')" :datas="radios" @update:value="() => {
+        modelData.output = null
+        modelData.input = null
       }
       "
     />
     <form-select
-      v-model:value="formData.input" :msg="t('Select action field')" :options="filterFields(formData.action, {
+      v-model:value="modelData.input" :msg="t('Select action field')" :options="filterFields(storeData.action, {
         [FieldType.DateTime]: [0, 1, 3, 4],
         [FieldType.Text]: [2],
       })
       "
     />
     <form-select
-      v-if="formData.action === 0" v-model:value="formData.dateKey" :msg="t('Select date format')" input
+      v-if="storeData.action === 0" v-model:value="storeData.dateKey" :msg="t('Select date format')" input
       :tooltip="`${t(
         `Select the date format, which can be entered manually. For the format, please refer to the document `,
       )
@@ -217,17 +238,17 @@ onMounted(async () => {
       " :options="dateFormatter" :render-label="dateRenderLabel"
     />
     <form-input-number
-      v-else-if="formData.action === 1" :msg="t('Time addition and subtraction operations')"
-      :data="dateAdd"
+      v-else-if="storeData.action === 1" :msg="t('Time addition and subtraction operations')"
+      :data="storeData.add"
     />
-    <form-input-number v-else-if="formData.action === 3" :msg="t('Time setting operation')" :data="dateSet" />
-    <n-form-item v-else-if="formData.action === 4" :label="t('Time random operation')">
+    <form-input-number v-else-if="storeData.action === 3" :msg="t('Time setting operation')" :data="storeData.set" />
+    <n-form-item v-else-if="storeData.action === 4" :label="t('Time random operation')">
       <n-space item-style="display: flex;" align="center">
-        <n-checkbox v-for="(_, key) in dateRand" :key="key" v-model:checked="dateRand[key]" :label="t(key)" />
+        <n-checkbox v-for="(_, key) in storeData.rand" :key="key" v-model:checked="storeData.rand[key]" :label="t(key)" />
       </n-space>
     </n-form-item>
     <form-select
-      v-model:value="formData.output" :msg="t('Select Output Field')" :options="filterFields(formData.action, {
+      v-model:value="modelData.output" :msg="t('Select Output Field')" :options="filterFields(storeData.action, {
         [FieldType.DateTime]: [1, 2, 3, 4],
         [FieldType.Text]: [0],
       })

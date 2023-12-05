@@ -17,8 +17,7 @@ interface Track {
   viewId?: null | string
 }
 
-interface ModelType {
-  input?: null | string
-  output?: null | string
-  [key: string]: any
+interface ModelType<TInput = string, TOutput = string> {
+  input?: null | TInput
+  output?: null | TOutput
 }

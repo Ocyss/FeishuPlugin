@@ -39,21 +39,22 @@ const { getRecords, errorHandle, layout, t, table, tableId, viewId, viewMetaList
 
 const { copy } = useClipboard()
 
-const formData = reactive<{ input: null | string, fieldList: string[] }>({
+const modelData = reactive< ModelType & { fieldList: string[] }>({
   input: null,
   fieldList: [],
 })
+
 onGetField(() => {
-  formData.input = null
-  formData.fieldList = []
+  modelData.input = null
+  modelData.fieldList = []
 })
 
 onFieldTraverse((item) => {
-  formData.fieldList.push(item.id)
+  modelData.fieldList.push(item.id)
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
   [!viewId.value, t('View can not be empty')],
 ])
 
@@ -61,8 +62,8 @@ function start(records: IRecord[], pr: Progress) {
   return records
     .map((record) => {
       pr.add()
-      if (formData.input && formData.input in record.fields) {
-        const text = TextFieldToStr(record.fields[formData.input])
+      if (modelData.input && modelData.input in record.fields) {
+        const text = TextFieldToStr(record.fields[modelData.input])
         const track = {
           recordId: record.recordId,
           tableId: tableId.value,
@@ -71,9 +72,9 @@ function start(records: IRecord[], pr: Progress) {
         try {
           const obj = JSON.parse(text)
           if (Array.isArray(obj)) {
-            if (formData.fieldList.length === obj.length) {
+            if (modelData.fieldList.length === obj.length) {
               obj.forEach((value: any, index: number) => {
-                record.fields[formData.fieldList[index]] = value
+                record.fields[modelData.fieldList[index]] = value
               })
             }
             else {
@@ -83,7 +84,7 @@ function start(records: IRecord[], pr: Progress) {
           else if (typeof obj === 'object' && obj !== null) {
             for (const key in obj) {
               const id = fieldId(key) as string
-              if (id && formData.fieldList.includes(id))
+              if (id && modelData.fieldList.includes(id))
                 record.fields[id] = obj[key]
             }
           }
@@ -115,7 +116,7 @@ function main(all?: boolean) {
 }
 
 function inputUpdate() {
-  formData.fieldList = fieldMetaList.value?.map(item => item.id).filter(item => item !== formData.input) ?? []
+  modelData.fieldList = fieldMetaList.value?.map(item => item.id).filter(item => item !== modelData.input) ?? []
 }
 
 function fieldUpdate() {
@@ -123,14 +124,14 @@ function fieldUpdate() {
   fieldMetaList.value?.forEach((element, index) => {
     orderMap[element.id] = index
   })
-  formData.fieldList.sort((a, b) => {
+  modelData.fieldList.sort((a, b) => {
     return orderMap[a] - orderMap[b]
   })
 }
 
 async function toCopy(flag = true) {
   const res: Record<string, any> = {}
-  for (const field of formData.fieldList) {
+  for (const field of modelData.fieldList) {
     const name = fieldName(field)
     if (name)
       res[name] = fieldDefault(fieldType(field))
@@ -160,19 +161,19 @@ onMounted(async () => {
       :options="viewMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select Input Field')"
       :options="filterFields(FieldType.Text)"
       @update:value="inputUpdate"
     />
     <form-select
-      v-model:value="formData.fieldList"
+      v-model:value="modelData.fieldList"
       :msg="t('Select Output Field')"
       :options="
         fieldMetaList?.map(item => {
           // 拷贝防止影响其他值
           const val: SelectOption = { ...item }
-          if (val.id === formData.input) {
+          if (val.id === modelData.input) {
             val.disabled = true
           }
           return val

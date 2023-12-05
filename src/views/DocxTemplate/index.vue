@@ -16,29 +16,38 @@ import format from 'date-fns/format'
 import { createReport } from 'docx-templates'
 import { saveAs } from 'file-saver'
 import type { UploadCustomRequestOptions } from 'naive-ui'
+import type { SettledFileInfo } from 'naive-ui/es/upload/src/interface'
 import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import { blobToFile, fileToBuf } from '@/utils/files'
 import request from '@/utils/request'
 import { useData } from '@/hooks/useData'
+import { useStore } from '@/hooks/useStore'
 
 const { getRecords, errorHandle, table, layout, t, fieldName, fieldType, onGetField, tableId, fieldMetaList, filterFields, getTable, onFieldTraverse } = useData()
+const { IDB } = useStore()
 
 const attachments: Record<string, IAttachmentField> = {}
-let wordFile: ArrayBuffer
+const wordFile = IDB< SettledFileInfo | object>(
+  'wordFile',
+  { foo: 'bar' },
+  {
+    deep: false,
+    shallow: true,
+  },
+)
 const wordPreview = ref<Blob>()
 const wordPreviewSpin = ref(false)
 const openPreviewDisabled = ref(false)
-const formData = reactive<{
-  input: string[] | null
-  output: string | null
-}>({
+
+const modelData = reactive<ModelType<string[]>>({
   input: null,
   output: null,
 })
+
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 
 onFieldTraverse((item) => {
@@ -50,9 +59,9 @@ onFieldTraverse((item) => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!wordFile, t('Template can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!wordFile.data.value, t('Template can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
 
 async function start(records: IRecord[], pr?: Progress) {
@@ -62,7 +71,7 @@ async function start(records: IRecord[], pr?: Progress) {
         await create(record.fields, record.recordId),
         `WordTemplate_${record.recordId}.docx`,
       )
-      await attachments[formData.output as string].setValue(record.recordId, file)
+      await attachments[modelData.output as string].setValue(record.recordId, file)
       pr?.add()
     }),
   )
@@ -114,7 +123,7 @@ function openPreview() {
 
 async function customRequest({ file, onFinish }: UploadCustomRequestOptions) {
   wordPreviewSpin.value = true
-  wordFile = await fileToBuf(file.file as File)
+  await wordFile.set(file)
   wordPreview.value = await create(undefined, undefined, false)
   wordPreviewSpin.value = false
   onFinish()
@@ -130,9 +139,9 @@ async function create(
   const base: Record<string, any> = {
     json: (obj: object) => JSON.stringify(obj),
   }
-  if (fields && recordId && formData.input) {
+  if (fields && recordId && modelData.input) {
     await Promise.all(
-      formData.input.map(async (id) => {
+      modelData.input.map(async (id) => {
         const val = fields[id]
         const name = fieldName(id)
         if (!name)
@@ -203,9 +212,8 @@ async function create(
     additionalJsContext: base,
     cmdDelimiter: ['{{', '}}'],
     errorHandler: (e: Error, raw_code?: string) => {
-      if (fields && recordId && formData.input)
+      if (fields && recordId && modelData.input)
         console.log(e, raw_code)
-
       if (log) {
         layout.value?.error(raw_code ?? 'err', {
           recordId,
@@ -216,7 +224,7 @@ async function create(
     },
     failFast: false,
     // @ts-expect-error not Buffer
-    template: wordFile,
+    template: await fileToBuf(wordFile.data.value.file),
   })
   console.log(`createReport ${recordId}: ${performance.now() - t} ms`)
   return new Blob([document], { type: 'application/octet-stream' })
@@ -224,6 +232,9 @@ async function create(
 
 onMounted(async () => {
   void getTable()
+  // if (wordFile.data.value)
+  //   wordPreview.value = await create(undefined, undefined, false)
+  console.log(wordFile.data.value)
 
   const off = bitable.base.onSelectionChange(async ({ data }) => {
     wordPreviewSpin.value = true
@@ -282,13 +293,13 @@ onMounted(async () => {
       </n-upload-dragger>
     </n-upload>
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select Source Field')"
       multiple
       :options="fieldMetaList"
     />
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields(FieldType.Attachment)"
     />

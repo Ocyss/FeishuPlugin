@@ -31,18 +31,18 @@ import { useData } from '@/hooks/useData'
 
 const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
-const formData = reactive<ModelType>({
+const modelData = reactive<ModelType>({
   input: null,
   output: null,
 })
 
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
 ])
 
 async function urlTofile(url: string, err = 0): Promise<File | undefined> {
@@ -93,12 +93,12 @@ async function start(field: IAttachmentField, records: IRecord[], pr: Progress) 
   await Promise.all(
     records.map(async (record) => {
       if (
-        formData.input && formData.output
-        && record.fields[formData.input]
-        && (!record.fields[formData.output]
-        || (record.fields[formData.output] as IOpenAttachment[])?.length === 0)
+        modelData.input && modelData.output
+        && record.fields[modelData.input]
+        && (!record.fields[modelData.output]
+        || (record.fields[modelData.output] as IOpenAttachment[])?.length === 0)
       ) {
-        const urls = record.fields[formData.input] as IOpenUrlSegment[]
+        const urls = record.fields[modelData.input] as IOpenUrlSegment[]
         const files: File[] = []
 
         for (const url of urls) {
@@ -116,8 +116,8 @@ async function start(field: IAttachmentField, records: IRecord[], pr: Progress) 
 }
 
 async function main(all?: boolean) {
-  if (formData.output && table.value) {
-    const field = await table.value.getFieldById<IAttachmentField>(formData.output)
+  if (modelData.output && table.value) {
+    const field = await table.value.getFieldById<IAttachmentField>(modelData.output)
     getRecords(
       ({ pr, records }) => {
         return start(field, records.records, pr)
@@ -150,12 +150,12 @@ onMounted(() => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select Url Field')"
       :options="filterFields(FieldType.Url)"
     />
     <form-select
-      v-model:value="formData.output"
+      v-model:value="modelData.output"
       :msg="t('Select Output Field')"
       :options="filterFields(FieldType.Attachment)"
     />

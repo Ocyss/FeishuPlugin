@@ -31,30 +31,34 @@ import { TextFieldToStr } from '@/utils/field'
 import request from '@/utils/request'
 
 import { useData } from '@/hooks/useData'
+import { useStore } from '@/hooks/useStore'
 
+const { store } = useStore()
 const { getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
 
 const voice = ref<SpeechSynthesisVoice[]>([])
 
 const word = ref('')
 
-const formData = reactive<ModelType>({
+const modelData = reactive<ModelType>({
   input: null,
   output: null,
+})
+
+const storeData = store<{ pitch: number, rate: number, volume: number, voiceUrl: string }>('data', {
   pitch: 1,
   rate: 1,
   voiceUrl: '',
   volume: 100,
 })
-
 onGetField(() => {
-  formData.input = null
-  formData.output = null
+  modelData.input = null
+  modelData.output = null
 })
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
-  [!formData.output, t('Output can not be empty')],
-  [!!formData.input && formData.output === formData.input, 'Input and output cannot be the same'],
+  [!modelData.input, t('Input can not be empty')],
+  [!modelData.output, t('Output can not be empty')],
+  [!!modelData.input && modelData.output === modelData.input, 'Input and output cannot be the same'],
 ])
 
 const iframeOptions = [
@@ -75,7 +79,7 @@ const iframeRef = ref(iframeOptions[0].value)
 
 async function start(records: IRecord[]) {
   const text = records.map((item) => {
-    return TextFieldToStr(item.fields[formData.input!] as IOpenSegment[])
+    return TextFieldToStr(item.fields[modelData.input!] as IOpenSegment[])
   })
   const res = await request.post('https://phoneticsmate.ocyss.repl.co/transcript/ipa', text, {
     timeout: 20000,
@@ -86,8 +90,8 @@ async function start(records: IRecord[]) {
   const dict = res.data.data
   return records
     .map((item) => {
-      const text = TextFieldToStr(item.fields[formData.input!] as IOpenSegment[])
-      item.fields[formData.output!] = dict[text]
+      const text = TextFieldToStr(item.fields[modelData.input!] as IOpenSegment[])
+      item.fields[modelData.output!] = dict[text]
       return item
     })
     .filter(item => item !== null)
@@ -121,7 +125,7 @@ onMounted(async () => {
       console.error(e)
     })
   voice.value = EasySpeech.voices().filter(item => item.lang === 'en-US')
-  formData.voiceUrl = voice.value[0].voiceURI
+  storeData.value.voiceUrl = voice.value[0].voiceURI
   const off = bitable.base.onSelectionChange(async ({ data }) => {
     if (data.tableId && data.fieldId && data.recordId) {
       if (!table || table.id !== data.tableId)
@@ -139,11 +143,11 @@ onMounted(async () => {
         word.value = cellValue[0].text
         EasySpeech.cancel()
         await EasySpeech.speak({
-          pitch: formData.pitch,
-          rate: formData.rate,
+          pitch: storeData.value.pitch,
+          rate: storeData.value.rate,
           text: word.value,
-          voice: voice.value.find(item => item.voiceURI === formData.voiceUrl),
-          volume: formData.volume / 100,
+          voice: voice.value.find(item => item.voiceURI === storeData.value.voiceUrl),
+          volume: storeData.value.volume / 100,
         })
       }
       else {
@@ -166,7 +170,7 @@ onMounted(async () => {
         display-directive="show"
       >
         <form-select
-          v-model:value="formData.voiceUrl"
+          v-model:value="storeData.voiceUrl"
           :msg="t('Select Voice')"
           :options="voice"
           label-field="name"
@@ -174,7 +178,7 @@ onMounted(async () => {
         />
         <n-form-item :label="t('pitch')">
           <n-slider
-            v-model:value="formData.pitch"
+            v-model:value="storeData.pitch"
             :min="0"
             :max="2"
             :step="0.1"
@@ -182,7 +186,7 @@ onMounted(async () => {
         </n-form-item>
         <n-form-item :label="t('rate')">
           <n-slider
-            v-model:value="formData.rate"
+            v-model:value="storeData.rate"
             :min="0.1"
             :max="2"
             :step="0.1"
@@ -190,7 +194,7 @@ onMounted(async () => {
         </n-form-item>
         <n-form-item :label="t('volume')">
           <n-slider
-            v-model:value="formData.volume"
+            v-model:value="storeData.volume"
             :min="0"
             :max="100"
             :step="1"
@@ -234,12 +238,12 @@ onMounted(async () => {
           :options="tableMetaList"
         />
         <form-select
-          v-model:value="formData.input"
+          v-model:value="modelData.input"
           :msg="t('Select Input Field')"
           :options="filterFields(FieldType.Text)"
         />
         <form-select
-          v-model:value="formData.output"
+          v-model:value="modelData.output"
           :msg="t('Select Output Field')"
           :options="filterFields(FieldType.Text)"
         />

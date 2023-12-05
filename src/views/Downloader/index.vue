@@ -28,7 +28,9 @@ import type { VNodeChild } from 'vue'
 import { FieldEmptyMsg, TextFieldToStr } from '@/utils/field'
 import request from '@/utils/request'
 import { useData } from '@/hooks/useData'
+import { useStore } from '@/hooks/useStore'
 
+const { store } = useStore()
 const { tableMetaList, getTable, fieldType, table, tableId, t, filterFields, layout, onGetField, getRecords, errorHandle } = useData()
 
 const now = new Date()
@@ -37,34 +39,53 @@ const message = useMessage()
 
 const aria = ref(false)
 const ariaDisabled = ref(false)
-const formData = reactive({
-  input: '',
+interface StoreData {
+  AriaConf: {
+    aria2Url: string
+    secret: string
+  }
+  DownloadConf: {
+    dir: null | string
+    maxSize: number
+    size: number
+    userAgent: string
+  }
+  action: number
+  illegal: boolean
+}
+
+const modelData = reactive<ModelType & { fileName: string[] }>({
+  input: null,
+  fileName: [],
+})
+
+const storeData = store<StoreData>('data', {
   AriaConf: {
     aria2Url: 'http://localhost:6800/jsonrpc',
     secret: '',
   },
   DownloadConf: {
-    'dir': undefined,
-    'maxSize': 0,
-    'size': 0,
-    'user-agent': '',
+    dir: null,
+    maxSize: 0,
+    size: 0,
+    userAgent: '',
   },
   action: -1,
-  dateKey: null,
-  fileName: [],
+
   illegal: false,
 })
+
 const tempRecords = ref<IRecord[]>([])
 
 onGetField(() => {
-  formData.input = ''
+  modelData.input = ''
   table.value!.getRecords({ pageSize: 5 }).then((res) => {
     tempRecords.value = res.records
   })
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!formData.input, t('Input can not be empty')],
+  [!modelData.input, t('Input can not be empty')],
   [!aria.value, t('Aria connection failed!')],
 ])
 let count = 0
@@ -154,7 +175,7 @@ function generateFileName(index: number, record: IRecord, item: string): string 
     case 'recordID':
       return record.recordId
     case 'fieldID':
-      return (formData.input) ?? ''
+      return (modelData.input) ?? ''
     case 'date0':
       return now.getTime().toString()
     case 'date1':
@@ -174,12 +195,12 @@ function generate(url: string, record: IRecord, index = 0) {
   count++
   let errFlag = false
   const out
-    = formData.fileName
+    = modelData.fileName
       .map((item) => {
         let name = generateFileName(count, record, item)
         const invalidFileNameRegex = /[<>:"/\\|?*]/g
         if (invalidFileNameRegex.test(name)) {
-          if (formData.illegal) {
+          if (storeData.value.illegal) {
             name = name.replace(invalidFileNameRegex, '')
           }
           else {
@@ -199,14 +220,14 @@ function generate(url: string, record: IRecord, index = 0) {
     return
 
   return {
-    id: record.recordId + formData.input + index,
+    id: record.recordId + modelData.input + index,
     jsonrpc: '2.0',
     method: 'aria2.addUri',
     params: [
-      `token:${formData.AriaConf.secret}`,
+      `token:${storeData.value.AriaConf.secret}`,
       [url],
       {
-        dir: formData.DownloadConf.dir,
+        dir: storeData.value.DownloadConf.dir,
         out,
         referer: '*',
       },
@@ -218,7 +239,7 @@ async function startAttachment(field: IAttachmentField, records: IRecord[]) {
   const res: any = []
   await Promise.all(
     records.map(async (record) => {
-      const val = record.fields[formData.input]
+      const val = record.fields[modelData.input!]
       if (!val || !Array.isArray(val) || val.length === 0)
         return
 
@@ -227,13 +248,13 @@ async function startAttachment(field: IAttachmentField, records: IRecord[]) {
         res.push(...urls.map((v, index) => generate(v, record, index)))
     }),
   )
-  return await port(formData.AriaConf.aria2Url, res)
+  return await port(storeData.value.AriaConf.aria2Url, res)
 }
 
 async function startUrl(records: IRecord[]) {
   const res = records
     .map((record) => {
-      const val = record.fields[formData.input]
+      const val = record.fields[modelData.input!]
       if (
         Array.isArray(val)
         && val.length > 0
@@ -244,7 +265,7 @@ async function startUrl(records: IRecord[]) {
       return null
     })
     .filter(v => v !== null)
-  return await port(formData.AriaConf.aria2Url, res)
+  return await port(storeData.value.AriaConf.aria2Url, res)
 }
 
 function main(all?: boolean) {
@@ -253,7 +274,7 @@ function main(all?: boolean) {
   aria2Stat(true).then(() => {
     return getRecords(
       async ({ pr, records }) => {
-        switch (fieldType(formData.input)) {
+        switch (fieldType(modelData.input)) {
           case FieldType.Url:
             await startUrl(records.records).catch((err) => {
               message.error(err)
@@ -261,7 +282,7 @@ function main(all?: boolean) {
             break
           case FieldType.Attachment:
             if (!field)
-              field = await table.value!.getField<IAttachmentField>(formData.input)
+              field = await table.value!.getField<IAttachmentField>(modelData.input!)
             await startAttachment(field, records.records).catch((err) => {
               message.error(err)
             })
@@ -284,14 +305,14 @@ function main(all?: boolean) {
 
 async function aria2Stat(msg = false, url = '') {
   ariaDisabled.value = msg
-  url = url === '' ? formData.AriaConf.aria2Url : url
+  url = url === '' ? storeData.value.AriaConf.aria2Url : url
   const res = await port(
     url,
     {
       id: 1,
       jsonrpc: '2.0',
       method: 'aria2.getGlobalStat',
-      params: [`token:${formData.AriaConf.secret}`],
+      params: [`token:${storeData.value.AriaConf.secret}`],
     },
     { timeout: 3000 },
   )
@@ -322,7 +343,7 @@ onMounted(async () => {
     const urls = ['http://localhost:16800/jsonrpc', 'http://localhost:6800/rpc']
     for (const url of urls) {
       if (await aria2Stat(false, url)) {
-        formData.AriaConf.aria2Url = url
+        storeData.value.AriaConf.aria2Url = url
         break
       }
     }
@@ -344,17 +365,17 @@ onMounted(async () => {
       :options="tableMetaList"
     />
     <form-select
-      v-model:value="formData.input"
+      v-model:value="modelData.input"
       :msg="t('Select Download file')"
       :empty-msg="FieldEmptyMsg([FieldType.Attachment, FieldType.Url])"
       :options="filterFields([FieldType.Attachment, FieldType.Url])"
     />
     <form-radios
-      v-model:value="formData.action"
+      v-model:value="storeData.action"
       :msg="t('Select action')"
       :datas="actions"
     />
-    <div v-show="formData.action === 0">
+    <div v-show="storeData.action === 0">
       <n-blockquote>
         AriaLink 一般会使用服务器提供的文件名，你也可以手动配置，预览示例不按视图排序
       </n-blockquote>
@@ -384,7 +405,7 @@ onMounted(async () => {
         为内置数据
       </n-blockquote>
       <form-select
-        v-model:value="formData.fileName"
+        v-model:value="modelData.fileName"
         :msg="t('file name')"
         input
         multiple
@@ -395,7 +416,7 @@ onMounted(async () => {
       />
       <n-form-item label="非法字符">
         <n-switch
-          v-model:value="formData.illegal"
+          v-model:value="storeData.illegal"
           :round="false"
         >
           <template #checked>
@@ -408,7 +429,7 @@ onMounted(async () => {
         &lt;>:"/\|?*
       </n-form-item>
       <div
-        v-if="formData.fileName.length > 0"
+        v-if="modelData.fileName.length > 0"
         class="file-name-preview"
       >
         <p
@@ -416,7 +437,7 @@ onMounted(async () => {
           :key="record.recordId"
         >
           <span
-            v-for="item in formData.fileName"
+            v-for="item in modelData.fileName"
             :key="item"
           >
             {{ generateFileName(index, record, item) }}
@@ -424,11 +445,11 @@ onMounted(async () => {
         </p>
       </div>
     </div>
-    <div v-show="formData.action === 1">
-      <form-input :data="formData.DownloadConf" />
+    <div v-show="storeData.action === 1">
+      <form-input :data="storeData.DownloadConf" />
     </div>
-    <div v-show="formData.action === 2">
-      <form-input :data="formData.AriaConf" />
+    <div v-show="storeData.action === 2">
+      <form-input :data="storeData.AriaConf" />
     </div>
     <form-start
       :disableds="disableds"
