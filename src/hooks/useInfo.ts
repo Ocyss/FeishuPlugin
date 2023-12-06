@@ -14,13 +14,13 @@ export function useInfo() {
   const route = useRoute()
   const app = computed<AppInfo>(() => {
     return {
-      name: route.name,
-      title: route.meta.title ?? '',
-      desc: route.meta.desc ?? '',
-      help: route.meta.help ?? '',
-      group: route.meta.group ?? '',
-      tags: route.meta.tags ?? [],
       avatar: route.meta.avatar ?? '',
+      desc: route.meta.desc ?? '',
+      group: route.meta.group ?? '',
+      help: route.meta.help ?? '',
+      name: route.name,
+      tags: route.meta.tags ?? [],
+      title: route.meta.title ?? '',
     }
   })
   return { app }

@@ -15,30 +15,34 @@ import VueOfficeDocx from '@vue-office/docx'
 import format from 'date-fns/format'
 import { createReport } from 'docx-templates'
 import { saveAs } from 'file-saver'
-import type { UploadCustomRequestOptions } from 'naive-ui'
-import type { SettledFileInfo } from 'naive-ui/es/upload/src/interface'
+import type { UploadCustomRequestOptions, UploadFileInfo } from 'naive-ui'
+import type { FileInfo, SettledFileInfo } from 'naive-ui/es/upload/src/interface'
 import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
-import { blobToFile, fileToBuf } from '@/utils/files'
+import { blobToFile, fileToBlob, fileToBuf } from '@/utils/files'
 import request from '@/utils/request'
 import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
-const { getRecords, errorHandle, table, layout, t, fieldName, fieldType, onGetField, tableId, fieldMetaList, filterFields, getTable, onFieldTraverse } = useData()
+const { errorHandle, eventBucket, fieldMetaList, fieldName, fieldType, filterFields, getRecords, getTable, layout, onFieldTraverse, onGetField, t, table, tableId } = useData()
 const { IDB } = useStore()
 
 const attachments: Record<string, IAttachmentField> = {}
 const wordFile = IDB< SettledFileInfo | object>(
   'wordFile',
-  { foo: 'bar' },
+  {},
   {
     deep: false,
     shallow: true,
   },
 )
+
+let docwindow: Window | null
 const wordPreview = ref<Blob>()
-const wordPreviewSpin = ref(false)
 const openPreviewDisabled = ref(false)
+const defaultFileList = computed<FileInfo[]>(() => {
+  return Object.keys(wordFile.data.value).length === 0 ? [] : [wordFile.data.value as FileInfo]
+})
 
 const modelData = reactive<ModelType<string[]>>({
   input: null,
@@ -48,6 +52,14 @@ const modelData = reactive<ModelType<string[]>>({
 onGetField(() => {
   modelData.input = null
   modelData.output = null
+})
+
+watch(wordFile.data, async (val) => {
+  if (Object.keys(val).length !== 0 && 'status' in val && val.status === 'finished') {
+    layout.value?.update(true, t('Start rendering document'))
+    wordPreview.value = await create(undefined, undefined, false)
+    layout.value?.update(false)
+  }
 })
 
 onFieldTraverse((item) => {
@@ -100,17 +112,25 @@ function savePreview() {
 }
 
 function openPreview() {
-  const docwindow = window.open(
+  if (docwindow) {
+    docwindow.focus()
+    return
+  }
+  docwindow = window.open(
     '',
     '_blank',
     'width=920, height=675, top=100, left=100, popup=yes, toolbar=no, menubar=no, location=no, status=no',
   )
-  if (!docwindow)
+  if (!docwindow) {
+    errorHandle('openPreview', new Error('Failed to open preview window'))
     return
-
-  openPreviewDisabled.value = true
+  }
+  // openPreviewDisabled.value = true
   docwindow.document.body.style.margin = '0px'
   docwindow.document.title = 'DocxTemplate PreviewWindow'
+  // docwindow.addEventListener('beforeunload', () => {
+  //   openPreviewDisabled.value = false
+  // })
   createApp({
     render() {
       return h(VueOfficeDocx, {
@@ -119,14 +139,23 @@ function openPreview() {
       })
     },
   }).mount(docwindow.document.body)
+  docwindow.focus()
 }
 
-async function customRequest({ file, onFinish }: UploadCustomRequestOptions) {
-  wordPreviewSpin.value = true
-  await wordFile.set(file)
-  wordPreview.value = await create(undefined, undefined, false)
-  wordPreviewSpin.value = false
+function download() {
+  if (Object.keys(wordFile.data.value).length !== 0 && 'file' in wordFile.data.value)
+    saveAs(fileToBlob(wordFile.data.value.file as File), wordFile.data.value.name)
+}
+
+async function customRequest({ onFinish }: UploadCustomRequestOptions) {
   onFinish()
+}
+
+function updateFile(fileList: UploadFileInfo[]) {
+  if (fileList.length === 1)
+    wordFile.set(fileList[0])
+  else if (fileList.length >= 2)
+    wordFile.set(fileList[1])
 }
 
 async function create(
@@ -232,32 +261,29 @@ async function create(
 
 onMounted(async () => {
   void getTable()
-  // if (wordFile.data.value)
-  //   wordPreview.value = await create(undefined, undefined, false)
-  console.log(wordFile.data.value)
-
   const off = bitable.base.onSelectionChange(async ({ data }) => {
-    wordPreviewSpin.value = true
+    layout.value?.update(true, t('Start rendering document'))
     if (table.value && data.tableId && data.fieldId && data.recordId) {
       const record = await table.value.getRecordById(data.recordId)
       wordPreview.value = await create(record.fields, data.recordId, false)
     }
-    wordPreviewSpin.value = false
+    layout.value?.update(false)
   })
-  onBeforeUnmount(() => {
-    off()
-  })
+  eventBucket.push(off)
 })
 </script>
 
 <template>
   <Layout ref="layout">
     <n-upload
-      directory-dnd
-      keep-file-after-finish
       :custom-request="customRequest"
       style="margin-bottom: 12px"
       accept=".docx"
+      :file-list="defaultFileList"
+      show-download-button
+      @download="download"
+      @update:file-list="updateFile"
+      @remove="wordFile.set({})"
     >
       <n-upload-dragger>
         <div>
@@ -330,7 +356,8 @@ onMounted(async () => {
   "Please select Word(.docx) template file": "请选择Word(.docx)模板文件 ",
   "The template markup language is {'{'}{'{'} text() {'}'}{'}'}. Using angle brackets to wrap the field name will automatically replace it with the corresponding value.": "模板标记语言为 {'{'}{'{'} 文本() {'}'}{'}'}, 使用尖括号包裹字段名将自动使用对应的值替换",
   "preview window": "预览窗口",
-  "Download preview": "下载预览 "
+  "Download preview": "下载预览",
+  "Start rendering document":"开始渲染文档"
 }
 </i18n>
 

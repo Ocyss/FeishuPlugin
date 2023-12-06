@@ -30,18 +30,18 @@ import { dateFormatterList, delimiterList } from '@/utils/format'
 import { FieldInfos } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { viewId, viewMetaList, getRecords, errorHandle, t, tableId, table, tableMetaList, layout, fieldMetaList, onGetField, fieldType, getTable, filterFields } = useData()
+const { errorHandle, fieldMetaList, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const modelData = reactive<ModelType & {
   dateKey: string
   delimiter: string
   key: string
 }>({
-  input: '',
-  output: '',
   dateKey: '',
   delimiter: '\n',
+  input: '',
   key: '',
+  output: '',
 })
 
 onGetField(() => {

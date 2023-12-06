@@ -11,7 +11,6 @@ defineEmits(['update:theme'])
 const { copy } = useClipboard()
 const { locale } = useI18n()
 const router = useRouter()
-const show = ref(false)
 const routes = [{ name: 'home' }, ...getRoutes(_routes)]
 const apis: DropdownOption[] = [
   {
@@ -98,7 +97,7 @@ onMounted(() => {
 <template>
   <n-popover
     placement="left-start"
-    :show="show"
+    trigger="click"
   >
     <template #trigger>
       <n-button
@@ -106,7 +105,6 @@ onMounted(() => {
         size="small"
         type="info"
         style="width: auto"
-        @click="show = !show"
       >
         DevTool
       </n-button>

@@ -31,7 +31,7 @@ import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { viewId, viewMetaList, tableMetaList, getTable, fieldType, table, tableId, t, filterFields, layout, onGetField, getRecords, errorHandle } = useData()
+const { errorHandle, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const now = new Date()
 
@@ -55,8 +55,8 @@ interface StoreData {
 }
 
 const modelData = reactive<ModelType & { fileName: string[] }>({
-  input: null,
   fileName: [],
+  input: null,
 })
 
 const storeData = store<StoreData>('data', {

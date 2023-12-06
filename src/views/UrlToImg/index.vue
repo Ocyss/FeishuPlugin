@@ -29,7 +29,7 @@ import axios from 'axios'
 import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
 
-const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const modelData = reactive<ModelType>({
   input: null,

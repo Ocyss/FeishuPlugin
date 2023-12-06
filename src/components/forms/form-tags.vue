@@ -16,8 +16,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   labelField: 'name',
-  valueField: 'id',
-  tags: () => [Object],
   renderIcon: () => {
     const createIcon = (svg: string): VNodeChild => {
       return h(
@@ -37,6 +35,8 @@ const props = withDefaults(defineProps<Props>(), {
       }
     }
   },
+  tags: () => [Object],
+  valueField: 'id',
 })
 const emit = defineEmits<{
   (e: 'update:value', value: any, option: any): void

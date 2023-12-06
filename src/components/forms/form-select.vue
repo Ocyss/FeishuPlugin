@@ -17,15 +17,14 @@ const props = withDefaults(defineProps<Props>(), {
   labelField: 'name',
   msg: '',
   multiple: false,
-  valueField: 'id',
   renderLabel: () => {
     const createIcon = (svg: string): VNodeChild => {
       return h(
         NIcon,
         {
           style: {
-            verticalAlign: '-0.15em',
             marginRight: '4px',
+            verticalAlign: '-0.15em',
           },
         },
         h('svg', {
@@ -49,6 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
       }
     }
   },
+  valueField: 'id',
 })
 
 const emit = defineEmits<{

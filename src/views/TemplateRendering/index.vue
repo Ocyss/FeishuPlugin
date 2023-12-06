@@ -33,7 +33,7 @@ import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields, fieldName, fieldType } = useData()
+const { errorHandle, fieldName, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const engine = new Liquid()
 

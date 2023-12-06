@@ -23,7 +23,7 @@ import { useStore } from '@/hooks/useStore'
 
 let page: any
 const { store } = useStore()
-const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 const record = ref<IRecordValue>({
   fields: {},
 })

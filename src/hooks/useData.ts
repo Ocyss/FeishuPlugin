@@ -1,4 +1,3 @@
-/* eslint perfectionist/sort-objects: "error" */
 import type { FieldType } from '@lark-base-open/js-sdk'
 import { useInfo } from '@/hooks/useInfo'
 import type Layout from '@/components/layout.vue'
@@ -15,6 +14,7 @@ function getFieldMapValue(
   return map && fieldId ? map[key][fieldId] || null : null
 }
 
+const eventBucket: ((...args: any[]) => any)[] = []
 export function useData() {
   const { app } = useInfo()
   const { t } = useI18n()
@@ -221,21 +221,20 @@ export function useData() {
   const fieldName = (fieldId: null | string | undefined) => getFieldMapValue(fieldId, fieldMap.value, 'IdToName')
   const fieldType = (fieldId: null | string | undefined) => getFieldMapValue(fieldId, fieldMap.value, 'IdToType')
   onMounted(() => {
-    const tableAddOff = bitable.base.onTableAdd(() => {
+    eventBucket.push(bitable.base.onTableAdd(() => {
       void getTable()
-    })
-    const tableDelOff = bitable.base.onTableDelete(() => {
+    }))
+    eventBucket.push(bitable.base.onTableDelete(() => {
       void getTable()
-    })
-    onBeforeUnmount(() => {
-      tableAddOff()
-      tableDelOff()
-      offCalls.forEach(call => call())
-    })
+    }))
   })
-
+  onBeforeUnmount(() => {
+    eventBucket.forEach(call => call())
+    offCalls.forEach(call => call())
+  })
   return {
     errorHandle,
+    eventBucket,
     fieldId,
     fieldMap,
     fieldMetaList,

@@ -8,13 +8,13 @@ const { t } = useI18n()
 const darkThemeOverrides: GlobalThemeOverrides = {
   common: {
     bodyColor: '#1a1a1a',
-    primaryColor: '#409eff',
+    primaryColor: '#4C88FF',
   },
 }
 
 const lightThemeOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: '#409eff',
+    primaryColor: '#4C88FF',
   },
 }
 const themes = ref<GlobalTheme | null>(darkTheme)
@@ -63,13 +63,14 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-* {
-    font-family: "PingFang SC";
+body{
+  font-family:-apple-system,BlinkMacSystemFont,Helvetica Neue,Tahoma,PingFang SC,Microsoft Yahei,Arial,Hiragino Sans GB,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
 }
 
 *::-webkit-scrollbar {
   display: none;
 }
+
 a {
   color: var(--n-text-color);
 }
@@ -77,11 +78,13 @@ a {
 .n-dropdown-menu {
   user-select: none;
 }
+
 .n-popover__content {
   white-space: pre-line;
   user-select: none;
   width: 150px;
 }
+
 .n-dialog .n-dialog__content {
   white-space: pre-line;
 }

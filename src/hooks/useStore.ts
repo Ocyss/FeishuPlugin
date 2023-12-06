@@ -14,5 +14,5 @@ export function useStore() {
   function IDB<T>(key: string, data: MaybeRefOrGetter<T>, options?: UseIDBOptions) {
     return useIDBKeyval<T>(`${app.value.name}<${key}>`, data, options)
   }
-  return { store, IDB }
+  return { IDB, store }
 }

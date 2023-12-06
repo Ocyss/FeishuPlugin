@@ -28,7 +28,7 @@ meta:
 import { BrowserMultiFormatReader } from '@zxing/library'
 import { useData } from '@/hooks/useData'
 
-const { viewId, viewMetaList, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { filterFields, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const modelData = reactive<ModelType>({
   input: null,

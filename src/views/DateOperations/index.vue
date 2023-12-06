@@ -37,7 +37,7 @@ import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
-const { viewId, viewMetaList, t, filterFields, getTable, layout, tableId, tableMetaList, table, onGetField, errorHandle, getRecords } = useData()
+const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 const { store } = useStore()
 
 enum ActionType {
@@ -84,7 +84,6 @@ const modelData = reactive<ModelType>({
 
 const storeData = store<StoreData>('data', {
   action: ActionType.Format,
-  dateKey: null,
   add: {
     days: 0,
     hours: 0,
@@ -94,14 +93,7 @@ const storeData = store<StoreData>('data', {
     weeks: 0,
     years: 0,
   },
-  set: {
-    date: undefined,
-    hours: undefined,
-    minutes: undefined,
-    month: undefined,
-    seconds: undefined,
-    year: undefined,
-  },
+  dateKey: null,
   rand: {
     date: false,
     hours: false,
@@ -109,6 +101,14 @@ const storeData = store<StoreData>('data', {
     month: false,
     seconds: false,
     year: false,
+  },
+  set: {
+    date: undefined,
+    hours: undefined,
+    minutes: undefined,
+    month: undefined,
+    seconds: undefined,
+    year: undefined,
   },
 })
 
@@ -145,8 +145,8 @@ function dateRenderLabel(option: SelectOption): VNodeChild {
 
 function start(records: IRecord[]): IRecord[] {
   const actionOptions = {
-    [ActionType.Format]: (val: number) => format(val, storeData.value.dateKey!),
     [ActionType.Add]: (val: number) => add(val, storeData.value.add).getTime(),
+    [ActionType.Format]: (val: number) => format(val, storeData.value.dateKey!),
     [ActionType.Parse]: (val: IOpenSegment[]) => {
       for (const format of dateFormatterList) {
         try {
@@ -160,10 +160,6 @@ function start(records: IRecord[]): IRecord[] {
       }
       return null
     },
-    [ActionType.SetMonth]: (val: number) => set(val, {
-      ...storeData.value.set,
-      month: storeData.value.set.month !== undefined ? storeData.value.set.month - 1 : undefined,
-    }).getTime(),
     [ActionType.Randomize]: (val: number) => set(val, {
       date: storeData.value.rand.date ? generateNumber(1, 28) : undefined,
       hours: storeData.value.rand.hours ? generateNumber(0, 23) : undefined,
@@ -171,6 +167,10 @@ function start(records: IRecord[]): IRecord[] {
       month: storeData.value.rand.month ? generateNumber(0, 11) : undefined,
       seconds: storeData.value.rand.seconds ? generateNumber(0, 59) : undefined,
       year: storeData.value.rand.year ? generateNumber(1971, 2030) : undefined,
+    }).getTime(),
+    [ActionType.SetMonth]: (val: number) => set(val, {
+      ...storeData.value.set,
+      month: storeData.value.set.month !== undefined ? storeData.value.set.month - 1 : undefined,
     }).getTime(),
   }
   return records

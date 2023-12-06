@@ -35,13 +35,13 @@ import type { Progress } from '@/utils'
 import { TextFieldToStr, fieldDefault } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { getRecords, errorHandle, layout, t, table, tableId, viewId, viewMetaList, fieldMetaList, onFieldTraverse, fieldName, onGetField, fieldId, fieldType, getTable, tableMetaList, filterFields, message } = useData()
+const { errorHandle, fieldId, fieldMetaList, fieldName, fieldType, filterFields, getRecords, getTable, layout, message, onFieldTraverse, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const { copy } = useClipboard()
 
 const modelData = reactive< ModelType & { fieldList: string[] }>({
-  input: null,
   fieldList: [],
+  input: null,
 })
 
 onGetField(() => {

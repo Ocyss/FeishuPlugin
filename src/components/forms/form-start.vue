@@ -58,10 +58,10 @@ const hover = ref(false)
           </n-button>
         </div>
         <div v-else class="popover-button-group" @mouseover="hover = true" @mouseleave="hover = false">
-          <n-button :disabled="disabled.isDisabled" ghost quaternary @click="() => click(true)">
+          <n-button :disabled="disabled.isDisabled" quaternary @click="() => click(true)">
             {{ t(`Process${hover ? " all" : ''}`) }}
           </n-button>
-          <n-button :disabled="disabled.isDisabled" ghost quaternary @click="() => click(false)">
+          <n-button :disabled="disabled.isDisabled" quaternary @click="() => click(false)">
             {{ t(`Process${hover ? " part" : ''}`) }}
           </n-button>
         </div>
@@ -83,8 +83,8 @@ const hover = ref(false)
   height: 40px;
   box-shadow: 0 5px 25px rgba(0, 0, 0, .25);
   border: none;
-  --color1: rgb(175, 208, 242);
-  --color2: rgb(0, 60, 117);
+  --color1: #6FB9BF;
+  --color2: #FAF8F2;
 
   .n-button {
     position: absolute;
@@ -99,7 +99,7 @@ const hover = ref(false)
     align-items: center;
     text-transform: uppercase;
     letter-spacing: 2px;
-    font-size: 17px;
+    font-size: 22px;
 
     &.n-button--disabled {
       opacity: 1;
@@ -112,11 +112,11 @@ const hover = ref(false)
     overflow: hidden;
     z-index: 2;
     transition: 1.3s;
-    clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%, 50% 53%);
+    clip-path: polygon(50% 0%, 102% 0%, 100% 100%, 50% 100%, 50% 53%);
   }
 
   .n-button:nth-child(2):hover {
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0 100%, 0 50%);
+    clip-path: polygon(0% 0%, 102% 0%, 100% 100%, 0 100%, 0 50%);
   }
 
   .n-button:nth-child(1):hover~.n-button:nth-child(2) {

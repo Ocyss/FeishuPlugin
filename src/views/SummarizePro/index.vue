@@ -19,7 +19,7 @@ import request from '@/utils/request'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldId, fieldName, fieldMetaList } = useData()
+const { errorHandle, fieldId, fieldMetaList, fieldName, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const modelData = reactive< ModelType<string[], string[]> & { outputs: Record<string, any> }>({
   input: [],
@@ -175,7 +175,7 @@ async function main(all?: boolean) {
       return table.value!.setRecords(await start(req, records.records, pr))
     },
     all,
-    10,
+    2,
   )
     .catch((error: Error) => {
       errorHandle('main', error)

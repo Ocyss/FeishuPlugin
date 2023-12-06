@@ -34,7 +34,7 @@ import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, filterFields } = useData()
+const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const voice = ref<SpeechSynthesisVoice[]>([])
 

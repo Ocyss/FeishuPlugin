@@ -35,12 +35,12 @@ import parse from 'date-fns/parse'
 import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, fieldType, getTable, tableMetaList, filterFields } = useData()
+const { errorHandle, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const modelData = reactive< ModelType & { format?: InfoField[] }>({
+  format: [],
   input: null,
   output: null,
-  format: [],
 })
 
 onGetField(() => {

@@ -20,12 +20,12 @@ const i18n = createI18n({
   legacy: false,
   locale: 'en',
   messages: {
+    'id': {},
     'de': {},
     'en': {},
     'es': {},
     'fr': {},
     'hi': {},
-    'id': {},
     'it': {},
     'ja': {},
     'ko': {},

@@ -23,7 +23,7 @@ import {
 import * as randomEase from 'random-ease'
 import { useData } from '@/hooks/useData'
 
-const { viewId, viewMetaList, getRecords, errorHandle, layout, t, table, tableId, onGetField, getTable, tableMetaList, fieldMetaList } = useData()
+const { errorHandle, fieldMetaList, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const modelData = reactive<ModelType & { total: number }>({
   input: null,
