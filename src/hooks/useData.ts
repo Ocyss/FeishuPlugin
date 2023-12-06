@@ -32,6 +32,7 @@ export function useData() {
     get() { return table.value?.id ?? null },
     async set(tableId: string | null) {
       if (tableId) {
+        layout.value?.getTablePermission(tableId)
         table.value = await bitable.base.getTableById(tableId)
         offCalls.clear()
         offCalls.add(

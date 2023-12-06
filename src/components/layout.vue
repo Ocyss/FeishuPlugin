@@ -36,6 +36,7 @@ const columns: DataTableColumns<LogRowData> = [
 // 错误日志等信息，等后续UI模块完善，再实现右键选中错误的单元格，方便查找问题
 const data = ref<LogRowData[]>([])
 const lock = ref(true)
+const permission = ref(true)
 const message = ref('')
 const progress = ref<Progress[]>([])
 const { app } = useInfo()
@@ -46,61 +47,6 @@ function _log(type: LogType, log: string, track?: Track) {
     track,
     type,
   })
-}
-
-async function getRecords(
-  table: ITable,
-  f: (val: { pr: Progress, records: IGetRecordsResponse }) => Promise<any>,
-  all = false,
-  pageSize = 1000,
-  viewId = '',
-) {
-  let records: IGetRecordsResponse = {
-    hasMore: true,
-    records: [],
-    total: 0,
-  }
-  let promise: any[] = []
-  const pr = spin(t('Record'), 0)
-  if (all) {
-    while (records.hasMore) {
-      records = await table.getRecords({
-        pageSize,
-        pageToken: records.pageToken,
-      })
-      if (pr.total === 0)
-        pr.addTotal(records.total)
-
-      promise.push(f({ pr, records }))
-    }
-  }
-  else {
-    if (!viewId) {
-      const selection = await bitable.base.getSelection()
-      if (selection.viewId && selection.tableId === table.id) {
-        viewId = selection.viewId
-      }
-      else {
-        const views = (await table.getViewMetaList()).filter(item => item.type === ViewType.Grid)
-        viewId = views[0].id
-      }
-    }
-
-    const recordIdList = await bitable.ui.selectRecordIdList(table.id, viewId)
-    pr.addTotal(recordIdList.length)
-    promise = recordIdList.map(async (item) => {
-      const record = await table.getRecordById(item)
-      return f({
-        pr,
-        records: {
-          hasMore: false,
-          records: [{ fields: record.fields, recordId: item }],
-          total: 0,
-        },
-      })
-    })
-  }
-  await Promise.all(promise)
 }
 
 // 更新加载状态
@@ -128,12 +74,28 @@ function spin(message: string, n = 0) {
   return p
 }
 
+function getTablePermission(tableId: string) {
+  bitable.base.getPermission({
+    entity: base.PermissionEntity.Table,
+    param: {
+      tableId,
+    },
+    type: base.OperationType.Editable,
+  }).then((e) => {
+    permission.value = e
+  })
+}
+
+onMounted(async () => {
+  window.$message = useMessage()
+})
+
 defineExpose({
   error: (log: string, track?: Track) => {
     _log(LogType.Error, log, track)
   },
   finish,
-  getRecords,
+  getTablePermission,
   info: (log: string, track?: Track) => {
     _log(LogType.Info, log, track)
   },
@@ -154,12 +116,12 @@ defineExpose({
     _log(LogType.Warning, log, track)
   },
 })
-onMounted(() => {
-  window.$message = useMessage()
-})
 </script>
 
 <template>
+  <n-alert v-if="!permission" :title="t('Permissions')" type="error" style="margin-bottom: 15px;" closable>
+    {{ t('You currently do not have permission to this data table, please consider whether to create a copy for use') }}
+  </n-alert>
   <n-collapse v-if="app.help" style="margin-bottom: 15px;">
     <n-collapse-item
       :title="t('Help')"

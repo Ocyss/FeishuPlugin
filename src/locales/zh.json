@@ -190,5 +190,7 @@
   "Process all": "处理全部",
   "Process part": "处理部分",
   "Table": "数据库",
-  "View": "视图"
+  "View": "视图",
+  "Permissions": "权限",
+  "You currently do not have permission to this data table, please consider whether to create a copy for use": "你目前不具备该数据表权限，请考虑是否要创建副本使用"
 }
