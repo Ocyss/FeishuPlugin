@@ -456,7 +456,6 @@ onMounted(async () => {
     >
       <n-button
         :type="aria ? 'success' : 'error'"
-        size="large"
         :disabled="ariaDisabled"
         @click="() => aria2Stat(true)"
       >

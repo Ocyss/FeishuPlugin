@@ -191,7 +191,6 @@ onMounted(() => {
     >
       <n-button
         type="primary"
-        size="large"
         @click="delMain"
       >
         {{ t("delEmpty") }}

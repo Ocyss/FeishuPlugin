@@ -47,4 +47,10 @@ bitable.bridge.getLanguage().then((language) => {
 
 const app = createApp(App)
 
-app.use(router).use(i18n).mount('#app')
+app.use(router).use(i18n)
+
+app.config.errorHandler = (err, vm, info) => {
+  console.error(err, vm, info)
+}
+
+app.mount('#app')

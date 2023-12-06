@@ -71,7 +71,7 @@ onMounted(() => {
     <n-input
       v-model:value="search"
       style="width: 90%"
-      placeholder="search"
+      :placeholder="t('search')"
     />
     <n-button
       style="flex: 1"

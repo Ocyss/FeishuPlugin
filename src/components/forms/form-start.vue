@@ -79,8 +79,8 @@ const hover = ref(false)
 <style lang="scss" scoped>
 .popover-button-group {
   position: relative;
-  width: 130px;
-  height: 40px;
+  width: 125px;
+  height: 34px;
   box-shadow: 0 5px 25px rgba(0, 0, 0, .25);
   border: none;
   --color1: #6FB9BF;

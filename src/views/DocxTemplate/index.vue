@@ -334,14 +334,14 @@ onMounted(async () => {
       @update:click="main"
     >
       <n-button
-        type="warning"
+        type="info"
         :disabled="openPreviewDisabled"
         @click="openPreview"
       >
         {{ t("preview window") }}
       </n-button>
       <n-button
-        type="warning"
+        type="info"
         @click="savePreview"
       >
         {{ t("Download preview") }}

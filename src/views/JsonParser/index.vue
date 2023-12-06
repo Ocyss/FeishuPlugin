@@ -182,14 +182,12 @@ onMounted(async () => {
     >
       <n-button
         type="info"
-        size="large"
         @click="() => toCopy(true)"
       >
         {{ t("Copy as Object") }}
       </n-button>
       <n-button
         type="info"
-        size="large"
         @click="() => toCopy(false)"
       >
         {{ t("Copy as Array") }}
