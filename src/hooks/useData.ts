@@ -78,7 +78,7 @@ export function useData() {
       closable: true,
       duration: 0,
     })
-    console.error(`${app.value.title}${msg}:`, error)
+    console.log(`${app.value.title}${msg}:`, error)
   }
   async function handleAsyncError(msg: string, func: () => Promise<any>) {
     try {

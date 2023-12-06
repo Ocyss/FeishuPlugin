@@ -24,6 +24,17 @@ void bitable.bridge.getTheme().then((theme) => {
 })
 
 onMounted(() => {
+  console.log(
+`    ______     _      __          ____  __            _     \n`,
+'   / ____/__  (_)____/ /_  __  __/ __ \\/ /_  ______ _(_)___ \n',
+'  / /_  / _ \\/ / ___/ __ \\/ / / / /_/ / / / / / __ `/ / __ \\\n',
+' / __/ /  __/ (__  ) / / / /_/ / ____/ / /_/ / /_/ / / / / /\n',
+'/_/    \\___/_/____/_/ /_/\\__,_/_/   /_/\\__,_/\\__, /_/_/ /_/ \n',
+'                                            /____/          \n',
+'Url: https://github.com/Ocyss/FeishuPlugin \n',
+'Author: Ocyss_04 <feishu@ocyss.icu>',
+  )
+
   window.$t = t
   const themeOff = bitable.bridge.onThemeChange((event) => {
     themes.value = event.data.theme === ThemeModeType.DARK ? darkTheme : null

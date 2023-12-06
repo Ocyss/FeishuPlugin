@@ -9,6 +9,7 @@ import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import topLevelAwait from 'vite-plugin-top-level-await'
+import TurboConsole from 'unplugin-turbo-console/vite'
 
 const pathSrc = path.resolve(__dirname, 'src')
 const basePkg = ['bitable', 'FieldType', 'ViewType', ['*', 'base']]
@@ -85,7 +86,11 @@ export default defineConfig({
       promiseImportName: i => `__tla_${i}`,
     }),
     nodePolyfills(),
-
+    TurboConsole({
+      disableHighlight: true,
+      disableLaunchEditor: true,
+      prefix: '%c🚀 FeishuPlugin (By: Ocyss_04)","padding: 2px 5px; border- radius: 3px 0 0 3px; color: #fff; background: #4FC08D","',
+    }),
   ],
   resolve: {
     alias: {
