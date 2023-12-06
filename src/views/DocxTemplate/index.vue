@@ -21,10 +21,10 @@ import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import { blobToFile, fileToBlob, fileToBuf } from '@/utils/files'
 import request from '@/utils/request'
-import { useData } from '@/hooks/useData'
+import { eventBucket, useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
-const { errorHandle, eventBucket, fieldMetaList, fieldName, fieldType, filterFields, getRecords, getTable, layout, onFieldTraverse, onGetField, t, table, tableId } = useData()
+const { errorHandle, fieldMetaList, fieldName, fieldType, filterFields, getRecords, getTable, layout, onFieldTraverse, onGetField, t, table, tableId } = useData()
 const { IDB } = useStore()
 
 const attachments: Record<string, IAttachmentField> = {}
@@ -269,7 +269,7 @@ onMounted(async () => {
     }
     layout.value?.update(false)
   })
-  eventBucket.push(off)
+  eventBucket.add(off)
 })
 </script>
 

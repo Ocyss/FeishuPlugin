@@ -18,7 +18,7 @@ import type { VNodeChild } from 'vue'
 import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import { base64ToBlob, blobToFile } from '@/utils/files'
-import { useData } from '@/hooks/useData'
+import { eventBucket, useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 let page: any
@@ -253,10 +253,7 @@ onMounted(async () => {
       }
     }
   })
-  onBeforeUnmount(() => {
-    off()
-    page?.remove()
-  })
+  eventBucket.add(off)
 })
 </script>
 

@@ -19,6 +19,22 @@ export class Progress {
   }
 }
 
+export class EventBucket {
+  value: ((...args: any[]) => any)[] = []
+  get length() {
+    return this.value.length
+  }
+
+  add(...fn: ((...args: any[]) => any)[]) {
+    this.value.push(...fn)
+  }
+
+  clear() {
+    this.value.forEach(v => v())
+    this.value = []
+  }
+}
+
 export function getRoutes(routes: RouteRecordRaw[]) {
   return routes
     .filter(

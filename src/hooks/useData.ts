@@ -3,7 +3,7 @@ import { useInfo } from '@/hooks/useInfo'
 import type Layout from '@/components/layout.vue'
 import type { FieldMaps } from '@/types'
 import { fieldMaps } from '@/utils/field'
-import type { Progress } from '@/utils'
+import { EventBucket, type Progress } from '@/utils'
 import { tKey } from '@/keys'
 
 function getFieldMapValue(
@@ -14,7 +14,8 @@ function getFieldMapValue(
   return map && fieldId ? map[key][fieldId] || null : null
 }
 
-const eventBucket: ((...args: any[]) => any)[] = []
+export const eventBucket = new EventBucket()
+
 export function useData() {
   const { app } = useInfo()
   const { t } = useI18n()
@@ -25,15 +26,15 @@ export function useData() {
     IdToType: {},
     NameToId: {},
   })
-  const offCalls: (() => void)[] = []
+  const offCalls = new EventBucket()
   const table = shallowRef<ITable | null>(null)
   const tableId = computed<string | null>({
     get() { return table.value?.id ?? null },
     async set(tableId: string | null) {
       if (tableId) {
         table.value = await bitable.base.getTableById(tableId)
-        offCalls.forEach(call => call())
-        offCalls.push(
+        offCalls.clear()
+        offCalls.add(
           table.value.onFieldAdd(getView),
           table.value.onFieldDelete(getView),
           table.value.onFieldModify(getView),
@@ -221,20 +222,19 @@ export function useData() {
   const fieldName = (fieldId: null | string | undefined) => getFieldMapValue(fieldId, fieldMap.value, 'IdToName')
   const fieldType = (fieldId: null | string | undefined) => getFieldMapValue(fieldId, fieldMap.value, 'IdToType')
   onMounted(() => {
-    eventBucket.push(bitable.base.onTableAdd(() => {
+    eventBucket.add(bitable.base.onTableAdd(() => {
       void getTable()
     }))
-    eventBucket.push(bitable.base.onTableDelete(() => {
+    eventBucket.add(bitable.base.onTableDelete(() => {
       void getTable()
     }))
   })
   onBeforeUnmount(() => {
-    eventBucket.forEach(call => call())
-    offCalls.forEach(call => call())
+    eventBucket.clear()
+    offCalls.clear()
   })
   return {
     errorHandle,
-    eventBucket,
     fieldId,
     fieldMap,
     fieldMetaList,

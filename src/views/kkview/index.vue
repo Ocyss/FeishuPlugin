@@ -17,6 +17,7 @@ import { Base64 } from 'js-base64'
 import screenfull from 'screenfull'
 import { fieldMaps } from '@/utils/field'
 import Layout from '@/components/layout.vue'
+import { eventBucket } from '@/hooks/useData'
 
 const { t } = useI18n()
 const layout = ref<InstanceType<typeof Layout> | null>(null)
@@ -62,9 +63,7 @@ const start: (e: IEventCbCtx<Selection>) => void = async ({ data }) => {
 onMounted(() => {
   layout.value?.update(false)
   const off = bitable.base.onSelectionChange(start)
-  onBeforeUnmount(() => {
-    off()
-  })
+  eventBucket.add(off)
 })
 </script>
 

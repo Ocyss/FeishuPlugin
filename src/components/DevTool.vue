@@ -6,8 +6,10 @@ import { useI18n } from 'vue-i18n'
 import { type RouteNamedMap, routes as _routes } from 'vue-router/auto/routes'
 import { useClipboard } from '@vueuse/core'
 import { getRoutes } from '@/utils'
+import { eventBucket } from '@/hooks/useData'
 
 defineEmits(['update:theme'])
+
 const { copy } = useClipboard()
 const { locale } = useI18n()
 const router = useRouter()
@@ -169,6 +171,9 @@ onMounted(() => {
       >
         <n-button>语言切换({{ state.lang }})</n-button>
       </n-dropdown>
+      <n-button @click="() => eventBucket.clear()">
+        清空监听({{ eventBucket.length }})
+      </n-button>
     </n-space>
   </n-popover>
 </template>

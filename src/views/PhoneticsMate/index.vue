@@ -30,7 +30,7 @@ import EasySpeech from 'easy-speech'
 import { TextFieldToStr } from '@/utils/field'
 import request from '@/utils/request'
 
-import { useData } from '@/hooks/useData'
+import { eventBucket, useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
@@ -155,9 +155,7 @@ onMounted(async () => {
       }
     }
   })
-  onBeforeUnmount(() => {
-    off()
-  })
+  eventBucket.add(off)
 })
 </script>
 
