@@ -28,16 +28,19 @@ const record = ref<IRecordValue>({
   fields: {},
 })
 
-const modelData = reactive<ModelType>({
+const modelData = reactive<ModelType & {
+  urls: string[]
+  decodeUrls: string[]
+}>({
+  decodeUrls: [],
   input: null,
   output: null,
+  urls: [],
 })
 
 const storeData = store<{
-  urls: string[]
   text: string[]
   action: number
-  decodeUrls: string[]
   options: {
     cSpace: number
     color: string
@@ -46,7 +49,6 @@ const storeData = store<{
   }
 }>('data', {
   action: 0,
-  decodeUrls: [''],
   options: {
     cSpace: 0,
     color: 'rgba(222, 222, 222, 0.35)',
@@ -54,7 +56,6 @@ const storeData = store<{
     vSpace: 0,
   },
   text: ['i'],
-  urls: [''],
 })
 
 onGetField(() => {
@@ -74,7 +75,7 @@ const actions = [
   { label: 'watermark', value: 0 },
   { label: 'blind watermark', value: 1 },
   { label: 'decode watermark', value: 2 },
-  { label: 'Steganography', value: 3 },
+  // { label: 'Steganography', value: 3 },
 ]
 
 const fileNameOptions = computed(() => {
@@ -221,12 +222,11 @@ function upPreview() {
 }
 
 async function upDecodePreview() {
-  storeData.value.decodeUrls = (
+  modelData.decodeUrls = (
     await Promise.all(
-      storeData.value.urls.map(async (item) => {
+      modelData.urls.map(async (item) => {
         if (item)
           return await WaterMark.utils.decodeImage(item)
-
         return null
       }),
     )
@@ -236,6 +236,7 @@ async function upDecodePreview() {
 onMounted(async () => {
   await getTable()
   const off = bitable.base.onSelectionChange(async ({ data }) => {
+    layout.value?.update(true, t('Parsing'))
     if (table.value && data.tableId && data.fieldId && data.recordId) {
       const field = await table.value.getFieldById<IAttachmentField>(data.fieldId)
       if ((await field.getType()) === FieldType.Attachment) {
@@ -245,13 +246,14 @@ onMounted(async () => {
         )) as IOpenAttachment[]
         if (cellValue && cellValue.length > 0) {
           record.value = await table.value.getRecordById(data.recordId)
-          storeData.value.urls = await field.getAttachmentUrls(data.recordId)
+          modelData.urls = await field.getAttachmentUrls(data.recordId)
           if (storeData.value.action === 2)
             await upDecodePreview()
           upPreview()
         }
       }
     }
+    layout.value?.update(false)
   })
   eventBucket.add(off)
 })
@@ -291,13 +293,13 @@ onMounted(async () => {
         @create="fileNameCreate"
         @update:value="upPreview"
       />
-      <n-form-item :label="t('水印颜色')">
+      <n-form-item :label="t('watermark color')">
         <n-color-picker
           v-model:value="storeData.options.color"
           @update:value="upPreview"
         />
       </n-form-item>
-      <n-form-item :label="t('水印大小')">
+      <n-form-item :label="t('Watermark size')">
         <n-slider
           v-model:value="storeData.options.fontSize"
           :step="1"
@@ -305,45 +307,46 @@ onMounted(async () => {
           @update:value="upPreview"
         />
       </n-form-item>
-      <n-form-item :label="t('横向间距')">
+      <n-form-item :label="t('horizontal spacing')">
         <n-slider
           v-model:value="storeData.options.cSpace"
           :step="1"
           @update:value="upPreview"
         />
       </n-form-item>
-      <n-form-item :label="t('纵向间距')">
+      <n-form-item :label="t('Longitudinal spacing')">
         <n-slider
           v-model:value="storeData.options.vSpace"
           :step="1"
           @update:value="upPreview"
         />
       </n-form-item>
-      预览:
-      <div ref="previewDiv">
+      {{ t('Preview:') }}
+      <div v-show="modelData.urls.length > 0" ref="previewDiv">
         <n-carousel
           class="preview"
         >
           <img
-            v-for="item in storeData.urls"
+            v-for="item in modelData.urls"
             :key="item"
             :src="item"
           >
         </n-carousel>
       </div>
+      <n-result v-show="modelData.urls.length === 0" status="404" style="--n-title-font-size: 18px;" :title="t('You need to select an attachment cell')" :description="t('Life is always a little ridiculous')" />
     </div>
     <div v-if="storeData.action === 2">
-      解密内容:
+      {{ t('Decrypted content:') }}
       <n-carousel
         class="preview"
         draggable
       >
         <div
-          v-for="(item, index) in storeData.decodeUrls"
+          v-for="(item, index) in modelData.decodeUrls"
           :key="item"
           style="position: relative"
         >
-          <img :src="storeData.urls[index]">
+          <img :src="modelData.urls[index]">
           <img
             class="watermark"
             :src="item"
@@ -372,7 +375,15 @@ onMounted(async () => {
 <i18n locale="zh" lang="json">
 {
   "watermark text": "水印文字",
-  "For xxx verification only": "仅供 xxx 验证使用"
+  "For xxx verification only": "仅供 xxx 验证使用",
+  "You need to select an attachment cell":"你需要选择某个附件单元格",
+  "Life is always a little ridiculous":"生活总归带点荒谬",
+  "watermark color":"水印颜色",
+  "Watermark size":"水印大小",
+  "horizontal spacing":"横向间距",
+  "Longitudinal spacing":"纵向间距",
+  "Preview:":"预览:",
+  "Decrypted content:":"解密内容:"
 }
 </i18n>
 
