@@ -181,7 +181,7 @@ async function main(all?: boolean) {
         return start(records.records, fieldI, fieldO, pr)
       },
       all,
-      15,
+      2,
     )
       .catch((error: Error) => {
         errorHandle('main', error)
