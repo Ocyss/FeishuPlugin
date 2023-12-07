@@ -187,15 +187,9 @@ onMounted(() => {
     </n-form-item>
     <form-start
       operate
+      :buttons="[[t('delEmpty'), delMain]]"
       @update:click="main"
-    >
-      <n-button
-        type="primary"
-        @click="delMain"
-      >
-        {{ t("delEmpty") }}
-      </n-button>
-    </form-start>
+    />
   </Layout>
 </template>
 

@@ -178,20 +178,8 @@ onMounted(async () => {
     />
     <form-start
       :disableds="disableds"
+      :buttons="[[t('Copy as Object'), () => toCopy(true)], [t('Copy as Array'), () => toCopy(false)]]"
       @update:click="main"
-    >
-      <n-button
-        type="info"
-        @click="() => toCopy(true)"
-      >
-        {{ t("Copy as Object") }}
-      </n-button>
-      <n-button
-        type="info"
-        @click="() => toCopy(false)"
-      >
-        {{ t("Copy as Array") }}
-      </n-button>
-    </form-start>
+    />
   </Layout>
 </template>

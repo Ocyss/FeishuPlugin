@@ -8,6 +8,7 @@ import {
 
 import App from '@/App.vue'
 import zh from '@/locales/zh.json'
+import en from '@/locales/en.json'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -22,7 +23,7 @@ const i18n = createI18n({
   messages: {
     'id': {},
     'de': {},
-    'en': {},
+    en,
     'es': {},
     'fr': {},
     'hi': {},

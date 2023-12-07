@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import type { Language } from '@lark-base-open/js-sdk'
 import { ThemeModeType } from '@lark-base-open/js-sdk'
-import type { GlobalTheme, GlobalThemeOverrides } from 'naive-ui'
-import { NConfigProvider, darkTheme } from 'naive-ui'
+import type { GlobalTheme, GlobalThemeOverrides, NDateLocale, NLocale } from 'naive-ui'
+import { darkTheme, dateEnUS, dateZhCN, enUS,	zhCN } from 'naive-ui'
 import DevTool from '@/components/DevTool.vue'
 
 const { t } = useI18n()
@@ -18,9 +19,19 @@ const lightThemeOverrides: GlobalThemeOverrides = {
   },
 }
 const themes = ref<GlobalTheme | null>(darkTheme)
+const locale = ref<[NLocale, NDateLocale]>([enUS, dateEnUS])
+const localeMaps: Partial<Record<Language, [NLocale, NDateLocale]>> = {
+  en: [enUS, dateEnUS],
+  zh: [zhCN, dateZhCN],
+}
 
-void bitable.bridge.getTheme().then((theme) => {
+bitable.bridge.getTheme().then((theme) => {
   themes.value = theme === ThemeModeType.DARK ? darkTheme : null
+})
+
+bitable.bridge.getLanguage().then((language) => {
+  if (language in localeMaps)
+    locale.value = localeMaps[language]!
 })
 
 onMounted(() => {
@@ -46,10 +57,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <NConfigProvider
-    class="main"
+  <n-config-provider
     :theme="themes"
     :theme-overrides="themes === null ? lightThemeOverrides : darkThemeOverrides"
+  :locale="locale[0]" :date-locale="locale[1]"
   >
     <n-message-provider>
       <n-dialog-provider>
@@ -64,7 +75,7 @@ onMounted(() => {
       </n-dialog-provider>
     </n-message-provider>
     <n-global-style />
-  </NConfigProvider>
+  </n-config-provider>
 </template>
 
 <style>

@@ -457,7 +457,8 @@ onMounted(async () => {
       <n-button
         :type="aria ? 'success' : 'error'"
         :disabled="ariaDisabled"
-        @click="() => aria2Stat(true)"
+        strong
+        round @click="() => aria2Stat(true)"
       >
         {{ t("Aria state") }}
       </n-button>
