@@ -15,6 +15,7 @@ interface Track {
   recordId?: null | string
   tableId?: null | string
   viewId?: null | string
+  value?: any
 }
 
 interface ModelType<TInput = string, TOutput = string> {

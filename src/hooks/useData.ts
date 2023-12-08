@@ -1,7 +1,9 @@
-import type { FieldType } from '@lark-base-open/js-sdk'
+import { FilterConjunction, FilterOperator } from '@lark-base-open/js-sdk'
+import type { FieldType, FilterInfoCondition, IGridView } from '@lark-base-open/js-sdk'
+import { generateString } from 'random-ease'
 import { useInfo } from '@/hooks/useInfo'
 import type Layout from '@/components/layout.vue'
-import type { FieldMaps } from '@/types'
+import type { FieldMaps, LogRowData } from '@/types'
 import { fieldMaps } from '@/utils/field'
 import { EventBucket, type Progress } from '@/utils'
 import { tKey } from '@/keys'
@@ -222,7 +224,42 @@ export function useData() {
   const fieldId = (fieldId: null | string | undefined) => getFieldMapValue(fieldId, fieldMap.value, 'NameToId')
   const fieldName = (fieldId: null | string | undefined) => getFieldMapValue(fieldId, fieldMap.value, 'IdToName')
   const fieldType = (fieldId: null | string | undefined) => getFieldMapValue(fieldId, fieldMap.value, 'IdToType')
+
+  const createView = async (data: LogRowData[]) => {
+    if (!table.value || data.length === 0)
+      return
+    const filter = data.map((item) => {
+      if (!item.value)
+        return null
+      return {
+        fieldId: item.fieldId,
+        fieldType: fieldType(item.fieldId),
+        operator: FilterOperator.Is,
+        value: item.value,
+      }
+    }).filter(item => item !== null) as FilterInfoCondition[]
+    if (filter.length === 0)
+      return
+    const viewId = (await table.value.addView({
+      name: `logs_${generateString(8)}`,
+      type: ViewType.Grid,
+    })).viewId
+    try {
+      const view = await table.value.getViewById(viewId) as IGridView
+      if (!await view.addFilterCondition(filter))
+        throw new Error('Failed to add filter condition')
+      bitable.ui.switchToView(tableId.value!, viewId)
+      await view.setFilterConjunction(FilterConjunction.Or)
+      view.applySetting()
+    }
+    catch (e) {
+      message.error(t('Failed to add filter condition'))
+      await table.value.deleteView(viewId)
+    }
+  }
+
   onMounted(() => {
+    layout.value?.upCreateView(createView)
     eventBucket.add(bitable.base.onTableAdd(() => {
       void getTable()
     }))

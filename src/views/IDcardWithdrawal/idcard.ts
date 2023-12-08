@@ -78,9 +78,13 @@ function getArea(p: string, c: string, a: string) {
   return { adreass, area, city, province }
 }
 
-function isValidChineseID(idNumber: string) {
+function isValidChineseID(idNumber: string, verify: 0 | 1 | 2 | 3 | 4) {
+  if (verify < 1)
+    return ''
   if (!re2.test(idNumber))
     return 'Regex does not pass'
+  if (verify < 2)
+    return ''
   const year = Number.parseInt(idNumber.substring(6, 10), 10)
   const month = Number.parseInt(idNumber.substring(10, 12), 10)
   const day = Number.parseInt(idNumber.substring(12, 14), 10)
@@ -90,7 +94,8 @@ function isValidChineseID(idNumber: string) {
     || birthday.getMonth() !== month - 1
     || birthday.getDate() !== day)
     return 'Date is incorrect'
-
+  if (verify < 4)
+    return ''
   const weightFactors = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
   const checkCode = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
 
@@ -101,7 +106,7 @@ function isValidChineseID(idNumber: string) {
   return idNumber[17].toUpperCase() === checkCode[sum % 11] ? '' : 'Checksum does not pass'
 }
 
-function idcard(id: string = '', verify: boolean = true) {
+function idcard(id: string = '', verify: 0 | 1 | 2 | 3 | 4 = 4) {
   // 判断是一代还是二代身份证并格式化
   const _id = id.length === 15 ? `${id.substring(0, 6)}19${id.substring(6)}0` : id
   const info = _id.match(re1)
@@ -109,9 +114,10 @@ function idcard(id: string = '', verify: boolean = true) {
     return 'Format does not pass'
 
   const { adreass, area, city, province } = getArea(info[1], info[2], info[3])
-  if (verify && (!area.text || !city.text || !province.text))
+  if (verify >= 3 && (Number(!!area.text) + Number(!!city.text) + Number(!!province.text) < 2))
     return 'Native place is incorrect'
-  const msg = verify && isValidChineseID(_id)
+
+  const msg = isValidChineseID(_id, verify)
   if (msg)
     return msg
 

@@ -38,15 +38,19 @@ const { store } = useStore()
 
 const { errorHandle, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 const testVal = ref('')
-const testRes = computed<{
-  msg?: string
-  gender: string
-  birthday: string
-  age: number
-  adreass: string
-  zodiac: string
-  constellation: string
-}>(() => {
+
+const modelData = reactive< ModelType & { format?: InfoField[] }>({
+  format: [],
+  input: null,
+  output: null,
+})
+
+const storeData = store('data', {
+  opoutCell: false,
+  verify: 0 as 0 | 1 | 2 | 3 | 4,
+})
+
+const testRes = computed(() => {
   if (testVal.value.length !== 18) {
     return {
       adreass: '',
@@ -59,27 +63,36 @@ const testRes = computed<{
     }
   }
 
-  const info = idcard(testVal.value, true)
+  const info = idcard(testVal.value, storeData.value.verify)
   if (typeof info === 'string') {
-    const info2 = idcard(testVal.value, false)
-    console.log(info, info2)
-
-    return typeof info2 === 'string'
-      ? { adreass: '', age: 0, birthday: '', constellation: '', gender: '', msg: info2, zodiac: '' }
-      : { msg: info, ...info2 }
+    return {
+      adreass: '',
+      age: 0,
+      birthday: '',
+      constellation: '',
+      gender: '',
+      msg: info,
+      zodiac: '',
+    }
   }
   return { ...info }
 })
 
-const modelData = reactive< ModelType & { format?: InfoField[] }>({
-  format: [],
-  input: null,
-  output: null,
-})
-
-const storeData = store<{ verify: boolean }>('data', {
-  verify: false,
-})
+function formatTooltip(value: number) {
+  switch (value) {
+    case 0:
+      return t('Length verification')
+    case 1:
+      return t('Regular verification (exclude some illegal dates)')
+    case 2:
+      return t('Date verification (exclude all illegal dates)')
+    case 3:
+      return t('Regional verification (excluding all abnormal areas)')
+    case 4:
+      return t('Check code verification')
+  }
+  return ''
+}
 
 onGetField(() => {
   modelData.input = null
@@ -117,8 +130,9 @@ function start(recordId: string, val: IOpenCellValue): null | number | string {
       fieldId: modelData.input,
       recordId,
       tableId: tableId.value,
+      value: text,
     })
-    return null
+    return storeData.value.opoutCell && fieldType(modelData.output) === FieldType.Text ? t(info) : null
   }
   const getValueByField = (item: InfoField) => {
     if (item === 'province' || item === 'area' || item === 'city')
@@ -126,18 +140,15 @@ function start(recordId: string, val: IOpenCellValue): null | number | string {
     return info[item]
   }
 
-  let res: any
   switch (fieldType(modelData.output)) {
     case FieldType.Text:
-      res = modelData.format!.map(item => getValueByField(item)).join(' ')
-      break
+      return modelData.format!.map(item => getValueByField(item)).join(' ')
     case FieldType.Number:
-      res = info.age
-      break
+      return info.age
     case FieldType.DateTime:
-      res = parse(info.birthday, 'yyyy-MM-dd', 0).getTime()
+      return parse(info.birthday, 'yyyy-MM-dd', 0).getTime()
   }
-  return res
+  return null
 }
 
 function main(all?: boolean) {
@@ -162,7 +173,7 @@ function main(all?: boolean) {
       return table.value!.setRecords(newVals)
     },
     all,
-    storeData.value.verify ? 500 : 5000,
+    storeData.value.verify ? 1000 : 5000,
   )
     .catch((error: Error) => {
       errorHandle('main', error)
@@ -194,27 +205,32 @@ onMounted(async () => {
       :options="filterFields([FieldType.Text, FieldType.Number, FieldType.DateTime])"
     />
     <form-select
-      v-if="modelData.output && fieldType(modelData.output) === FieldType.Text"
+      v-if="fieldType(modelData.output) === FieldType.Text"
       v-model:value="modelData.format"
       :msg="t('Select output format')"
       :options="outputFormat"
       multiple
     />
     <form-select
-      v-else-if="modelData.output && fieldType(modelData.output) === FieldType.Number"
+      v-else-if="fieldType(modelData.output) === FieldType.Number"
       :msg="t('Select output format')"
       :value="t('age')"
       disabled
     />
     <form-select
-      v-else-if="modelData.output && fieldType(modelData.output) === FieldType.DateTime"
+      v-else-if="fieldType(modelData.output) === FieldType.DateTime"
       :msg="t('Select output format')"
       :value="t('birthday')"
       disabled
     />
-    <n-form-item :label="t('Strong validation')">
-      <n-switch v-model:value="storeData.verify" />
+
+    <n-form-item :label="t('validation')">
+      <n-slider v-model:value="storeData.verify" :min="0" :max="4" :format-tooltip="formatTooltip" />
     </n-form-item>
+    <n-form-item v-if="storeData.verify" :label="t('Output to cell')">
+      <n-switch v-model:value="storeData.opoutCell" />
+    </n-form-item>
+
     <form-start
       :disableds="disableds"
       @update:click="main"
@@ -247,13 +263,19 @@ onMounted(async () => {
 
 <i18n locale="zh" lang="json">
 {
-  "Strong validation": "强检验",
+  "validation": "检验",
   "Format does not pass": "格式不通过",
   "Native place is incorrect": "籍贯不存在",
   "Regex does not pass": "正则不通过",
   "Date is incorrect": "年月日错误",
   "Checksum does not pass": "检验码不通过",
   "Not long enough": "长度不够",
-  "ages":"岁"
+  "ages":"岁",
+  "Output to cell":"输出到单元格",
+  "Length verification":"长度验证",
+  "Regular verification (exclude some illegal dates)":"正则验证(排除部分非法日期)",
+  "Date verification (exclude all illegal dates)":"日期验证(排除全部非法日期)",
+  "Regional verification (excluding all abnormal areas)":"地区验证(排除全部异常地区)",
+  "Check code verification":"校验码验证"
 }
 </i18n>

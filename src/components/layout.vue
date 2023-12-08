@@ -10,9 +10,6 @@ import { tKey } from '@/keys'
 const t = inject(tKey, () => useI18n().t, true)
 const columns: DataTableColumns<LogRowData> = [
   {
-    type: 'selection',
-  },
-  {
     key: 'type',
     render(row) {
       return h(
@@ -27,31 +24,57 @@ const columns: DataTableColumns<LogRowData> = [
       )
     },
     title: 'Type',
+    width: 75,
+  },
+  {
+    key: 'recordId',
+    resizable: true,
+    title: 'RecordId',
   },
   {
     key: 'log',
+    resizable: true,
     title: 'Log',
   },
 ]
-// 错误日志等信息，等后续UI模块完善，再实现右键选中错误的单元格，方便查找问题
-const data = ref<LogRowData[]>([])
+
 const lock = ref(true)
 const permission = ref(true)
-const message = ref('')
+const spinMsg = ref('')
+const message = useMessage()
 const progress = ref<Progress[]>([])
 const { app } = useInfo()
+
+// 错误日志等信息，等后续UI模块完善，再实现右键选中错误的单元格，方便查找问题
+const data = ref<LogRowData[]>([])
+
+function rowProps(row: LogRowData) {
+  return {
+    onClick: () => {
+      message.info(`选择单元格${row.recordId}~ (待api完善)`)
+    },
+    style: 'cursor: pointer;',
+  }
+}
+let createView: (data: LogRowData[]) => any = () => {
+  message.error('未定义')
+}
+
+function upCreateView(val: (data: LogRowData[]) => any) {
+  createView = val
+}
 
 function _log(type: LogType, log: string, track?: Track) {
   data.value.push({
     log,
-    track,
+    ...track,
     type,
   })
 }
 
 // 更新加载状态
 function update(lk: boolean, text = '') {
-  message.value = text
+  spinMsg.value = text
   lock.value = lk
 }
 
@@ -67,9 +90,9 @@ function init() {
 }
 
 // 新建一个加载进度
-function spin(message: string, n = 0) {
+function spin(spinMsg: string, n = 0) {
   lock.value = true
-  const p = reactive(new Progress(message, n))
+  const p = reactive(new Progress(spinMsg, n))
   progress.value.push(p)
   return p
 }
@@ -87,7 +110,7 @@ function getTablePermission(tableId: string) {
 }
 
 onMounted(async () => {
-  window.$message = useMessage()
+  window.$message = message
 })
 
 defineExpose({
@@ -111,6 +134,7 @@ defineExpose({
   success: (log: string, track?: Track) => {
     _log(LogType.Success, log, track)
   },
+  upCreateView,
   update,
   warning: (log: string, track?: Track) => {
     _log(LogType.Warning, log, track)
@@ -139,7 +163,7 @@ defineExpose({
   >
     <template #description>
       <div v-if="progress.reduce((sum, e) => sum + e.total, 0) === 0">
-        {{ message }}
+        {{ spinMsg }}
       </div>
       <div
         v-for="item in progress"
@@ -167,12 +191,14 @@ defineExpose({
     </n-form>
   </n-spin>
   <n-data-table
-    v-show="data.length > 0"
-    style="margin-top: 20px"
+    v-if="data.length > 0"
+    style="margin-top: 20px;height: 350px;"
     :columns="columns"
     :data="data"
-    striped
+    flex-height
+    :row-props="rowProps"
   />
+  <form-start v-if="data.length > 0" style="margin-top: 15px;" no-handle :buttons="[['清空全部', init], ['创建视图', () => createView(data)]]" />
 </template>
 
 <style lang="scss" scoped>
