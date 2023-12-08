@@ -6,9 +6,7 @@ meta:
     This powerful plugin easily converts web pages into images and uploads them
     as preview images in attachments. This convenient conversion method provides
     users with more display options.
-  help: >-
-    According to the ID number, obtain age, gender, date of birth,
-    constellation, zodiac sign, and place of origin information.
+  help:
   group: >-
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=ce0u68e4-9348-492a-b0f3-ed122c47aad7
   tags:

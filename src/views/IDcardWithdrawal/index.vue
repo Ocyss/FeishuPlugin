@@ -7,9 +7,7 @@ meta:
     information such as age, gender, date of birth, zodiac sign, Chinese zodiac,
     and native place. This smart identification greatly simplifies the handling
     of ID card information.
-  help: >-
-    According to the ID number, obtain age, gender, date of birth,
-    constellation, zodiac sign, and place of origin information.
+  help:
   group: >-
     https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=06fj76e0-4524-4ec9-8d90-b9e85578d126
   tags:
@@ -30,17 +28,57 @@ meta:
 </route>
 
 <script setup lang="ts">
-import idcard from '@fekit/idcard'
 import parse from 'date-fns/parse'
+import idcard from './idcard'
 import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
+import { useStore } from '@/hooks/useStore'
+
+const { store } = useStore()
 
 const { errorHandle, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const testVal = ref('')
+const testRes = computed<{
+  msg?: string
+  gender: string
+  birthday: string
+  age: number
+  adreass: string
+  zodiac: string
+  constellation: string
+}>(() => {
+  if (testVal.value.length !== 18) {
+    return {
+      adreass: '',
+      age: 0,
+      birthday: '',
+      constellation: '',
+      gender: '',
+      msg: 'Not long enough',
+      zodiac: '',
+    }
+  }
+
+  const info = idcard(testVal.value, true)
+  if (typeof info === 'string') {
+    const info2 = idcard(testVal.value, false)
+    console.log(info, info2)
+
+    return typeof info2 === 'string'
+      ? { adreass: '', age: 0, birthday: '', constellation: '', gender: '', msg: info2, zodiac: '' }
+      : { msg: info, ...info2 }
+  }
+  return { ...info }
+})
 
 const modelData = reactive< ModelType & { format?: InfoField[] }>({
   format: [],
   input: null,
   output: null,
+})
+
+const storeData = store<{ verify: boolean }>('data', {
+  verify: false,
 })
 
 onGetField(() => {
@@ -73,29 +111,26 @@ const outputFormat = InfoFields.map((item) => {
 
 function start(recordId: string, val: IOpenCellValue): null | number | string {
   const text = TextFieldToStr(val as IOpenSegment[])
-  const info = idcard(text)
-  if (!info) {
-    layout.value?.error(t('ID card format error'), {
-      fieldId: modelData.input as string,
+  const info = idcard(text, storeData.value.verify)
+  if (typeof info === 'string') {
+    layout.value?.error(t(info), {
+      fieldId: modelData.input,
       recordId,
       tableId: tableId.value,
     })
     return null
   }
   const getValueByField = (item: InfoField) => {
-    const textFields = ['province', 'area', 'city']
-    if (textFields.includes(item))
-      return typeof info[item] === 'string' ? info[item] : info[item].text
-
+    if (item === 'province' || item === 'area' || item === 'city')
+      return info[item].text
     return info[item]
   }
 
   let res: any
-  switch (fieldType(modelData.output as string)) {
+  switch (fieldType(modelData.output)) {
     case FieldType.Text:
       res = modelData.format!.map(item => getValueByField(item)).join(' ')
       break
-
     case FieldType.Number:
       res = info.age
       break
@@ -127,7 +162,7 @@ function main(all?: boolean) {
       return table.value!.setRecords(newVals)
     },
     all,
-    5000,
+    storeData.value.verify ? 500 : 5000,
   )
     .catch((error: Error) => {
       errorHandle('main', error)
@@ -177,12 +212,48 @@ onMounted(async () => {
       :value="t('birthday')"
       disabled
     />
-    <n-form-item label="强校验">
-      <n-switch />
+    <n-form-item :label="t('Strong validation')">
+      <n-switch v-model:value="storeData.verify" />
     </n-form-item>
     <form-start
       :disableds="disableds"
       @update:click="main"
     />
   </Layout>
+  <div>
+    <n-input v-model:value="testVal" style="margin-top: 20px;" type="text" :placeholder="t('Test')" maxlength="18" show-count />
+    <n-list v-if="testVal.length" hoverable clickable>
+      <n-list-item>
+        性别:&#9;{{ testRes.gender }}
+      </n-list-item>
+      <n-list-item>
+        籍贯:&#9;{{ testRes.adreass }}
+      </n-list-item>
+      <n-list-item>
+        生日:&#9;{{ `${testRes.birthday}\t<${testRes.age} ${t('ages')}>` }}
+      </n-list-item>
+      <n-list-item>
+        生肖:&#9;{{ testRes.zodiac }}
+      </n-list-item>
+      <n-list-item>
+        星座:&#9;{{ testRes.constellation }}
+      </n-list-item>
+      <n-list-item>
+        校验:&#9;{{ testRes.msg ? `❌${t(testRes.msg)}` : t('pass') }}
+      </n-list-item>
+    </n-list>
+  </div>
 </template>
+
+<i18n locale="zh" lang="json">
+{
+  "Strong validation": "强检验",
+  "Format does not pass": "格式不通过",
+  "Native place is incorrect": "籍贯不存在",
+  "Regex does not pass": "正则不通过",
+  "Date is incorrect": "年月日错误",
+  "Checksum does not pass": "检验码不通过",
+  "Not long enough": "长度不够",
+  "ages":"岁"
+}
+</i18n>
