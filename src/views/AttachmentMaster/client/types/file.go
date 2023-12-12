@@ -1,59 +1,63 @@
 package types
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"golang.org/x/net/webdav"
 	"io"
 	"io/fs"
+	"log/slog"
 	"mime"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"sync/atomic"
 	"time"
 )
 
-type File struct {
-	Attachments *Attachments
-	files       map[string]*File
-	father      *File
-	name        string
-	size        int64
+// https://github.com/hairyhenderson/go-fsimpl
+type fileInfo struct {
 	modTime     time.Time
-	isDir       bool
-	show        bool   // 是否显示
-	ask         bool   // 是否需求请求
-	url         string // 下载地址
-	id          string // 记录id
-	data        io.ReadCloser
-	offset      atomic.Int64
+	name        string
+	contentType string
+	size        int64
+	mode        fs.FileMode
 }
 
-func (f *File) Close() error {
-	if f.data != nil {
-		f.data.Close()
-	}
-	return nil
+func (fi *fileInfo) ContentType() string        { return fi.contentType }
+func (fi *fileInfo) IsDir() bool                { return fi.Mode().IsDir() }
+func (fi *fileInfo) Mode() fs.FileMode          { return fi.mode }
+func (fi *fileInfo) ModTime() time.Time         { return fi.modTime }
+func (fi *fileInfo) Name() string               { return fi.name }
+func (fi *fileInfo) Size() int64                { return fi.size }
+func (fi *fileInfo) Sys() interface{}           { return nil }
+func (fi *fileInfo) Info() (fs.FileInfo, error) { return fi, nil }
+func (fi *fileInfo) Type() fs.FileMode          { return fi.Mode().Type() }
+
+type httpFile struct {
+	a        *Attachments
+	father   *httpDir
+	recordId string
+	fieldId  string
+	index    int64
+	ctx      context.Context
+	body     io.ReadCloser
+	fi       *fileInfo
+	u        *url.URL
+	hdr      http.Header
+	path     string
+	offset   atomic.Int64
 }
 
-func (f *File) Read(b []byte) (int, error) {
-	if f.data != nil {
-		return f.data.Read(b)
-	}
-	return 0, nil
-}
-
-func (f *File) Seek(offset int64, whence int) (int64, error) {
-	fmt.Println("Seek", offset, whence)
-	if f.data == nil {
-		res, err := http.Get(f.url)
+func (f *httpFile) Seek(offset int64, whence int) (int64, error) {
+	if f.body == nil || f.fi == nil {
+		body, err := f.request(http.MethodGet)
 		if err != nil {
 			return 0, err
 		}
-		if res.StatusCode >= 400 {
-			return 0, errors.New("wrong status code")
-		}
-		f.data = res.Body
+		f.body = body
 	}
 	oldOffset := f.offset.Load()
 	var newOffset int64
@@ -63,7 +67,7 @@ func (f *File) Seek(offset int64, whence int) (int64, error) {
 	case io.SeekCurrent:
 		newOffset = oldOffset + offset
 	case io.SeekEnd:
-		return f.size, nil
+		return f.fi.Size(), nil
 	default:
 		return -1, os.ErrInvalid
 	}
@@ -77,94 +81,93 @@ func (f *File) Seek(offset int64, whence int) (int64, error) {
 		return oldOffset, nil
 	}
 	f.offset.Store(newOffset)
+	slog.Debug("httpFile Seek", "offset", offset, "newOffset", newOffset, "whence", whence)
 	return newOffset, nil
 }
 
-func (f *File) Readdir(count int) ([]fs.FileInfo, error) {
-	n := len(f.files)
-	if count > 0 {
-		n = count
-	}
-	files := make([]fs.FileInfo, 0, n)
-	for _, v := range f.files {
-		_, err := v.Stat()
-		if err != nil {
-			fmt.Println("Readdir err", err, v)
-			continue
-		}
-		files = append(files, v)
-		if len(files) >= n {
-			break
-		}
-	}
-	fmt.Println("Readdir", count, f.name, files)
-	return files, nil
+func (f *httpFile) Readdir(count int) ([]fs.FileInfo, error) {
+	return nil, errors.New("httpFile no Readdir")
 }
 
-func (f *File) Stat() (fs.FileInfo, error) {
-	if f == nil {
-		fmt.Println("Stat file is nil")
-		return nil, errors.New("file is nil")
-	}
-	if !f.isDir && !f.ask && f.url != "" {
-		resp, err := http.Head(f.url)
-		fmt.Println("resp", err)
-		if err != nil {
-			return nil, err
-		}
-		disp := resp.Header.Get("Content-Disposition")
-		fmt.Println("disp", disp)
-		_, params, err := mime.ParseMediaType(disp)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Println("params", params)
-		f.name = params["filename"]
-		f.size, _ = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
-		f.modTime = time.Now()
-		f.ask = true
-		delete(f.father.files, f.url)
-		f.father.files[f.name] = f
-	}
+func (f *httpFile) Write(p []byte) (n int, err error) {
+	return 0, errors.New("httpFile Write not implemented")
+}
+
+func (f *httpFile) File() (webdav.File, error) {
 	return f, nil
 }
 
-func (f *File) Write(p []byte) (n int, err error) {
-	return 0, errors.New("write not supported")
-}
-
-func (f *File) Name() string {
-	if f == nil {
-		return "noName.ocyss"
+func (f *httpFile) request(method string) (io.ReadCloser, error) {
+	client := f.a.client
+	req, err := http.NewRequest(method, f.u.String(), nil)
+	if err != nil {
+		return nil, err
 	}
-	return f.name
-}
 
-func (f *File) Size() int64 {
-	if f == nil {
-		return 0
+	req.Header = f.hdr
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
 	}
-	return f.size
-}
 
-func (f *File) Mode() fs.FileMode {
-	return os.ModePerm
-}
-
-func (f *File) ModTime() time.Time {
-	if f == nil {
-		return time.Now()
+	//modTime := time.Time{}
+	//if mod := resp.Header.Get("Last-Modified"); mod != "" {
+	//	// best-effort - if it can't be parsed, just ignore it...
+	//	modTime, _ = http.ParseTime(mod)
+	//}
+	disp := resp.Header.Get("Content-Disposition")
+	_, params, err := mime.ParseMediaType(disp)
+	if err != nil {
+		return nil, err
 	}
-	return f.modTime
-}
-
-func (f *File) IsDir() bool {
-	if f == nil {
-		return false
+	size, _ := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	f.fi = &fileInfo{
+		name:        params["filename"],
+		size:        size,
+		mode:        0o644,
+		modTime:     time.Now(),
+		contentType: resp.Header.Get("Content-Type"),
 	}
-	return f.isDir
+	if resp.StatusCode == 0 || resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("http GET failed with status %d", resp.StatusCode)
+	}
+	if f.path == "" {
+		f.path = f.father.path + "/" + f.fi.name
+		f.a.path[f.path] = f
+	}
+	// The response body must be closed later
+	return resp.Body, nil
 }
 
-func (f *File) Sys() any {
-	return nil
+func (f *httpFile) Close() error {
+	if f.body == nil {
+		return nil
+	}
+
+	return f.body.Close()
+}
+
+func (f *httpFile) Read(p []byte) (int, error) {
+	if f.body == nil || f.fi == nil {
+		body, err := f.request(http.MethodGet)
+		if err != nil {
+			return 0, err
+		}
+		f.body = body
+	}
+	i, err := f.body.Read(p)
+	slog.Debug("httpFile Read", "len(p)", len(p), "i", i, "err", err)
+	return i, err
+}
+
+func (f *httpFile) Stat() (fs.FileInfo, error) {
+	if f.body == nil || f.fi == nil {
+		body, err := f.request(http.MethodHead)
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+	}
+	return f.fi, nil
 }

@@ -14,7 +14,7 @@ func Mount(url, disk string) error {
 		panic(err)
 	}
 	//utf8Output, _, _ := transform.Bytes(simplifiedchinese.GBK.NewDecoder(), output)
-	//fmt.Println(string(utf8Output))
+	//slog.Debug(string(utf8Output))
 	return nil
 }
 
@@ -24,7 +24,7 @@ func UnMount(disk string) error {
 		panic(err)
 	}
 	//utf8Output, _, _ := transform.Bytes(simplifiedchinese.GBK.NewDecoder(), output)
-	//fmt.Println(string(utf8Output))
+	//slog.Debug(string(utf8Output))
 	return nil
 }
 

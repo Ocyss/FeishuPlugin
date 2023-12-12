@@ -3,15 +3,11 @@ package main
 import (
 	"AttachmentMasterClient/types"
 	"AttachmentMasterClient/utils"
-	"context"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"golang.org/x/net/webdav"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -53,45 +49,15 @@ func handleCreate(conn *websocket.Conn, data types.ActionData) {
 		fs.ServeHTTP(w, req)
 	})
 	webDavId := strconv.FormatInt(time.Now().UnixMilli(), 10)
-	url := fmt.Sprintf("http://127.0.0.1%s%s", port, prefix)
+	url := fmt.Sprintf("http://localhost%s%s", port, prefix)
 	webDavMap[webDavId] = webDav{
 		Id:         webDavId,
 		Url:        url,
 		Attachment: attachment,
 	}
 	_ = conn.WriteJSON(Resp(0, "", webDavMap[webDavId]))
-	utils.UnMount("Z:")
-	utils.Mount(url, "Z:")
-	fmt.Println()
-}
-
-func handleDirList(fs webdav.FileSystem, url string, w http.ResponseWriter, req *http.Request) bool {
-	ctx := context.Background()
-	name := strings.Replace(req.URL.Path, url, "", 1)
-	f, err := fs.OpenFile(ctx, name, os.O_RDONLY, 0)
-	if err != nil {
-		return false
-	}
-	defer f.Close()
-	if fi, _ := f.Stat(); fi != nil && !fi.IsDir() {
-		return false
-	}
-	dirs, err := f.Readdir(-1)
-	if err != nil {
-		log.Print(w, "Error reading directory", http.StatusInternalServerError)
-		return false
-	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, "<pre>\n")
-	for _, d := range dirs {
-		name := req.URL.Path + "/" + d.Name()
-		if d.IsDir() {
-			name += "/"
-		}
-		fmt.Fprintf(w, "<a href=\"%s\">%s</a>\n", name, d.Name())
-	}
-	fmt.Fprintf(w, "</pre>\n")
-	return true
+	utils.UnMount(data.Disk)
+	utils.Mount(url, data.Disk)
 }
 
 func handleAdd(conn *websocket.Conn, data types.ActionData) {
@@ -100,7 +66,7 @@ func handleAdd(conn *websocket.Conn, data types.ActionData) {
 		_ = conn.WriteJSON(Resp(1, "Add: not WebDavId"))
 		return
 	}
-	v.Attachment.Add(data.Records)
+	v.Attachment.Adds(data.Records)
 	_ = conn.WriteJSON(Resp(0, ""))
 }
 

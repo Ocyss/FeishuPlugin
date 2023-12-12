@@ -4,22 +4,44 @@ import (
 	"AttachmentMasterClient/types"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"log"
+	"github.com/lmittmann/tint"
+	"github.com/mattn/go-colorable"
+	"log/slog"
 	"net/http"
+	"os"
+	"time"
 )
 
 const port = ":16666"
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-var router = mux.NewRouter()
+var (
+	router   = mux.NewRouter()
+	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+	messageHandlers = map[string]func(*websocket.Conn, types.ActionData){
+		"ping": func(conn *websocket.Conn, _ types.ActionData) {
+			_ = conn.WriteMessage(websocket.TextMessage, []byte("pong"))
+		},
+		"create": handleCreate,
+		"status": handleStatus,
+		"add":    handleAdd,
+		"reduce": handleReduce,
+		"delete": handleDelete,
+	}
+)
 
 func main() {
+	slog.SetDefault(slog.New(
+		tint.NewHandler(colorable.NewColorable(os.Stdout), &tint.Options{
+			Level:      slog.LevelDebug,
+			TimeFormat: time.Kitchen,
+		}),
+	))
 	server := &http.Server{
 		Addr:    "0.0.0.0" + port,
 		Handler: router,
@@ -27,7 +49,7 @@ func main() {
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Println(err)
+			slog.Error("WsUpgrade", err)
 			return
 		}
 		defer conn.Close()
@@ -37,24 +59,13 @@ func main() {
 			if err != nil {
 				return
 			}
-			log.Println(data)
+			slog.Debug("WsMessage", data)
 			messageHandlers[data.Action](conn, data.Data)
 		}
 	})
 	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("pong"))
 	})
-	log.Println("Server started on ws://127.0.0.1" + ":16666")
-	log.Fatal(server.ListenAndServe())
-}
-
-var messageHandlers = map[string]func(*websocket.Conn, types.ActionData){
-	"ping": func(conn *websocket.Conn, _ types.ActionData) {
-		_ = conn.WriteMessage(websocket.TextMessage, []byte("pong"))
-	},
-	"create": handleCreate,
-	"status": handleStatus,
-	"add":    handleAdd,
-	"reduce": handleReduce,
-	"delete": handleDelete,
+	slog.Info("Server started on ws://localhost" + ":16666")
+	slog.Info("server", "err", server.ListenAndServe())
 }

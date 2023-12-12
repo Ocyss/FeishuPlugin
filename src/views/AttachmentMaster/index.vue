@@ -18,12 +18,12 @@ import { useStore } from '@/hooks/useStore';
 import { NTag, SelectRenderTag } from 'naive-ui';
 import { VNodeChild } from 'vue';
 import { TextFieldToStr } from '@/utils/field';
-
+import clientUrl from "@/assets/AttachmentMasterClient.exe?url"
 const { message, errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 const { store } = useStore()
 const { copy } = useClipboard()
 
-const { status, data: wsdata, send: _send, ws } = useWebSocket('ws://127.0.0.1:16666/ws', {
+const { status, data: wsdata, send: _send, ws } = useWebSocket('ws://localhost:16666/ws', {
   autoReconnect: true,
 })
 
@@ -58,12 +58,15 @@ function testStat() {
 
 const modelData = reactive({
   input: [] as string[],
-  text: ["rid"]
+  text: ["rid"],
+  disk: "Z:",
 })
 
 const storeData = store('data', {
   WebDav: { id: "", url: "" },
 })
+
+const disks = Array.from({ length: 26 }, (_, i) => { const disk = String.fromCharCode(65 + i) + ':'; return { name: disk, id: disk } });
 
 onGetField(() => {
   modelData.input = []
@@ -123,7 +126,7 @@ const fileNameTag: SelectRenderTag = ({ handleClose, option }) => {
 
 function install() {
   let a = document.createElement('a');
-  a.href = '/static/AttachmentMasterClient.exe';
+  a.href = clientUrl;
   //路径中'/'为根目录，即index.html所在的目录
   a.download = "AttachmentMasterClient.exe"
   a.click();
@@ -190,6 +193,7 @@ async function main(all?: boolean) {
       action: 'create', data: {
         table_name: await table.value.getName(),
         table_id: table.value.id,
+        disk: modelData.disk,
       }
     })
     if (data.code !== 0) {
@@ -230,7 +234,8 @@ onMounted(() => {
     <form-select v-model:value="modelData.input" :msg="t('Select Attachment Field')"
       :options="filterFields(FieldType.Attachment)" multiple />
     <form-select v-model:value="modelData.text" :msg="t('record name')" input multiple :render-tag="fileNameTag"
-      :render-label="fileNameLabel" :options="fileNameOptions" @create="fileNameCreate"></form-select>
+      :render-label="fileNameLabel" :options="fileNameOptions" @create="fileNameCreate" />
+    <form-select v-model:value="modelData.disk" :msg="t('盘符')" :options="disks" />
     <form-start :disableds="disableds" @update:click="main" :buttons="[['安装插件', install], ['复制WebDav地址', copyUrl]]">
       <n-button :type="stat ? 'success' : 'error'" strong round @click="testStat">
         {{ t("连接状态") }}
