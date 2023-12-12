@@ -3,43 +3,45 @@ name: AttachmentMaster
 meta:
   title: AttachmentMaster
   desc: AttachmentMaster allows users to directly map all or part of attachment fields to Windows File Explorer and manage them as normal files.
-  help: 
-  group: 
+  help:
+  group:
   tags:
     - Develop
   avatar: a
 </route>
 
 <script setup lang="ts">
+import { useClipboard, useWebSocket } from '@vueuse/core'
+import type { SelectRenderTag } from 'naive-ui'
+import { NTag } from 'naive-ui'
+import type { VNodeChild } from 'vue'
 import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
-import { useWebSocket, useClipboard } from '@vueuse/core'
-import { useStore } from '@/hooks/useStore';
-import { NTag, SelectRenderTag } from 'naive-ui';
-import { VNodeChild } from 'vue';
-import { TextFieldToStr } from '@/utils/field';
-import clientUrl from "@/assets/AttachmentMasterClient.exe?url"
-const { message, errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+import { useStore } from '@/hooks/useStore'
+import { TextFieldToStr } from '@/utils/field'
+import clientUrl from '@/assets/AttachmentMasterClient.exe?url'
+
+const { errorHandle, filterFields, getRecords, getTable, layout, message, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 const { store } = useStore()
 const { copy } = useClipboard()
 
-const { status, data: wsdata, send: _send, ws } = useWebSocket('ws://localhost:16666/ws', {
+const { data: wsdata, send: _send, status, ws } = useWebSocket('ws://localhost:16666/ws', {
   autoReconnect: true,
 })
 
-const send = (msg: { action: string, data?: any }) => {
-  console.log(msg);
+function send(msg: { action: string, data?: any }) {
+  console.log(msg)
   return _send(JSON.stringify(msg))
 }
 
-const sendA = async (msg: { action: string, data?: any }) => {
+async function sendA(msg: { action: string, data?: any }) {
   let ok = send(msg)
   for (let err = 0; !ok && err < 3; err++) {
     await new Promise(r => setTimeout(r, 1500))
     ok = send(msg)
   }
   if (!ok || !ws.value) {
-    message.error("Failed to send message")
+    message.error('Failed to send message')
     return
   }
   return await new Promise<any>((resolve) => {
@@ -53,20 +55,20 @@ const sendA = async (msg: { action: string, data?: any }) => {
 const stat = computed(() => status.value === 'OPEN')
 
 function testStat() {
-  console.log(send({ action: 'ping' }), status.value, wsdata.value);
+  console.log(send({ action: 'ping' }), status.value, wsdata.value)
 }
 
 const modelData = reactive({
+  disk: 'Z:',
   input: [] as string[],
-  text: ["rid"],
-  disk: "Z:",
+  text: ['rid'],
 })
 
 const storeData = store('data', {
-  WebDav: { id: "", url: "" },
+  WebDav: { id: '', url: '' },
 })
 
-const disks = Array.from({ length: 26 }, (_, i) => { const disk = String.fromCharCode(65 + i) + ':'; return { name: disk, id: disk } });
+const disks = Array.from({ length: 26 }, (_, i) => { const disk = `${String.fromCharCode(65 + i)}:`; return { id: disk, name: disk } })
 
 onGetField(() => {
   modelData.input = []
@@ -125,11 +127,11 @@ const fileNameTag: SelectRenderTag = ({ handleClose, option }) => {
 }
 
 function install() {
-  let a = document.createElement('a');
-  a.href = clientUrl;
-  //路径中'/'为根目录，即index.html所在的目录
-  a.download = "AttachmentMasterClient.exe"
-  a.click();
+  const a = document.createElement('a')
+  a.href = clientUrl
+  // 路径中'/'为根目录，即index.html所在的目录
+  a.download = 'AttachmentMasterClient.exe'
+  a.click()
 }
 
 async function copyUrl() {
@@ -138,7 +140,7 @@ async function copyUrl() {
 }
 
 function generateName(record: IRecord) {
-  return modelData.text.map(item => {
+  return modelData.text.map((item) => {
     if (item.startsWith('$BDAT$'))
       return item.slice(6)
     else if (item === 'rid')
@@ -155,9 +157,9 @@ async function start(fields: IAttachmentField[], records: IRecord[], pr?: Progre
     return
   }
   const res: {
-    id: string,
-    name?: string,
-    urls: string[],
+    id: string
+    name?: string
+    urls: string[]
   }[] = []
   for (let i = 0; i < records.length; i++) {
     pr?.add()
@@ -177,24 +179,24 @@ async function start(fields: IAttachmentField[], records: IRecord[], pr?: Progre
   }
   const data = { records: res, webdav_id: storeData.value.WebDav.id }
   const msg = await sendA({ action: 'add', data })
-  console.log(msg);
+  console.log(msg)
 
-  if (msg.code !== 0) {
+  if (msg.code !== 0)
     await start(fields, records, pr, err + 1)
-    return
-  }
 }
 
 async function main(all?: boolean) {
-  if (!table.value) { return }
+  if (!table.value)
+    return
   let data = await sendA({ action: 'status', data: { webdav_id: storeData.value.WebDav.id } })
   if (data.code !== 0) {
     data = await sendA({
-      action: 'create', data: {
-        table_name: await table.value.getName(),
-        table_id: table.value.id,
+      action: 'create',
+      data: {
         disk: modelData.disk,
-      }
+        table_id: table.value.id,
+        table_name: await table.value.getName(),
+      },
     })
     if (data.code !== 0) {
       message.error(t('Failed to create WebDav'))
@@ -205,7 +207,7 @@ async function main(all?: boolean) {
   const fields = await Promise.all(modelData.input.map(item => table.value!.getField<IAttachmentField>(item)))
   getRecords(
     async ({ pr, records }) => {
-      console.log(records);
+      console.log(records)
 
       await start(fields, records.records, pr)
     },
@@ -231,12 +233,16 @@ onMounted(() => {
       <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
       <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
     </n-space>
-    <form-select v-model:value="modelData.input" :msg="t('Select Attachment Field')"
-      :options="filterFields(FieldType.Attachment)" multiple />
-    <form-select v-model:value="modelData.text" :msg="t('record name')" input multiple :render-tag="fileNameTag"
-      :render-label="fileNameLabel" :options="fileNameOptions" @create="fileNameCreate" />
+    <form-select
+      v-model:value="modelData.input" :msg="t('Select Attachment Field')"
+      :options="filterFields(FieldType.Attachment)" multiple
+    />
+    <form-select
+      v-model:value="modelData.text" :msg="t('record name')" input multiple :render-tag="fileNameTag"
+      :render-label="fileNameLabel" :options="fileNameOptions" @create="fileNameCreate"
+    />
     <form-select v-model:value="modelData.disk" :msg="t('盘符')" :options="disks" />
-    <form-start :disableds="disableds" @update:click="main" :buttons="[['安装插件', install], ['复制WebDav地址', copyUrl]]">
+    <form-start :disableds="disableds" :buttons="[['安装插件', install], ['复制WebDav地址', copyUrl]]" @update:click="main">
       <n-button :type="stat ? 'success' : 'error'" strong round @click="testStat">
         {{ t("连接状态") }}
       </n-button>

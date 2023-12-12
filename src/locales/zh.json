@@ -228,5 +228,7 @@
   "weeks": "周",
   "year": "年",
   "years": "年",
-  "zodiac": "生肖"
+  "zodiac": "生肖",
+  "chineseToNumber": "中文转数字",
+  "chineseToNumber converts mixed Chinese and English text into numerical fields, supporting Arabic numerals, Chinese numerals, and accounting numerals.": "中文转数字插件能够将混合的中英文文本转换为数字字段，支持阿拉伯数字、中文数字和会计数字的转换。"
 }
