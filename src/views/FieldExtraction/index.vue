@@ -94,7 +94,7 @@ function main(all?: boolean) {
     ({ pr, records }) => {
       pr.add(records.records.length)
       return table.value!.setRecords(records.records
-        .map(item => start(item, modelData, fieldType as (id: string) => FieldType)),
+        .map(item => start(item, modelData, fieldType as (id: string) => FieldType)).filter(item => item !== null) as IRecord[],
       )
     },
     all,

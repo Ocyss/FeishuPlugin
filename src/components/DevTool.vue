@@ -13,6 +13,7 @@ const message = useMessage()
 const { copy } = useClipboard()
 const { locale } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const routes = [{ name: 'home' }, ...getRoutes(_routes)]
 const apis: DropdownOption[] = [
   {
@@ -26,6 +27,12 @@ const apis: DropdownOption[] = [
       location.reload()
     },
     label: 'location.reload',
+  },
+  {
+    f: () => {
+      console.log(toRaw(route))
+    },
+    label: 'log route',
   },
   {
     f: () => {

@@ -51,36 +51,36 @@ export function useAction() {
     output: null,
   })
   const { store } = useStore()
+  /* eslint-disable perfectionist/sort-objects */
   const storeData = store<StoreData>('data', {
     action: ActionType.Format,
     add: {
+      years: 0,
+      months: 0,
+      weeks: 0,
       days: 0,
       hours: 0,
       minutes: 0,
-      months: 0,
       seconds: 0,
-      weeks: 0,
-      years: 0,
     },
     dateKey: null,
     rand: {
+      year: false,
+      month: false,
       date: false,
       hours: false,
       minutes: false,
-      month: false,
       seconds: false,
-      year: false,
     },
     set: {
+      year: undefined,
+      month: undefined,
       date: undefined,
       hours: undefined,
       minutes: undefined,
-      month: undefined,
       seconds: undefined,
-      year: undefined,
     },
   })
-
   function createActionOptions(addVal = storeData.value.add, dateKey = storeData.value.dateKey!, randVal = storeData.value.rand, setVal = storeData.value.set) {
     return {
       [ActionType.Add]: (val: number) => add(val, addVal).getTime(),
@@ -119,7 +119,7 @@ export function useAction() {
       && output in record.fields
       && record.fields[input]
     ) {
-      const val = record.fields[output]
+      const val = record.fields[input]
       record.fields[output] = action[storeData.value.action](val as number & IOpenSegment[])
       return record
     }
