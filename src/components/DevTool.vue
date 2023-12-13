@@ -9,7 +9,7 @@ import { getRoutes } from '@/utils'
 import { eventBucket } from '@/hooks/useData'
 
 defineEmits(['update:theme'])
-
+const message = useMessage()
 const { copy } = useClipboard()
 const { locale } = useI18n()
 const router = useRouter()
@@ -72,6 +72,32 @@ const lang = ref<DropdownOption[]>([
   { label: 'jp' },
 ])
 
+const storeConf: DropdownOption[] = [
+  {
+    f: () => {
+      message.warning('配置导入 未实现')
+    },
+    label: '配置导入',
+  },
+  {
+    f: () => {
+      message.warning('配置导出 未实现')
+    },
+    label: '配置导出',
+  },
+  {
+    f: () => {
+      localStorage.clear()
+      message.success('存储清空成功')
+    },
+    label: '存储清空',
+  },
+]
+
+function clickRun(_: string, option: DropdownOption) {
+  if (typeof option.f === 'function')
+    option.f()
+}
 onMounted(() => {
   void bitable.bridge.getTheme().then((theme) => {
     state.theme = theme === ThemeModeType.LIGHT ? '浅色' : '深色'
@@ -97,24 +123,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <n-popover
-    placement="left-start"
-    trigger="click"
-  >
+  <n-popover placement="left-start" trigger="click">
     <template #trigger>
-      <n-button
-        class="popover-button"
-        size="small"
-        type="info"
-        style="width: auto"
-      >
+      <n-button class="popover-button" size="small" type="info" style="width: auto">
         DevTool
       </n-button>
     </template>
-    <n-space
-      vertical
-      align="center"
-    >
+    <n-space vertical align="center">
       <n-h4 prefix="bar">
         开发工具
       </n-h4>
@@ -132,18 +147,7 @@ onMounted(() => {
       >
         <n-button>路由跳转</n-button>
       </n-dropdown>
-      <n-dropdown
-        trigger="click"
-        :options="apis"
-        key-field="label"
-        @select="
-          (_: string, option: DropdownOption) => {
-            if (typeof option.f === 'function') {
-              option.f()
-            }
-          }
-        "
-      >
+      <n-dropdown trigger="click" :options="apis" key-field="label" @select="clickRun">
         <n-button>Api测试</n-button>
       </n-dropdown>
       <n-dropdown
@@ -170,6 +174,9 @@ onMounted(() => {
         "
       >
         <n-button>语言切换({{ state.lang }})</n-button>
+      </n-dropdown>
+      <n-dropdown trigger="click" :options="storeConf" key-field="label" @select="clickRun">
+        <n-button>存储配置</n-button>
       </n-dropdown>
       <n-button @click="() => eventBucket.clear()">
         清空监听({{ eventBucket.length }})

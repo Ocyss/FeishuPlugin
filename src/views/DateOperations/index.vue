@@ -25,93 +25,23 @@ meta:
 </route>
 
 <script setup lang="ts">
-import add from 'date-fns/add'
-import format from 'date-fns/format'
-import parse from 'date-fns/parse'
-import set from 'date-fns/set'
 import { NTime, type SelectOption } from 'naive-ui'
-import { generateNumber } from 'random-ease'
 import type { VNodeChild } from 'vue'
+import { ActionType, useAction } from './action'
 import { dateFormatterList } from '@/utils/format'
-import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
-import { useStore } from '@/hooks/useStore'
+
+const props = withDefaults(defineProps<{
+  autoRun?: boolean
+}>(), {
+  autoRun: false,
+})
+const emit = defineEmits<{
+  (e: 'save', value: any): void
+}>()
 
 const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
-const { store } = useStore()
-
-enum ActionType {
-  Format = 0,
-  Add = 1,
-  Parse = 2,
-  SetMonth = 3,
-  Randomize = 4,
-}
-interface StoreData {
-  action: ActionType
-  dateKey: null | string
-  add: {
-    days: number
-    hours: number
-    minutes: number
-    months: number
-    seconds: number
-    weeks: number
-    years: number
-  }
-  set: {
-    date: undefined | number
-    hours: undefined | number
-    minutes: undefined | number
-    month: undefined | number
-    seconds: undefined | number
-    year: undefined | number
-  }
-  rand: {
-    date: boolean
-    hours: boolean
-    minutes: boolean
-    month: boolean
-    seconds: boolean
-    year: boolean
-  }
-}
-
-const modelData = reactive<ModelType>({
-  input: null,
-  output: null,
-})
-
-const storeData = store<StoreData>('data', {
-  action: ActionType.Format,
-  add: {
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    months: 0,
-    seconds: 0,
-    weeks: 0,
-    years: 0,
-  },
-  dateKey: null,
-  rand: {
-    date: false,
-    hours: false,
-    minutes: false,
-    month: false,
-    seconds: false,
-    year: false,
-  },
-  set: {
-    date: undefined,
-    hours: undefined,
-    minutes: undefined,
-    month: undefined,
-    seconds: undefined,
-    year: undefined,
-  },
-})
-
+const { createActionOptions, modelData, start, storeData } = useAction()
 onGetField(() => {
   modelData.input = null
   modelData.output = null
@@ -143,58 +73,15 @@ function dateRenderLabel(option: SelectOption): VNodeChild {
   ]
 }
 
-function start(records: IRecord[]): IRecord[] {
-  const actionOptions = {
-    [ActionType.Add]: (val: number) => add(val, storeData.value.add).getTime(),
-    [ActionType.Format]: (val: number) => format(val, storeData.value.dateKey!),
-    [ActionType.Parse]: (val: IOpenSegment[]) => {
-      for (const format of dateFormatterList) {
-        try {
-          const result = parse(TextFieldToStr(val), format, 0).getTime()
-          if (!Number.isNaN(result))
-            return result
-        }
-        catch (err) {
-          /* Ignore parsing errors */
-        }
-      }
-      return null
-    },
-    [ActionType.Randomize]: (val: number) => set(val, {
-      date: storeData.value.rand.date ? generateNumber(1, 28) : undefined,
-      hours: storeData.value.rand.hours ? generateNumber(0, 23) : undefined,
-      minutes: storeData.value.rand.minutes ? generateNumber(0, 59) : undefined,
-      month: storeData.value.rand.month ? generateNumber(0, 11) : undefined,
-      seconds: storeData.value.rand.seconds ? generateNumber(0, 59) : undefined,
-      year: storeData.value.rand.year ? generateNumber(1971, 2030) : undefined,
-    }).getTime(),
-    [ActionType.SetMonth]: (val: number) => set(val, {
-      ...storeData.value.set,
-      month: storeData.value.set.month !== undefined ? storeData.value.set.month - 1 : undefined,
-    }).getTime(),
-  }
-  return records
-    .map((item) => {
-      if (
-        modelData.input && modelData.output
-        && modelData.input in item.fields
-        && modelData.output in item.fields
-        && item.fields[modelData.input]
-      ) {
-        const val = item.fields[modelData.input]
-        item.fields[modelData.output] = actionOptions[storeData.value.action](val as number & IOpenSegment[])
-        return item
-      }
-      return null
-    })
-    .filter(item => item !== null) as IRecord[]
-}
+const actionOptions = createActionOptions()
 
 function main(all?: boolean) {
   getRecords(
     ({ pr, records }) => {
-      pr.add(records.records.length)
-      return table.value!.setRecords(start(records.records))
+      return table.value!.setRecords(records.records.map((item) => {
+        pr.add()
+        return start(item, actionOptions)
+      }).filter(item => item !== null) as IRecord[])
     },
     all,
     5000,
@@ -214,7 +101,7 @@ onMounted(async () => {
 
 <template>
   <Layout ref="layout">
-    <n-space justify="space-between">
+    <n-space v-if="!props.autoRun" justify="space-between">
       <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
       <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
     </n-space>
@@ -258,6 +145,7 @@ onMounted(async () => {
       })
       "
     />
-    <form-start :disableds="disableds" @update:click="main" />
+    <form-start v-if="!props.autoRun" :disableds="disableds" @update:click="main" />
+    <form-start v-else operate :disableds="disableds" msg="Save" @update:click="emit('save', { ...toRaw(modelData), ...toRaw(storeData) })" />
   </Layout>
 </template>

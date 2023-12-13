@@ -34,6 +34,15 @@ import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
+const props = withDefaults(defineProps<{
+  autoRun?: boolean
+}>(), {
+  autoRun: false,
+})
+const emit = defineEmits<{
+  (e: 'save', value: any): void
+}>()
+
 const { store } = useStore()
 
 const { errorHandle, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
@@ -232,9 +241,11 @@ onMounted(async () => {
     </n-form-item>
 
     <form-start
+      v-if="!props.autoRun"
       :disableds="disableds"
       @update:click="main"
     />
+    <form-start v-else operate :disableds="disableds" msg="Save" @update:click="emit('save', { ...toRaw(modelData), ...toRaw(storeData) })" />
   </Layout>
   <div>
     <n-input v-model:value="testVal" style="margin-top: 20px;" type="text" :placeholder="t('Test')" maxlength="18" show-count />

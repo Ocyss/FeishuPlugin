@@ -17,19 +17,28 @@ function getFieldMapValue(
 }
 
 export const eventBucket = new EventBucket()
+const { app } = useInfo()
+
+const fieldMap = ref<FieldMaps>({
+  IdToName: {},
+  IdToType: {},
+  NameToId: {},
+})
+const offCalls = new EventBucket()
+const table = shallowRef<ITable | null>(null)
+
+const view = shallowRef<IView | null>(null)
+
+const fieldMetaList = shallowRef<IFieldMeta[]>([])
+const tableMetaList = shallowRef<ITableMeta[]>([])
+const viewMetaList = shallowRef<IViewMeta[]>([])
+const hooks: Record<string, (...args: any[]) => void> = {}
 
 export function useData() {
-  const { app } = useInfo()
   const { t } = useI18n()
+  const message = useMessage()
   provide(tKey, t)
   const layout = ref<InstanceType<typeof Layout> | null>(null)
-  const fieldMap = ref<FieldMaps>({
-    IdToName: {},
-    IdToType: {},
-    NameToId: {},
-  })
-  const offCalls = new EventBucket()
-  const table = shallowRef<ITable | null>(null)
   const tableId = computed<string | null>({
     get() { return table.value?.id ?? null },
     async set(tableId: string | null) {
@@ -46,7 +55,6 @@ export function useData() {
       }
     },
   })
-  const view = shallowRef<IView | null>(null)
   const viewId = computed({
     get() { return view.value?.id ?? null },
     async set(viewId: string | null) {
@@ -56,11 +64,6 @@ export function useData() {
       }
     },
   })
-  const fieldMetaList = shallowRef<IFieldMeta[]>([])
-  const tableMetaList = shallowRef<ITableMeta[]>([])
-  const viewMetaList = shallowRef<IViewMeta[]>([])
-  const hooks: Record<string, (...args: any[]) => void> = {}
-  const message = useMessage()
 
   function createHooks<T extends (...args: any[]) => any = () => void>(
     hookName: string,

@@ -23,12 +23,21 @@ meta:
 
 <script setup lang="ts">
 import { FieldType } from '@lark-base-open/js-sdk'
-import format from 'date-fns/format'
 import { NTime, type SelectOption } from 'naive-ui'
 import type { VNodeChild } from 'vue'
+import { start } from './action'
 import { dateFormatterList, delimiterList } from '@/utils/format'
 import { FieldInfos } from '@/utils/field'
 import { useData } from '@/hooks/useData'
+
+const props = withDefaults(defineProps<{
+  autoRun?: boolean
+}>(), {
+  autoRun: false,
+})
+const emit = defineEmits<{
+  (e: 'save', value: any): void
+}>()
 
 const { errorHandle, fieldMetaList, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
@@ -80,37 +89,13 @@ function dateRenderLabel(option: SelectOption): VNodeChild {
   ]
 }
 
-function start(records: IRecord[]): IRecord[] {
-  return records
-    .map((item) => {
-      const val = item.fields[modelData.input!]
-      let res = ''
-      if (fieldType(modelData.input) === FieldType.DateTime)
-        res = format(val as number, modelData.dateKey)
-      else
-        res = processValue(val)
-      item.fields[modelData.output!] = res
-      return item
-    })
-    .filter(item => item !== null)
-}
-
-function processValue(val: any): string {
-  if (Array.isArray(val)) {
-    return val
-      .map(item => (modelData.key in item ? item[modelData.key] : ''))
-      .join(modelData.delimiter)
-  }
-  else {
-    return modelData.key === '' ? String(val) : modelData.key in val ? val[modelData.key] : ''
-  }
-}
-
 function main(all?: boolean) {
   getRecords(
     ({ pr, records }) => {
       pr.add(records.records.length)
-      return table.value!.setRecords(start(records.records))
+      return table.value!.setRecords(records.records
+        .map(item => start(item, modelData, fieldType as (id: string) => FieldType)),
+      )
     },
     all,
     5000,
@@ -130,7 +115,7 @@ onMounted(async () => {
 
 <template>
   <Layout ref="layout">
-    <n-space justify="space-between">
+    <n-space v-if="!props.autoRun" justify="space-between">
       <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
       <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
     </n-space>
@@ -182,8 +167,10 @@ onMounted(async () => {
       :options="filterFields(FieldType.Text)"
     />
     <form-start
+      v-if="!props.autoRun"
       :disableds="disableds"
       @update:click="main"
     />
+    <form-start v-else operate :disableds="disableds" msg="Save" @update:click="emit('save', toRaw(modelData))" />
   </Layout>
 </template>

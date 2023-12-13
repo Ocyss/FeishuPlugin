@@ -3,6 +3,7 @@ import { generateRandomElement } from 'random-ease'
 import { tKey } from '@/keys'
 
 interface Props {
+  msg?: string
   disableds?: Array<[boolean, string]>
   operate?: boolean
   noHandle?: boolean
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  msg: 'Handle',
   noHandle: false,
   operate: false,
 })
@@ -83,7 +85,7 @@ function handleClick() {
           icon-placement="right"
           @click="handleClick"
         >
-          {{ t("Handle") }}
+          {{ t(props.msg) }}
           <template #icon>
             <n-icon>
               <svg

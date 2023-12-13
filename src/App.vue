@@ -7,6 +7,9 @@ import DevTool from '@/components/DevTool.vue'
 
 const { t } = useI18n()
 const darkThemeOverrides: GlobalThemeOverrides = {
+  List: {
+    color: '#1a1a1a',
+  },
   common: {
     bodyColor: '#1a1a1a',
     primaryColor: '#4C88FF',
@@ -60,7 +63,7 @@ onMounted(() => {
   <n-config-provider
     :theme="themes"
     :theme-overrides="themes === null ? lightThemeOverrides : darkThemeOverrides"
-  :locale="locale[0]" :date-locale="locale[1]"
+    :locale="locale[0]" :date-locale="locale[1]"
   >
     <n-message-provider>
       <n-dialog-provider>
