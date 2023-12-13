@@ -67,14 +67,16 @@ onMounted(() => {
   >
     <n-message-provider>
       <n-dialog-provider>
-        <DevTool
-          @update:theme="
-            v => {
-              themes = v ? darkTheme : null
-            }
-          "
-        />
-        <RouterView />
+        <n-notification-provider>
+          <DevTool
+            @update:theme="
+              v => {
+                themes = v ? darkTheme : null
+              }
+            "
+          />
+          <RouterView />
+        </n-notification-provider>
       </n-dialog-provider>
     </n-message-provider>
     <n-global-style />

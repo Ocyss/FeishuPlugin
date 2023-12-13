@@ -233,5 +233,7 @@
   "chineseToNumber": "中文转数字",
   "chineseToNumber converts mixed Chinese and English text into numerical fields, supporting Arabic numerals, Chinese numerals, and accounting numerals.": "中文转数字插件能够将混合的中英文文本转换为数字字段，支持阿拉伯数字、中文数字和会计数字的转换。",
   "AutoRun": "自动运行",
-  "AutoRun allows automatic execution of specified operations on records, offering powerful configuration capabilities that aggregate the functionalities of all plugins for automatic operations on new records.": "自动运行插件支持对记录进行自动化操作，提供强大的配置能力，集合了所有插件的功能，能够自动对新记录执行指定操作。"
+  "AutoRun allows automatic execution of specified operations on records, offering powerful configuration capabilities that aggregate the functionalities of all plugins for automatic operations on new records.": "自动运行插件支持对记录进行自动化操作，提供强大的配置能力，集合了所有插件的功能，能够自动对新记录执行指定操作。",
+  "SNCodeManager": "SN码管家",
+  "SNCodeManager boasts a powerful system for managing serial numbers, enabling convenient tracking of inventory movement and supporting various robust validation processes.": "SN码管家拥有强大的序列号管理系统，可方便追踪库存流动，并支持各种高效的验证流程。"
 }

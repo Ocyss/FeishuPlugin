@@ -39,29 +39,35 @@ export function useData() {
   const message = useMessage()
   provide(tKey, t)
   const layout = ref<InstanceType<typeof Layout> | null>(null)
+  const _setTable = async (tableId: string | null) => {
+    if (tableId) {
+      layout.value?.getTablePermission(tableId)
+      table.value = await bitable.base.getTableById(tableId)
+      offCalls.clear()
+      offCalls.add(
+        table.value.onFieldAdd(getView),
+        table.value.onFieldDelete(getView),
+        table.value.onFieldModify(getView),
+      )
+      await getView()
+    }
+  }
+  const _setView = async (viewId: string | null) => {
+    if (viewId && table.value) {
+      view.value = await table.value.getViewById(viewId)
+      await getField()
+    }
+  }
   const tableId = computed<string | null>({
     get() { return table.value?.id ?? null },
-    async set(tableId: string | null) {
-      if (tableId) {
-        layout.value?.getTablePermission(tableId)
-        table.value = await bitable.base.getTableById(tableId)
-        offCalls.clear()
-        offCalls.add(
-          table.value.onFieldAdd(getView),
-          table.value.onFieldDelete(getView),
-          table.value.onFieldModify(getView),
-        )
-        await getView()
-      }
+    set(tableId) {
+      _setTable(tableId)
     },
   })
   const viewId = computed({
     get() { return view.value?.id ?? null },
-    async set(viewId: string | null) {
-      if (viewId && table.value) {
-        view.value = await table.value.getViewById(viewId)
-        await getField()
-      }
+    set(viewId: string | null) {
+      _setView(viewId)
     },
   })
 
@@ -129,7 +135,7 @@ export function useData() {
         bitable.base.getSelection(),
       ])
       tableMetaList.value = _tableMetaList
-      tableId.value = selection.tableId
+      await _setTable(selection.tableId)
       callHook('getTable')
     })
   }
@@ -143,7 +149,7 @@ export function useData() {
       const views = await table.value.getViewMetaList()
       viewMetaList.value = views.filter(item => item.type === base.ViewType.Grid)
       if (viewMetaList.value.length > 0)
-        viewId.value = viewMetaList.value[0].id
+        await _setView(viewMetaList.value[0].id)
       callHook('getView')
     })
   }

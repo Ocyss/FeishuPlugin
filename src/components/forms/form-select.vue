@@ -71,8 +71,9 @@ interface Props {
   renderLabel?: any
   renderTag?: any
   tooltip?: string
-  value: any
+  value?: any
   valueField?: string
+  defaultValue?: string
 }
 
 function emitUpdate(value: any, option: any) {
@@ -101,6 +102,7 @@ function emitCreate(label: string): any {
     </template>
     <n-select
       style="width: 100%"
+      :default-value="defaultValue"
       :value="value"
       :options="options"
       :label-field="labelField"
