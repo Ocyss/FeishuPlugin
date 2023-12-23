@@ -17,9 +17,10 @@ const router = createRouter({
 const i18n = createI18n({
   allowComposition: true,
   fallbackLocale: 'en',
+  fallbackWarn: false,
   formatFallbackMessages: true,
   legacy: false,
-  locale: 'en',
+  locale: 'zh',
   messages: {
     'id': {},
     'de': {},
@@ -38,6 +39,7 @@ const i18n = createI18n({
     'zh-HK': {},
     'zh-TW': {},
   },
+  missingWarn: false,
   silentFallbackWarn: true,
   silentTranslationWarn: true,
 })

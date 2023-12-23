@@ -50,12 +50,11 @@ const props = withDefaults(defineProps<Props>(), {
   },
   valueField: 'id',
 })
-
 const emit = defineEmits<{
   (e: 'create', label: string, f: (v: any) => void): void
   (e: 'update:value', value: any, option: any): void
 }>()
-
+const slots = useSlots()
 const t = inject(tKey, () => useI18n().t, true)
 
 interface Props {
@@ -70,7 +69,6 @@ interface Props {
   options?: any[]
   renderLabel?: any
   renderTag?: any
-  tooltip?: string
   value?: any
   valueField?: string
   defaultValue?: string
@@ -97,8 +95,10 @@ function emitCreate(label: string): any {
     <template #label>
       <form-select-label
         :msg="msg"
-        :tooltip="tooltip"
-      />
+        :tooltip="!!slots.tooltip"
+      >
+        <slot name="tooltip" />
+      </form-select-label>
     </template>
     <n-select
       style="width: 100%"

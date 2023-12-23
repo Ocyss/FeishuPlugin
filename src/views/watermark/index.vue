@@ -376,8 +376,6 @@ onMounted(async () => {
 {
   "watermark text": "水印文字",
   "For xxx verification only": "仅供 xxx 验证使用",
-  "You need to select an attachment cell":"你需要选择某个附件单元格",
-  "Life is always a little ridiculous":"生活总归带点荒谬",
   "watermark color":"水印颜色",
   "Watermark size":"水印大小",
   "horizontal spacing":"横向间距",

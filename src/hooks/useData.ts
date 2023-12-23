@@ -17,7 +17,7 @@ function getFieldMapValue(
 }
 
 export const eventBucket = new EventBucket()
-const { app } = useInfo()
+
 
 const fieldMap = ref<FieldMaps>({
   IdToName: {},
@@ -35,6 +35,7 @@ const viewMetaList = shallowRef<IViewMeta[]>([])
 const hooks: Record<string, (...args: any[]) => void> = {}
 
 export function useData() {
+  const { app } = useInfo()
   const { t } = useI18n()
   const message = useMessage()
   provide(tKey, t)

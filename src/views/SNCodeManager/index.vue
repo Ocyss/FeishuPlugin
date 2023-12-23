@@ -3,7 +3,10 @@ name: SNCodeManager
 meta:
   title: SNCodeManager
   desc: SNCodeManager boasts a powerful system for managing serial numbers, enabling convenient tracking of inventory movement and supporting various robust validation processes.
-  help:
+  help: >-
+    入库时，配置好入库字段，扫描SN码将自动查找是否已入库，并自动新建入库记录。<br/>
+    入库SN码将检测回车符来进行操作，如果您的扫码枪不会输入回车请配置检验规则，设置好长度，当长度匹配也会执行动作。<br/>
+    出库时，自动查找匹配的记录进行出库标记。
   group:
   tags:
     - Develop
@@ -21,7 +24,7 @@ const { store } = useStore()
 
 const storeData = store('data', {
   in: {
-    field: '',
+    field: null as string | null,
     other: [] as string[],
   },
   modle: false,
@@ -46,6 +49,12 @@ const outActions: Record<outType, { name: string, id: number }[]> = {
   [FieldType.Text]: [],
 }
 let lastRecord: Omit<IRecord, 'recordId'> | null = null
+
+const inputAlert = computed<[boolean, string]>(() => {
+  if (storeData.value.modle) // 出库
+    return [Object.keys(storeData.value.out).length === 0, t('请配置出库时需要进行的操作')]
+  return [!storeData.value.in.field, t('请配置入库时SN码填写的字段')]
+})
 
 // let verifyTimer: NodeJS.Timeout
 
@@ -74,6 +83,8 @@ async function main(s: string) {
       )
     }
     else {
+      if (!storeData.value.in.field)
+        return
       const record = {
         fields: {
           [storeData.value.in.field]: s as any,
@@ -309,13 +320,17 @@ onMounted(async () => {
         </n-collapse-item>
       </n-collapse>
     </n-form>
-    <n-form-item label="输入SN码" style="margin: 15px 0;">
+    <n-alert v-if="inputAlert[0]" style="margin-top: 15px;" type="warning">
+      {{ inputAlert[1] }}
+    </n-alert>
+    <n-form-item label="SN码录入区" style="margin: 15px 0;">
       <n-input
         v-model:value="inputVal"
         type="textarea"
         :autofocus="false"
         :allow-input="noSideSpace"
         :autosize="{ minRows: 2, maxRows: 4 }"
+        :disabled="inputAlert[0]"
         @input="main"
       />
     </n-form-item>

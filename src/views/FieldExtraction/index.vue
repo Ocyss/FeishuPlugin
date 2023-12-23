@@ -27,7 +27,7 @@ import { NTime, type SelectOption } from 'naive-ui'
 import type { VNodeChild } from 'vue'
 import { start } from './action'
 import { dateFormatterList, delimiterList } from '@/utils/format'
-import { FieldInfos } from '@/utils/field'
+import { createFieldInfos } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
 const props = withDefaults(defineProps<{
@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'save', value: any): void
 }>()
-
+const FieldInfos = createFieldInfos()
 const { errorHandle, fieldMetaList, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
 
 const modelData = reactive<ModelType & {
@@ -70,11 +70,14 @@ const delimiter = computed(() =>
   }),
 )
 
-const fieldInfos = computed(() =>
-  FieldInfos(fieldType(modelData.input) as FieldType).map((item) => {
+const fieldInfos = computed(() => {
+  if (!modelData.input)
+    return []
+  return FieldInfos(fieldType(modelData.input) as FieldType).map((item) => {
     item.name = t(item.id)
     return item
-  }),
+  })
+},
 )
 
 const dateFormatter = computed(() =>
@@ -129,38 +132,40 @@ onMounted(async () => {
       v-model:value="modelData.key"
       :msg="t('Select Extraction Attribute')"
       input
-      :tooltip="
-        t(
-          'Select the attributes that need to be extracted. If there are no attributes in the table, they can be entered manually. Some fields have no attributes that can be extracted',
-        )
-      "
       :options="fieldInfos"
-    />
+    >
+      <template #tooltip>
+        {{ t(
+          'Select the attributes that need to be extracted. If there are no attributes in the table, they can be entered manually. Some fields have no attributes that can be extracted',
+        ) }}
+      </template>
+    </form-select>
     <form-select
       v-else-if="fieldType(modelData.input) === FieldType.DateTime"
       v-model:value="modelData.dateKey"
       :msg="t('Select date format')"
       input
-      :tooltip="
-        `${t(
-          `Select the date format, which can be entered manually. For the format, please refer to the document `,
-        )
-        }<a href=&quot;https://date-fns.org/v2.6.0/docs/format&quot; target=&quot;_blank&quot;>date-fns format</a>`
-      "
       :options="dateFormatter"
       :render-label="dateRenderLabel"
-    />
+    >
+      <template #tooltip>
+        {{ t(
+          `Select the date format, which can be entered manually. For the format, please refer to the document `,
+        ) }}<a href="&quot;https://date-fns.org/v2.6.0/docs/format&quot;" target="&quot;_blank&quot;">date-fns format</a>
+      </template>
+    </form-select>
     <form-select
       v-model:value="modelData.delimiter"
       :msg="t('Select Separator')"
       input
-      :tooltip="
-        t(
-          'Select the delimiter for multi-line text, which can be entered manually. \n\\n is a newline, \\t is a tab character',
-        )
-      "
       :options="delimiter"
-    />
+    >
+      <template #tooltip>
+        {{ t(
+          'Select the delimiter for multi-line text, which can be entered manually. \n\\n is a newline, \\t is a tab character',
+        ) }}
+      </template>
+    </form-select>
     <form-select
       v-model:value="modelData.output"
       :msg="t('Select Output Field')"

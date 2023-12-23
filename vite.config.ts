@@ -1,4 +1,5 @@
 import path from 'node:path'
+import fs from 'node:fs'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
@@ -99,5 +100,10 @@ export default defineConfig({
   },
   server: {
     host: true,
+    https: {
+      cert: fs.readFileSync('./localhost.repl.co.pem'),
+      key: fs.readFileSync('./localhost.repl.co-key.pem'),
+    },
+    port: 443,
   },
 })

@@ -1,4 +1,5 @@
-import { FieldType, type IFieldMeta, type IOpenSegment } from '@lark-base-open/js-sdk'
+import { FieldType } from '@lark-base-open/js-sdk'
+import type { IFieldMeta, IOpenSegment } from '@lark-base-open/js-sdk'
 import type { FieldMaps } from '@/types'
 
 // 多行文本转文本
@@ -49,9 +50,7 @@ export function fieldDefault(val: FieldType | null | string) {
   }
 }
 
-export const FieldInfos: (
-  type: FieldType
-) => Array<{ id: string, name?: string }> = (type) => {
+export function createFieldInfos() {
   const f: <T extends object>(
     obj: Required<T>
   ) => Array<{
@@ -65,83 +64,121 @@ export const FieldInfos: (
   type AllPropertiesTypes<T> = {
     [P in AllProperties<T>]: T extends { [K in P]?: infer U } ? U : never;
   }
-  switch (type) {
-    case FieldType.Text:
-      return f<AllPropertiesTypes<IOpenSegment>>({
-        id: '',
-        en_name: '',
-        enName: '',
-        link: '',
-        mentionType: 'User',
-        name: '',
-        text: '',
-        token: '',
-        type: base.IOpenSegmentType.Text,
-      })
-    case FieldType.Number:
-    case FieldType.DateTime:
-    case FieldType.Checkbox:
-    case FieldType.Phone:
-      return []
-    case FieldType.SingleSelect:
-    case FieldType.MultiSelect:
-      return f<IOpenSingleSelect>({
-        id: '',
-        text: '',
-      })
-    case FieldType.User:
-      return f<IOpenUser>({
-        id: '',
-        email: '',
-        en_name: '',
-        enName: '',
-        name: '',
-      })
-    case FieldType.Url:
-      return f<IOpenUrlSegment>({
-        link: '',
-        text: '',
-        type: base.IOpenSegmentType.Url,
-      })
-    case FieldType.Attachment:
-      return f<IOpenAttachment>({
-        name: '',
-        size: 0,
-        timeStamp: 0,
-        token: '',
-        type: '',
-      })
-    case FieldType.DuplexLink:
-      return f<IOpenLink>({
-        record_ids: [],
-        recordIds: [],
-        table_id: '',
-        tableId: '',
-        text: '',
-        type: '',
-      })
-    case FieldType.Location:
-      return f<IOpenLocation>({
-        address: '',
-        adname: '',
-        cityname: '',
-        full_address: '',
-        fullAddress: '',
-        location: '',
-        name: '',
-        pname: '',
-      })
-    case FieldType.GroupChat:
-      return f<IOpenGroupChat>({
-        id: '',
-        avatarUrl: '',
-        en_name: '',
-        enName: '',
-        linkToken: '',
-        name: '',
-      })
+  const infos: Record<FieldType, Array<{ id: string, name?: string }>> = {
+    [FieldType.Attachment]: f<IOpenAttachment>({
+      name: '',
+      size: 0,
+      timeStamp: 0,
+      token: '',
+      type: '',
+    }),
+    [FieldType.AutoNumber]: [],
+    [FieldType.Barcode]: f<AllPropertiesTypes<IOpenSegment>>({
+      id: '',
+      en_name: '',
+      enName: '',
+      link: '',
+      mentionType: 'User',
+      name: '',
+      text: '',
+      token: '',
+      type: base.IOpenSegmentType.Text,
+    }),
+    [FieldType.Checkbox]: [],
+    [FieldType.CreatedTime]: [],
+    [FieldType.CreatedUser]: f<IOpenUser>({
+      id: '',
+      email: '',
+      en_name: '',
+      enName: '',
+      name: '',
+    }),
+    [FieldType.Currency]: [],
+    [FieldType.DateTime]: [],
+    [FieldType.Denied]: [],
+    [FieldType.DuplexLink]: f<IOpenLink>({
+      record_ids: [],
+      recordIds: [],
+      table_id: '',
+      tableId: '',
+      text: '',
+      type: '',
+    }),
+    [FieldType.Email]: [],
+    [FieldType.Formula]: [],
+    [FieldType.GroupChat]: f<IOpenGroupChat>({
+      id: '',
+      avatarUrl: '',
+      en_name: '',
+      enName: '',
+      linkToken: '',
+      name: '',
+    }),
+    [FieldType.Location]: f<IOpenLocation>({
+      address: '',
+      adname: '',
+      cityname: '',
+      full_address: '',
+      fullAddress: '',
+      location: '',
+      name: '',
+      pname: '',
+    }),
+    [FieldType.Lookup]: [],
+    [FieldType.ModifiedTime]: [],
+    [FieldType.ModifiedUser]: f<IOpenUser>({
+      id: '',
+      email: '',
+      en_name: '',
+      enName: '',
+      name: '',
+    }),
+    [FieldType.MultiSelect]: f<IOpenSingleSelect>({
+      id: '',
+      text: '',
+    }),
+    [FieldType.NotSupport]: [],
+    [FieldType.Number]: [],
+    [FieldType.Phone]: [],
+    [FieldType.Progress]: [],
+    [FieldType.Rating]: [],
+    [FieldType.SingleLink]: f<IOpenLink>({
+      record_ids: [],
+      recordIds: [],
+      table_id: '',
+      tableId: '',
+      text: '',
+      type: '',
+    }),
+    [FieldType.SingleSelect]: f<IOpenSingleSelect>({
+      id: '',
+      text: '',
+    }),
+    [FieldType.Text]: f<AllPropertiesTypes<IOpenSegment>>({
+      id: '',
+      en_name: '',
+      enName: '',
+      link: '',
+      mentionType: 'User',
+      name: '',
+      text: '',
+      token: '',
+      type: base.IOpenSegmentType.Text,
+    }),
+    [FieldType.Url]: f<IOpenUrlSegment>({
+      link: '',
+      text: '',
+      type: base.IOpenSegmentType.Url,
+    }),
+    [FieldType.User]: f<IOpenUser>({
+      id: '',
+      email: '',
+      en_name: '',
+      enName: '',
+      name: '',
+    }),
   }
-  return [{ id: '暂未支持该字段，请在交流群内反馈' }]
+  return (type: FieldType) => infos[type]
 }
 
 export function FieldName(type: FieldType) {

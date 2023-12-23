@@ -30,12 +30,12 @@ const localeMaps: Partial<Record<Language, [NLocale, NDateLocale]>> = {
 
 bitable.bridge.getTheme().then((theme) => {
   themes.value = theme === ThemeModeType.DARK ? darkTheme : null
-})
+}).catch(err => console.log(err))
 
 bitable.bridge.getLanguage().then((language) => {
   if (language in localeMaps)
     locale.value = localeMaps[language]!
-})
+}).catch(err => console.log(err))
 
 onMounted(() => {
   console.log(
@@ -109,7 +109,7 @@ a {
 .n-popover__content {
   white-space: pre-line;
   user-select: none;
-  width: 150px;
+  max-width: 75vw
 }
 
 .n-dialog .n-dialog__content {

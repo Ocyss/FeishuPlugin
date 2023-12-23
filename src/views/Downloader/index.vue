@@ -473,12 +473,6 @@ onMounted(async () => {
   "Step 3 - Getting Records": "第三部·获取记录",
   "Aria connection failed!": "Aria 连接失败~",
   "Aria connection successful!": "Aria 连接成功!",
-  "File names do not allow illegal characters": "文件名不允许包含非法字符",
-  "AscendingNumbers(0)": "递增数字(0)",
-  "AscendingNumbers(1)": "递增数字(1)",
-  "RecordID": "记录ID",
-  "FieldID": "字段ID",
-  "Timestamp(Seconds)": "时间戳(秒)",
   "Unauthorized": "未经授权, 需要Token(secret)鉴权",
   "Pushed":"已推送"
 }

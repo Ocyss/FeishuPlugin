@@ -122,12 +122,15 @@ onMounted(async () => {
     />
     <form-select
       v-if="storeData.action === 0" v-model:value="storeData.dateKey" :msg="t('Select date format')" input
-      :tooltip="`${t(
-        `Select the date format, which can be entered manually. For the format, please refer to the document `,
-      )
-      }<a href=&quot;https://date-fns.org/v2.6.0/docs/format&quot; target=&quot;_blank&quot;>date-fns format</a>`
-      " :options="dateFormatter" :render-label="dateRenderLabel"
-    />
+      :options="dateFormatter" :render-label="dateRenderLabel"
+    >
+      <template #tooltip>
+        {{ t(
+          `Select the date format, which can be entered manually. For the format, please refer to the document `,
+        ) }}
+        <a href="&quot;https://date-fns.org/v2.6.0/docs/format&quot;" target="&quot;_blank&quot;">date-fns format</a>
+      </template>
+    </form-select>
     <form-input-number
       v-else-if="storeData.action === 1" :msg="t('Time addition and subtraction operations')"
       :data="storeData.add"
