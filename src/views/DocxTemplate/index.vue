@@ -19,8 +19,6 @@ import { NTag } from 'naive-ui'
 import type { SelectRenderTag, UploadCustomRequestOptions, UploadFileInfo } from 'naive-ui'
 import type { FileInfo, SettledFileInfo } from 'naive-ui/es/upload/src/interface'
 import type { VNodeChild } from 'vue'
-import { reject } from 'lodash-es'
-import type { Progress } from '@/utils'
 import { TextFieldToStr } from '@/utils/field'
 import { blobToFile, fileToBlob, fileToBuf } from '@/utils/files'
 import request from '@/utils/request'
@@ -28,7 +26,7 @@ import { eventBucket, useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { errorHandle, fieldMetaList, fieldName, fieldType, filterFields, getRecords, getTable, layout, onFieldTraverse, onGetField, t, table, tableId } = useData()
-const { IDB, store } = useStore()
+const { IDB } = useStore()
 
 const attachments: Record<string, IAttachmentField> = {}
 const wordFile = IDB< SettledFileInfo | object>(
@@ -55,8 +53,8 @@ const modelData = reactive<ModelType<string[]> & {
   output: null,
 })
 
-const storeData = store('data', {
-})
+// const storeData = store('data', {
+// })
 
 onGetField(() => {
   modelData.input = null

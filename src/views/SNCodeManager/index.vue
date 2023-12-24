@@ -233,56 +233,80 @@ onMounted(async () => {
     </n-space>
     <n-form size="small">
       <n-collapse display-directive="show" style="--n-title-padding: 8px 0 0 0;--n-item-margin: 8px 0 0 0;">
-        <n-collapse-item title="出入库配置" name="1">
-          <div v-if="!storeData.modle">
-            <form-select
-              v-model:value="storeData.in.field"
-              :msg="t('入库SN码字段')"
-              :options="filterFields(FieldType.Text)"
-              @update:value="id => updataSnField(id)"
-            />
-            <form-select
-              v-model:value="storeData.in.other"
-              :msg="t('其他字段配置')"
-              multiple
-              :options="fieldMetaList"
-            />
-            <form-select
-              v-for="item in storeData.in.other"
-              :key="item"
-              :disabled="true"
-              default-value="复制上一条"
-              :msg="t(`${fieldName(item)} 字段配置`)"
-            />
-          </div>
-          <div v-else>
-            <form-select
-              :value="Object.keys(storeData.out)"
-              :msg="t('出库展示字段')"
-              multiple
-              :options="filterFields([FieldType.Text, FieldType.Checkbox, FieldType.DateTime])"
-              @update:value="updateOut"
-            />
-            <template
-              v-for="(item, key) in storeData.out"
-              :key="key"
-            >
-              <n-form-item v-if="item.type === FieldType.Text" :label="`${item.name} 字段`">
-                <n-input
-                  v-model:value="storeData.out[key].text"
-                  size="large"
-                />
-              </n-form-item>
-              <form-select
-                v-else
-                v-model:value="storeData.out[key].action"
-                :msg="t(`${item.name} 字段`)"
-                :options="outActions[item.type]"
-              />
-            </template>
-          </div>
+        <n-collapse-item title="入库配置" name="1">
+          <form-select
+            v-model:value="storeData.in.field"
+            :msg="t('入库SN码字段')"
+            :options="filterFields(FieldType.Text)"
+            @update:value="id => updataSnField(id)"
+          />
+          <form-select
+            v-model:value="storeData.in.other"
+            :msg="t('其他字段配置')"
+            multiple
+            :options="fieldMetaList"
+          />
+          <form-select
+            v-for="item in storeData.in.other"
+            :key="item"
+            :disabled="true"
+            default-value="复制上一条"
+            :msg="t(`${fieldName(item)} 字段配置`)"
+          />
         </n-collapse-item>
-        <n-collapse-item title="SN校验配置" name="2">
+        <n-collapse-item title="出库配置" name="2">
+          <form-select
+            :value="Object.keys(storeData.out)"
+            :msg="t('出库标记字段')"
+            multiple
+            :options="filterFields([FieldType.Text, FieldType.Checkbox, FieldType.DateTime])"
+            @update:value="updateOut"
+          />
+          <template
+            v-for="(item, key) in storeData.out"
+            :key="key"
+          >
+            <n-form-item v-if="item.type === FieldType.Text" :label="`${item.name} 字段`">
+              <n-input
+                v-model:value="storeData.out[key].text"
+                size="large"
+              />
+            </n-form-item>
+            <form-select
+              v-else
+              v-model:value="storeData.out[key].action"
+              :msg="t(`${item.name} 字段`)"
+              :options="outActions[item.type]"
+            />
+          </template>
+        </n-collapse-item>
+        <n-collapse-item title="录入配置" name="3">
+          <form-select
+            :value="Object.keys(storeData.out)"
+            :msg="t('出库标记字段')"
+            multiple
+            :options="filterFields([FieldType.Text, FieldType.Checkbox, FieldType.DateTime])"
+            @update:value="updateOut"
+          />
+          <template
+            v-for="(item, key) in storeData.out"
+            :key="key"
+          >
+            <n-form-item v-if="item.type === FieldType.Text" :label="`${item.name} 字段`">
+              <n-input
+                v-model:value="storeData.out[key].text"
+                size="large"
+              />
+            </n-form-item>
+            <form-select
+              v-else
+              v-model:value="storeData.out[key].action"
+              :msg="t(`${item.name} 字段`)"
+              :options="outActions[item.type]"
+            />
+          </template>
+        </n-collapse-item>
+        <n-collapse-item v-if="false" title="校验配置" name="99">
           <n-spin :show="true">
             设置校验延迟，录入数据无动作{延迟}秒之后进行校验和出入库操作
             <n-form-item label="开启校验" style="margin: 15px 0;">

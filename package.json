@@ -27,6 +27,7 @@
     "l-watermark": "^2.1.2",
     "liquidjs": "^10.9.4",
     "lodash-es": "^4.17.21",
+    "pdfjs": "^2.5.2",
     "random-ease": "^1.0.8",
     "reset-css": "^5.0.2",
     "sass": "^1.69.5",
