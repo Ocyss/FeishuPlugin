@@ -52,6 +52,7 @@ declare module 'vue-router/auto/routes' {
     'JsonParser': RouteRecordInfo<'JsonParser', '/JsonParser', Record<never, never>, Record<never, never>>,
     'kkview': RouteRecordInfo<'kkview', '/Kkview', Record<never, never>, Record<never, never>>,
     'PDFToolkit': RouteRecordInfo<'PDFToolkit', '/PDFToolkit', Record<never, never>, Record<never, never>>,
+    'PDFToolkitZhw': RouteRecordInfo<'PDFToolkitZhw', '/PDFToolkit/zhw', Record<never, never>, Record<never, never>>,
     'Phonearea': RouteRecordInfo<'Phonearea', '/Phonearea', Record<never, never>, Record<never, never>>,
     'PhoneticsMate': RouteRecordInfo<'PhoneticsMate', '/PhoneticsMate', Record<never, never>, Record<never, never>>,
     'QRCodeParser': RouteRecordInfo<'QRCodeParser', '/QRCodeParser', Record<never, never>, Record<never, never>>,

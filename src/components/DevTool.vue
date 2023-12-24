@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DropdownOption } from 'naive-ui'
 
-import { ThemeModeType, ToastType, bitable } from '@lark-base-open/js-sdk'
+import { ThemeModeType, bitable } from '@lark-base-open/js-sdk'
 import { useI18n } from 'vue-i18n'
 import { type RouteNamedMap, routes as _routes } from 'vue-router/auto/routes'
 import { useClipboard } from '@vueuse/core'
@@ -32,17 +32,23 @@ const apis: DropdownOption[] = [
     f: () => {
       console.log(toRaw(route))
     },
-    label: 'log route',
+    label: 'printRoute',
   },
   {
     f: () => {
-      void bitable.ui.showToast({
-        message: 'hello world',
-        toastType: ToastType.info,
-      })
+      console.log(toRaw(_routes))
     },
-    label: 'showToast',
+    label: 'printRoutes',
   },
+  // {
+  //   f: () => {
+  //     void bitable.ui.showToast({
+  //       message: 'hello world',
+  //       toastType: ToastType.info,
+  //     })
+  //   },
+  //   label: 'showToast',
+  // },
   {
     f: async () => {
       const selection = await bitable.base.getSelection()
