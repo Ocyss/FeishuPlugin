@@ -194,7 +194,7 @@ onMounted(() => {
         </n-button>
         每个数据表只能添加一个自动运行任务
       </template>
-      <n-list-item v-for="(item, id) in storeData" :key="id">
+      <n-list-item v-for="(_, id) in storeData" :key="id">
         {{ tableName(id) }}
         <n-thing>
           <template #avatar>

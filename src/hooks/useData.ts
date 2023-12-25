@@ -18,7 +18,6 @@ function getFieldMapValue(
 
 export const eventBucket = new EventBucket()
 
-
 const fieldMap = ref<FieldMaps>({
   IdToName: {},
   IdToType: {},
@@ -110,9 +109,12 @@ export function useData() {
   const onFieldTraverse = createHooks<(item: IFieldMeta) => void>('fieldTraverse')
 
   function filterFields(
-    filterTypeOrAction: FieldType | FieldType[] | any,
+    filterTypeOrAction?: FieldType | FieldType[] | any,
     actionTypeMap?: Record<number, any[]>,
   ) {
+    if (!filterTypeOrAction)
+      return fieldMetaList.value
+
     if (actionTypeMap) {
       return fieldMetaList.value?.filter((item) => {
         const actions = actionTypeMap[item.type]

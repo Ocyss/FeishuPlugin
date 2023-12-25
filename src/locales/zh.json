@@ -245,5 +245,7 @@
   "SNCodeManager": "SN码管家",
   "SNCodeManager boasts a powerful system for managing serial numbers, enabling convenient tracking of inventory movement and supporting various robust validation processes.": "SN码管家拥有强大的序列号管理系统，可方便追踪库存流动，并支持各种高效的验证流程。",
   "PDFToolkit": "PDF拆分合并助手",
-  "PDFToolkit enables seamless splitting and merging operations on PDF files based on specified page numbers, offering convenient manipulation of PDF documents.": "PDF拆分合并助手能够便捷地按照指定的页码对PDF文件进行拆分和合并操作，为用户提供方便的PDF文档处理功能。"
+  "PDFToolkit enables seamless splitting and merging operations on PDF files based on specified page numbers, offering convenient manipulation of PDF documents.": "PDF拆分合并助手能够便捷地按照指定的页码对PDF文件进行拆分和合并操作，为用户提供方便的PDF文档处理功能。",
+  "AttachmentSplitter": "附件拆分多行",
+  "AttachmentSplitter allows convenient splitting of fields containing multiple attachments into multiple rows based on specified formats.": "附件拆分多行插件能够便捷地按照指定格式将包含多个附件的字段拆分为多行。"
 }

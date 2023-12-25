@@ -224,6 +224,7 @@ async function main(all?: boolean) {
       button.value = '选择保存目录'
       button.style.cssText = 'width: 100vw;height: 100vh;font-size: 10vw;'
       button.onclick = async () => {
+        // @ts-expect-error 忽略错误
         reject(await saveWindow!.showDirectoryPicker())
       }
       saveWindow!.document.body.appendChild(button)
