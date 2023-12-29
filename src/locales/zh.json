@@ -230,6 +230,7 @@
   "years": "年",
   "zodiac": "生肖",
   "Save": "保存",
+  "Published": "已上线",
   "File names do not allow illegal characters": "文件名不允许包含非法字符",
   "AscendingNumbers(0)": "递增数字(0)",
   "AscendingNumbers(1)": "递增数字(1)",
@@ -248,6 +249,6 @@
   "PDFToolkit enables seamless splitting and merging operations on PDF files based on specified page numbers, offering convenient manipulation of PDF documents.": "PDF拆分合并助手能够便捷地按照指定的页码对PDF文件进行拆分和合并操作，为用户提供方便的PDF文档处理功能。",
   "AttachmentSplitter": "附件拆分多行",
   "AttachmentSplitter allows convenient splitting of fields containing multiple attachments into multiple rows based on specified formats.": "附件拆分多行插件能够便捷地按照指定格式将包含多个附件的字段拆分为多行。",
-  "ScreenshotGenerator": "截图生成",
-  "ScreenshotGenerator allows users to select specific records for which it automatically generates card-like screenshots, facilitating easy sharing of these records.": "截图生成插件允许用户选择特定记录，自动生成类似卡片的截图，方便快速分享这些记录。"
+  "ScreenshotGenerator": "截图分享",
+  "ScreenshotGenerator allows users to select specific records for which it automatically generates card-like screenshots, facilitating easy sharing of these records.": "截图分享插件允许用户选择特定记录，自动生成类似卡片的截图，方便快速分享这些记录。"
 }

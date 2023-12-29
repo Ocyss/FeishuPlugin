@@ -6,7 +6,7 @@ meta:
   help: 很方便的将PDF文件按照页码进行拆分，也能很方便的将多个PDF附件合并成一个
   group:
   tags:
-    - Develop
+    - Audit
   avatar: 应用图标 html格式
 </route>
 

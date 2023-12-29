@@ -9,7 +9,7 @@ meta:
     出库时，自动查找匹配的记录进行出库标记。
   group:
   tags:
-    - Develop
+    - Audit
   avatar: s
 </route>
 

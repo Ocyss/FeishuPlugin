@@ -6,7 +6,7 @@ meta:
   help:
   group: 应用交流群
   tags:
-    - Develop
+    - Published
   avatar: W
 </route>
 
