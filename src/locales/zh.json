@@ -247,5 +247,7 @@
   "PDFToolkit": "PDF拆分合并助手",
   "PDFToolkit enables seamless splitting and merging operations on PDF files based on specified page numbers, offering convenient manipulation of PDF documents.": "PDF拆分合并助手能够便捷地按照指定的页码对PDF文件进行拆分和合并操作，为用户提供方便的PDF文档处理功能。",
   "AttachmentSplitter": "附件拆分多行",
-  "AttachmentSplitter allows convenient splitting of fields containing multiple attachments into multiple rows based on specified formats.": "附件拆分多行插件能够便捷地按照指定格式将包含多个附件的字段拆分为多行。"
+  "AttachmentSplitter allows convenient splitting of fields containing multiple attachments into multiple rows based on specified formats.": "附件拆分多行插件能够便捷地按照指定格式将包含多个附件的字段拆分为多行。",
+  "ScreenshotGenerator": "截图生成",
+  "ScreenshotGenerator allows users to select specific records for which it automatically generates card-like screenshots, facilitating easy sharing of these records.": "截图生成插件允许用户选择特定记录，自动生成类似卡片的截图，方便快速分享这些记录。"
 }

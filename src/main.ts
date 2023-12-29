@@ -5,7 +5,6 @@ import {
   createRouter,
   createWebHashHistory,
 } from 'vue-router/auto'
-
 import App from '@/App.vue'
 import zh from '@/locales/zh.json'
 import en from '@/locales/en.json'

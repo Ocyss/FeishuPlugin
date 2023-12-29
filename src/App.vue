@@ -119,6 +119,10 @@ a {
 img{
   -webkit-user-drag: none;
 }
+
+.flexCenter{
+  display: flex; align-items: center;justify-content: center;
+}
 </style>
 
 <style scoped>

@@ -31,7 +31,7 @@ const view = shallowRef<IView | null>(null)
 const fieldMetaList = shallowRef<IFieldMeta[]>([])
 const tableMetaList = shallowRef<ITableMeta[]>([])
 const viewMetaList = shallowRef<IViewMeta[]>([])
-const hooks: Record<string, (...args: any[]) => void> = {}
+const hooks: Record<string, (...args: any[]) => void | Promise<void>> = {}
 
 export function useData() {
   const { app } = useInfo()
@@ -71,7 +71,7 @@ export function useData() {
     },
   })
 
-  function createHooks<T extends (...args: any[]) => any = () => void>(
+  function createHooks<T extends (...args: any[]) => any = () => void | Promise<void>>(
     hookName: string,
   ) {
     return (fn: T) => {
@@ -79,9 +79,9 @@ export function useData() {
     }
   }
 
-  function callHook(hookName: string, ...args: any[]) {
+  async function callHook(hookName: string, ...args: any[]) {
     if (hookName in hooks)
-      hooks[hookName](...args)
+      await hooks[hookName](...args)
   }
   function errorHandle(msg: string, error: Error): void {
     const errorMessage = error?.message || 'Unknown error occurred'
@@ -106,7 +106,7 @@ export function useData() {
   const onGetView = createHooks('getView')
   const onBeforeGetField = createHooks('beforeGetField')
   const onGetField = createHooks('getField')
-  const onFieldTraverse = createHooks<(item: IFieldMeta) => void>('fieldTraverse')
+  const onFieldTraverse = createHooks<(item: IFieldMeta) => void | Promise<void>>('fieldTraverse')
 
   function filterFields(
     filterTypeOrAction?: FieldType | FieldType[] | any,
@@ -132,41 +132,41 @@ export function useData() {
   function getTable() {
     return handleAsyncError('Failed to get table data', async () => {
       layout.value?.update(true, t('Update Table data'))
-      callHook('beforeGetTable')
+      await callHook('beforeGetTable')
       const [_tableMetaList, selection] = await Promise.all([
         bitable.base.getTableMetaList(),
         bitable.base.getSelection(),
       ])
       tableMetaList.value = _tableMetaList
       await _setTable(selection.tableId)
-      callHook('getTable')
+      await callHook('getTable')
     })
   }
 
   function getView() {
     return handleAsyncError('get View Failed', async () => {
       layout.value?.update(true, t('Update view data'))
-      callHook('beforeGetView')
+      await callHook('beforeGetView')
       if (!tableId.value || !table.value)
         throw new Error('table is empty')
       const views = await table.value.getViewMetaList()
       viewMetaList.value = views.filter(item => item.type === base.ViewType.Grid)
       if (viewMetaList.value.length > 0)
         await _setView(viewMetaList.value[0].id)
-      callHook('getView')
+      await callHook('getView')
     })
   }
 
   function getField() {
     return handleAsyncError('get Field Failed', async () => {
       layout.value?.update(true, t('Update field data'))
-      callHook('beforeGetField')
+      await callHook('beforeGetField')
       if (!table.value || !view.value)
         throw new Error('table or view is empty')
       fieldMetaList.value = await view.value.getFieldMetaList()
       fieldMap.value = fieldMaps(fieldMetaList.value)
-      callHook('getField')
-      fieldMetaList.value.forEach(item => callHook('fieldTraverse', item))
+      await callHook('getField')
+      await Promise.all(fieldMetaList.value.map(item => callHook('fieldTraverse', item)))
       layout.value?.update(false)
     })
   }
@@ -308,6 +308,7 @@ export function useData() {
     table,
     tableId,
     tableMetaList,
+    view,
     viewId,
     viewMetaList,
   }

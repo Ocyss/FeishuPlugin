@@ -58,6 +58,7 @@ declare module 'vue-router/auto/routes' {
     'PhoneticsMate': RouteRecordInfo<'PhoneticsMate', '/PhoneticsMate', Record<never, never>, Record<never, never>>,
     'QRCodeParser': RouteRecordInfo<'QRCodeParser', '/QRCodeParser', Record<never, never>, Record<never, never>>,
     'RandomRecord': RouteRecordInfo<'RandomRecord', '/RandomRecord', Record<never, never>, Record<never, never>>,
+    'ScreenshotGenerator': RouteRecordInfo<'ScreenshotGenerator', '/ScreenshotGenerator', Record<never, never>, Record<never, never>>,
     'SNCodeManager': RouteRecordInfo<'SNCodeManager', '/SNCodeManager', Record<never, never>, Record<never, never>>,
     'SummarizePro': RouteRecordInfo<'SummarizePro', '/SummarizePro', Record<never, never>, Record<never, never>>,
     'TemplateRendering': RouteRecordInfo<'TemplateRendering', '/TemplateRendering', Record<never, never>, Record<never, never>>,

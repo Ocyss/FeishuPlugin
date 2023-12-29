@@ -37,7 +37,7 @@ const columns: DataTableColumns<LogRowData> = [
     title: 'Log',
   },
 ]
-
+const form = ref()
 const lock = ref(true)
 const permission = ref(true)
 const spinMsg = ref('')
@@ -118,6 +118,7 @@ defineExpose({
     _log(LogType.Error, log, track)
   },
   finish,
+  form,
   getTablePermission,
   info: (log: string, track?: Track) => {
     _log(LogType.Info, log, track)
@@ -184,8 +185,10 @@ defineExpose({
       </div>
     </template>
     <n-form
+      ref="form"
       class="form"
       labn-placement="top"
+      style="position: relative;"
     >
       <slot />
     </n-form>
