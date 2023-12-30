@@ -45,7 +45,21 @@ const emit = defineEmits<{
 
 const { store } = useStore()
 
-const { errorHandle, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  fieldType,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 const testVal = ref('')
 
 const modelData = reactive< ModelType & { format?: InfoField[] }>({
@@ -109,8 +123,14 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
 ])
 
 const InfoFields = [

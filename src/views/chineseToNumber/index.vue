@@ -11,10 +11,10 @@ meta:
 </route>
 
 <script setup lang="ts">
-import chineseToNumber from "./chineseToNumber"
-import type {Progress} from "@/utils"
-import {useData} from "@/hooks/useData"
-import {TextFieldToStr} from "@/utils/field"
+import chineseToNumber from './chineseToNumber'
+import type { Progress } from '@/utils'
+import { useData } from '@/hooks/useData'
+import { TextFieldToStr } from '@/utils/field'
 
 const {
   errorHandle,
@@ -29,13 +29,13 @@ const {
   tableId,
   tableMetaList,
   viewId,
-  viewMetaList
+  viewMetaList,
 } = useData()
 // const { store } = useStore()
 
 const modelData = reactive<ModelType>({
   input: null,
-  output: null
+  output: null,
 })
 
 onGetField(() => {
@@ -44,13 +44,19 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t("Input can not be empty")],
-  [!modelData.output, t("Output can not be empty")]
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
 ])
 
 async function start(records: IRecord[], pr?: Progress) {
   return records
-    .map(record => {
+    .map((record) => {
       if (!modelData.input || !modelData.output || record.fields[modelData.input] === null)
         return null
       const val = TextFieldToStr(record.fields[modelData.input])
@@ -58,13 +64,15 @@ async function start(records: IRecord[], pr?: Progress) {
         const out = chineseToNumber(val)
         if (fieldType(modelData.output) === FieldType.Text)
           record.fields[modelData.output] = String(out)
-        else record.fields[modelData.output] = out
-      } catch (err: any) {
-        layout.value?.error(err?.message ?? "未知错误", {
+        else
+          record.fields[modelData.output] = out
+      }
+      catch (err: any) {
+        layout.value?.error(err?.message ?? '未知错误', {
           fieldId: modelData.input,
           recordId: record.recordId,
           tableId: tableId.value,
-          viewId: viewId.value
+          viewId: viewId.value,
         })
         return null
       }
@@ -76,14 +84,14 @@ async function start(records: IRecord[], pr?: Progress) {
 
 function main(all?: boolean) {
   getRecords(
-    async ({pr, records}) => {
+    async ({ pr, records }) => {
       return table.value!.setRecords(await start(records.records, pr))
     },
     all,
-    5000
+    5000,
   )
     .catch((error: Error) => {
-      errorHandle("main", error)
+      errorHandle('main', error)
     })
     .finally(() => {
       layout.value?.finish()
@@ -104,11 +112,13 @@ onMounted(() => {
     <form-select
       v-model:value="modelData.input"
       :msg="t('Select Source Field')"
-      :options="filterFields(FieldType.Text)" />
+      :options="filterFields(FieldType.Text)"
+    />
     <form-select
       v-model:value="modelData.output"
       :msg="t('Select Output Field')"
-      :options="filterFields([FieldType.Text, FieldType.Number, FieldType.Currency])" />
+      :options="filterFields([FieldType.Text, FieldType.Number, FieldType.Currency])"
+    />
     <form-start :disableds="disableds" @update:click="main" />
   </Layout>
 </template>

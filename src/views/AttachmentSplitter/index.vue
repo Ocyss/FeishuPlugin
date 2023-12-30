@@ -14,7 +14,22 @@ meta:
 import type { TreeSelectOption } from 'naive-ui'
 import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
-const { errorHandle, fieldId, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+
+const {
+  errorHandle,
+  fieldId,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 // const { store } = useStore()
 
 const modelData = reactive({
@@ -67,7 +82,10 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
 ])
 let linkId: string
 function start(records: IRecord[], pr?: Progress, linkFlag = false) {

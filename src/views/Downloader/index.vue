@@ -31,7 +31,21 @@ import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { errorHandle, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  fieldType,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 
 const now = new Date()
 
@@ -85,8 +99,14 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!aria.value, t('Aria connection failed!')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !aria.value,
+    t('Aria connection failed!'),
+  ],
 ])
 let count = 0
 const actions = [
@@ -121,7 +141,18 @@ const fileNameOptions = computed(() => {
 })
 
 function fileNameCreate(name: string, f: (v: { id: string, name: string, tag: string }) => void) {
-  const [id, tag] = name.startsWith('.') ? ['$ESUF$', 'warning'] : ['$BDAT$', 'info']
+  const [
+    id,
+    tag,
+  ] = name.startsWith('.')
+    ? [
+        '$ESUF$',
+        'warning',
+      ]
+    : [
+        '$BDAT$',
+        'info',
+      ]
   const res = { id: id + name, name, tag }
   f(res)
 }
@@ -340,7 +371,10 @@ onMounted(async () => {
   void getTable()
   await aria2Stat()
   if (!aria.value) {
-    const urls = ['http://localhost:16800/jsonrpc', 'http://localhost:6800/rpc']
+    const urls = [
+      'http://localhost:16800/jsonrpc',
+      'http://localhost:6800/rpc',
+    ]
     for (const url of urls) {
       if (await aria2Stat(false, url)) {
         storeData.value.AriaConf.aria2Url = url

@@ -147,13 +147,34 @@ onMounted(() => {
           style="width: 90vw;min-height: 40vh;max-width: 90vw;--n-padding:10px"
         >
           <form-select v-model:value="action" :msg="t('选择动作')" :options="actionOptions" />
-          <DateOperations v-if="action === ActionType.DateOperations" auto-run @save="(v) => save(ActionType.DateOperations, v)" />
-          <FieldExtraction v-if="action === ActionType.FieldExtraction" auto-run @save="(v) => save(ActionType.FieldExtraction, v)" />
-          <DateOperations v-if="action === ActionType.IDcardWithdrawal" auto-run @save="(v) => console.log(v)" />
-          <DateOperations v-if="action === ActionType.Phonearea" auto-run @save="(v) => console.log(v)" />
-          <DateOperations v-if="action === ActionType.UrlToImg" auto-run @save="(v) => console.log(v)" />
-          <DateOperations v-if="action === ActionType.ChineseToNumber" auto-run @save="(v) => console.log(v)" />
-          <DateOperations v-if="action === ActionType.QRCodeParser" auto-run @save="(v) => console.log(v)" />
+          <DateOperations
+            v-if="action === ActionType.DateOperations" auto-run
+            @save="(v) => save(ActionType.DateOperations, v)"
+          />
+          <FieldExtraction
+            v-if="action === ActionType.FieldExtraction" auto-run
+            @save="(v) => save(ActionType.FieldExtraction, v)"
+          />
+          <DateOperations
+            v-if="action === ActionType.IDcardWithdrawal" auto-run
+            @save="(v) => console.log(v)"
+          />
+          <DateOperations
+            v-if="action === ActionType.Phonearea" auto-run
+            @save="(v) => console.log(v)"
+          />
+          <DateOperations
+            v-if="action === ActionType.UrlToImg" auto-run
+            @save="(v) => console.log(v)"
+          />
+          <DateOperations
+            v-if="action === ActionType.ChineseToNumber" auto-run
+            @save="(v) => console.log(v)"
+          />
+          <DateOperations
+            v-if="action === ActionType.QRCodeParser" auto-run
+            @save="(v) => console.log(v)"
+          />
           <template #action>
             <div />
           </template>
@@ -218,7 +239,7 @@ onMounted(() => {
 </i18n>
 
 <style lang="scss" scoped>
-.content *{
+.content * {
   user-select: none;
 }
 </style>

@@ -41,8 +41,14 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
 ])
 
 async function decode(srcCell: string[], dstCell: ICell, err = 0) {
@@ -69,7 +75,10 @@ async function decode(srcCell: string[], dstCell: ICell, err = 0) {
 
 async function start(table: ITable, record: IRecordType) {
   if (modelData.output && modelData.input) {
-    const [srcCell, dstCell] = await Promise.all([
+    const [
+      srcCell,
+      dstCell,
+    ] = await Promise.all([
       (await table.getField<IAttachmentField>(modelData.input)).getAttachmentUrls(record),
       record.getCellByField(modelData.output),
     ])

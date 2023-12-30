@@ -81,7 +81,12 @@ export function useAction() {
       seconds: undefined,
     },
   })
-  function createActionOptions(addVal = storeData.value.add, dateKey = storeData.value.dateKey!, randVal = storeData.value.rand, setVal = storeData.value.set) {
+  function createActionOptions(
+    addVal = storeData.value.add,
+    dateKey = storeData.value.dateKey!,
+    randVal = storeData.value.rand,
+    setVal = storeData.value.set,
+  ) {
     return {
       [ActionType.Add]: (val: number) => add(val, addVal).getTime(),
       [ActionType.Format]: (val: number) => format(val, dateKey),
@@ -112,7 +117,12 @@ export function useAction() {
       }).getTime(),
     }
   }
-  function start(record: IRecord, action: ReturnType<typeof createActionOptions>, input = modelData.input, output = modelData.output): IRecord | null {
+  function start(
+    record: IRecord,
+    action: ReturnType<typeof createActionOptions>,
+    input = modelData.input,
+    output = modelData.output,
+  ): IRecord | null {
     if (
       input && output
       && input in record.fields

@@ -25,7 +25,21 @@ import request from '@/utils/request'
 import { eventBucket, useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
-const { errorHandle, fieldMetaList, fieldName, fieldType, filterFields, getRecords, getTable, layout, onFieldTraverse, onGetField, t, table, tableId } = useData()
+const {
+  errorHandle,
+  fieldMetaList,
+  fieldName,
+  fieldType,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onFieldTraverse,
+  onGetField,
+  t,
+  table,
+  tableId,
+} = useData()
 const { IDB } = useStore()
 
 const attachments: Record<string, IAttachmentField> = {}
@@ -48,7 +62,10 @@ const defaultFileList = computed<FileInfo[]>(() => {
 const modelData = reactive<ModelType<string[]> & {
   fileName: string[]
 }>({
-  fileName: ['recordID', '$ESUF$.docx'],
+  fileName: [
+    'recordID',
+    '$ESUF$.docx',
+  ],
   input: null,
   output: null,
 })
@@ -78,13 +95,25 @@ onFieldTraverse((item) => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!wordFile.data.value, t('Template can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !wordFile.data.value,
+    t('Template can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
 ])
 
 const outputFields = computed(() => {
-  return [{ id: '_save', name: '保存到本地' }, ...filterFields(FieldType.Attachment)]
+  return [
+    { id: '_save', name: '保存到本地' },
+    ...filterFields(FieldType.Attachment),
+  ]
 })
 
 const fileNameType = {
@@ -122,7 +151,13 @@ const fileNameOptions = computed(() => {
 })
 
 function fileNameCreate(name: string, f: (v: { id: string, name: string, tag: string }) => void) {
-  const [id, tag] = ['$BDAT$', 'info']
+  const [
+    id,
+    tag,
+  ] = [
+    '$BDAT$',
+    'info',
+  ]
   const res = { id: id + name, name, tag }
   f(res)
 }
@@ -399,7 +434,10 @@ async function create(
   const t = performance.now()
   const document = await createReport({
     additionalJsContext: base,
-    cmdDelimiter: ['{{', '}}'],
+    cmdDelimiter: [
+      '{{',
+      '}}',
+    ],
     errorHandler: (e: Error, raw_code?: string) => {
       if (fields && recordId && modelData.input)
         console.log(e, raw_code)

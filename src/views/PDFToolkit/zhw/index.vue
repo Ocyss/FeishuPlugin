@@ -19,7 +19,20 @@ import { TextFieldToStr, fieldMaps } from '@/utils/field'
 import { useStore } from '@/hooks/useStore'
 import type { FieldMaps } from '@/types'
 
-const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 const { store } = useStore()
 
 const offCalls = new EventBucket()
@@ -98,16 +111,31 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!storeData.value.input, t('Input can not be empty')],
-  [!storeData.value.output, t('Output can not be empty')],
-  [!storeData.value.pages, t('拆分符不能为空')],
+  [
+    !storeData.value.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !storeData.value.output,
+    t('Output can not be empty'),
+  ],
+  [
+    !storeData.value.pages,
+    t('拆分符不能为空'),
+  ],
 ])
 
 function pagesCreate(name: string, f: (v: { id: string, name: string }) => void) {
   f({ id: `$BDAT$${name}`, name })
 }
 
-function start(records: IRecord[], pr: Progress, inField: IAttachmentField, outField: IAttachmentField, linkField: IDuplexLinkField) {
+function start(
+  records: IRecord[],
+  pr: Progress,
+  inField: IAttachmentField,
+  outField: IAttachmentField,
+  linkField: IDuplexLinkField,
+) {
   return Promise.all(
     records
       .map(async (record) => {
@@ -119,15 +147,20 @@ function start(records: IRecord[], pr: Progress, inField: IAttachmentField, outF
           if (urls.length === 0)
             return
           let text = storeData.value.pages
-          if (!text) { text = '1' }
-          else if (text.startsWith('$BDAT$')) { text = text.slice(6) }
+          if (!text) {
+            text = '1'
+          }
+          else if (text.startsWith('$BDAT$')) {
+            text = text.slice(6)
+          }
           else if (text in record.fields) {
             if (!record.fields[text])
               return
             text = TextFieldToStr(record.fields[text])
           }
 
-          const news = text.replaceAll(/\b(?:end|e(?:nd)?)\b/gi, '1000').replaceAll(/\b(?:start|s(?:tart)?)\b/gi, '1').split(',')
+          const news = text.replaceAll(/\b(?:end|e(?:nd)?)\b/gi, '1000').replaceAll(/\b(?:start|s(?:tart)?)\b/gi, '1')
+            .split(',')
           console.log(record.recordId, text, news)
           for (const n of news) {
             const files: File[] = []
@@ -170,7 +203,11 @@ async function main(all?: boolean) {
   if (!table.value || !table2.value || !storeData.value.input || !storeData.value.output || !storeData.value.link)
     return
   layout.value?.update(true, '获取字段信息')
-  const [inField, outField, linkField] = await Promise.all([
+  const [
+    inField,
+    outField,
+    linkField,
+  ] = await Promise.all([
     table.value.getFieldById<IAttachmentField>(storeData.value.input),
     table2.value.getFieldById<IAttachmentField>(storeData.value.output),
     table2.value.getFieldById<IDuplexLinkField>(storeData.value.link),

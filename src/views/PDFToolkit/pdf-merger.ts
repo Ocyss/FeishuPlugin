@@ -81,9 +81,9 @@ export class PDFMerger {
   async _addFromToPage(inputFile: inputFile, from: number, to: number) {
     if (
       typeof from === 'number'
-      && typeof to === 'number'
-      && from > 0
-      && to > from
+        && typeof to === 'number'
+        && from > 0
+        && to > from
     ) {
       const pages = []
 
@@ -95,7 +95,7 @@ export class PDFMerger {
       this.doc.setTemplate(ext)
 
       return Promise.all(
-        pages.map(async page => {
+        pages.map(async (page) => {
           try {
             this.doc.addPageOf(page, ext)
           }

@@ -34,7 +34,20 @@ import { eventBucket, useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 
 const voice = ref<SpeechSynthesisVoice[]>([])
 
@@ -56,9 +69,18 @@ onGetField(() => {
   modelData.output = null
 })
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
-  [!!modelData.input && modelData.output === modelData.input, 'Input and output cannot be the same'],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
+  [
+    !!modelData.input && modelData.output === modelData.input,
+    'Input and output cannot be the same',
+  ],
 ])
 
 const iframeOptions = [

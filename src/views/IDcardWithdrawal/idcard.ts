@@ -11,8 +11,35 @@ const _provinceObj: Record<string, string> = provinceObj
 const _cityObj: Record<string, string> = cityObj
 const _areaObj: Record<string, string> = areaObj
 
-const zodiacEnums = ['猴', '鸡', '狗', '猪', '鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊']
-const constellationEnums = ['', '水瓶座', '双鱼座', '白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座']
+const zodiacEnums = [
+  '猴',
+  '鸡',
+  '狗',
+  '猪',
+  '鼠',
+  '牛',
+  '虎',
+  '兔',
+  '龙',
+  '蛇',
+  '马',
+  '羊',
+]
+const constellationEnums = [
+  '',
+  '水瓶座',
+  '双鱼座',
+  '白羊座',
+  '金牛座',
+  '双子座',
+  '巨蟹座',
+  '狮子座',
+  '处女座',
+  '天秤座',
+  '天蝎座',
+  '射手座',
+  '摩羯座',
+]
 const constellationEnum = [
   { max: 218, min: 120 },
   { max: 320, min: 219 },
@@ -96,8 +123,38 @@ function isValidChineseID(idNumber: string, verify: 0 | 1 | 2 | 3 | 4) {
     return 'Date is incorrect'
   if (verify < 4)
     return ''
-  const weightFactors = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
-  const checkCode = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
+  const weightFactors = [
+    7,
+    9,
+    10,
+    5,
+    8,
+    4,
+    2,
+    1,
+    6,
+    3,
+    7,
+    9,
+    10,
+    5,
+    8,
+    4,
+    2,
+  ]
+  const checkCode = [
+    '1',
+    '0',
+    'X',
+    '9',
+    '8',
+    '7',
+    '6',
+    '5',
+    '4',
+    '3',
+    '2',
+  ]
 
   let sum = 0
   for (let i = 0; i < 17; i++)

@@ -1,4 +1,5 @@
 # Getting Started
+
 - Hit run
 - Edit [App.vue](#src/App.vue) and watch it live update!
 

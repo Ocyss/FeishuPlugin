@@ -27,7 +27,20 @@ import axios from 'axios'
 import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
 
-const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 
 const modelData = reactive<ModelType>({
   input: null,
@@ -39,8 +52,14 @@ onGetField(() => {
   modelData.output = null
 })
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
 ])
 
 async function urlTofile(url: string, err = 0): Promise<File | undefined> {

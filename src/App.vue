@@ -2,7 +2,7 @@
 import type { Language } from '@lark-base-open/js-sdk'
 import { ThemeModeType } from '@lark-base-open/js-sdk'
 import type { GlobalTheme, GlobalThemeOverrides, NDateLocale, NLocale } from 'naive-ui'
-import { darkTheme, dateEnUS, dateZhCN, enUS,	zhCN } from 'naive-ui'
+import { darkTheme, dateEnUS, dateZhCN, enUS, zhCN } from 'naive-ui'
 import DevTool from '@/components/DevTool.vue'
 
 const { t } = useI18n()
@@ -22,20 +22,31 @@ const lightThemeOverrides: GlobalThemeOverrides = {
   },
 }
 const themes = ref<GlobalTheme | null>(darkTheme)
-const locale = ref<[NLocale, NDateLocale]>([enUS, dateEnUS])
+const locale = ref<[NLocale, NDateLocale]>([
+  enUS,
+  dateEnUS,
+])
 const localeMaps: Partial<Record<Language, [NLocale, NDateLocale]>> = {
-  en: [enUS, dateEnUS],
-  zh: [zhCN, dateZhCN],
+  en: [
+    enUS,
+    dateEnUS,
+  ],
+  zh: [
+    zhCN,
+    dateZhCN,
+  ],
 }
 
 bitable.bridge.getTheme().then((theme) => {
   themes.value = theme === ThemeModeType.DARK ? darkTheme : null
-}).catch(err => console.log(err))
+})
+  .catch(err => console.log(err))
 
 bitable.bridge.getLanguage().then((language) => {
   if (language in localeMaps)
     locale.value = localeMaps[language]!
-}).catch(err => console.log(err))
+})
+  .catch(err => console.log(err))
 
 onMounted(() => {
   console.log(
@@ -90,8 +101,21 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-body{
-  font-family:-apple-system,BlinkMacSystemFont,Helvetica Neue,Tahoma,PingFang SC,Microsoft Yahei,Arial,Hiragino Sans GB,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    Helvetica Neue,
+    Tahoma,
+    PingFang SC,
+    Microsoft Yahei,
+    Arial,
+    Hiragino Sans GB,
+    sans-serif,
+    Apple Color Emoji,
+    Segoe UI Emoji,
+    Segoe UI Symbol,
+    Noto Color Emoji;
 }
 
 *::-webkit-scrollbar {
@@ -109,19 +133,21 @@ a {
 .n-popover__content {
   white-space: pre-line;
   user-select: none;
-  max-width: 75vw
+  max-width: 75vw;
 }
 
 .n-dialog .n-dialog__content {
   white-space: pre-line;
 }
 
-img{
+img {
   -webkit-user-drag: none;
 }
 
-.flexCenter{
-  display: flex; align-items: center;justify-content: center;
+.flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
 

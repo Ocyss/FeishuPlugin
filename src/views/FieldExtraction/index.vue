@@ -39,7 +39,22 @@ const emit = defineEmits<{
   (e: 'save', value: any): void
 }>()
 const FieldInfos = createFieldInfos()
-const { errorHandle, fieldMetaList, fieldType, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  fieldMetaList,
+  fieldType,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 
 const modelData = reactive<ModelType & {
   dateKey: string
@@ -59,8 +74,14 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
 ])
 
 const delimiter = computed(() =>
@@ -97,7 +118,8 @@ function main(all?: boolean) {
     ({ pr, records }) => {
       pr.add(records.records.length)
       return table.value!.setRecords(records.records
-        .map(item => start(item, modelData, fieldType as (id: string) => FieldType)).filter(item => item !== null) as IRecord[],
+        .map(item => start(item, modelData, fieldType as (id: string) => FieldType))
+        .filter(item => item !== null) as IRecord[],
       )
     },
     all,

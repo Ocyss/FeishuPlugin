@@ -34,7 +34,20 @@ import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 
 const modelData = reactive<ModelType>({
   input: null,
@@ -60,8 +73,14 @@ const formats = computed(() => [
 ])
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
 ])
 
 async function request(phone: string, err = 0) {
@@ -112,7 +131,12 @@ async function start(records: IRecord[], pr: any) {
   const processedRecords = await Promise.all(
     records.map(async (record) => {
       pr.add()
-      if (modelData.input && modelData.output && modelData.input in record.fields && modelData.output in record.fields) {
+      if (
+        modelData.input
+        && modelData.output
+        && modelData.input in record.fields
+        && modelData.output in record.fields
+      ) {
         const phone = TextFieldToStr(record.fields[modelData.input] as IOpenSegment[])
         const expression
           = /^(?:13\d|14[014-9]|15[0-35-9]|16[2567]|17[0-8]|18\d|19[0-35-9])\d{8}$/

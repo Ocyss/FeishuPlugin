@@ -44,7 +44,10 @@ const start: (e: IEventCbCtx<Selection>) => void = async ({ data }) => {
     type === FieldType.Attachment
       || type === FieldType.Url
   ) {
-    const [cellValue, urls] = await Promise.all([
+    const [
+      cellValue,
+      urls,
+    ] = await Promise.all([
       table.value!.getCellValue(data.fieldId!, data.recordId!) as Promise<IOpenAttachment[] | IOpenUrlSegment[]>,
       attachments[data.fieldId!]?.getAttachmentUrls(data.recordId!),
     ])

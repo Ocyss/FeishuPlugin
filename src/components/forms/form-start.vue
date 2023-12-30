@@ -29,7 +29,17 @@ const disabled = computed(() => {
   }
 })
 const titles = [
-  ['🤔', '🤗', '🫢', '🫡', '🤥', '🤪', '🥰', '🤠', '🥳'],
+  [
+    '🤔',
+    '🤗',
+    '🫢',
+    '🫡',
+    '🤥',
+    '🤪',
+    '🥰',
+    '🤠',
+    '🥳',
+  ],
   [
     'Truly Tedious, Isn\'t It?',
     'Handle with Care: Confidence in Confirmation',

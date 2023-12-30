@@ -21,7 +21,21 @@ import { useStore } from '@/hooks/useStore'
 import { TextFieldToStr } from '@/utils/field'
 import clientUrl from '@/assets/AttachmentMasterClient.exe?url'
 
-const { errorHandle, filterFields, getRecords, getTable, layout, message, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  message,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 const { store } = useStore()
 const { copy } = useClipboard()
 
@@ -68,14 +82,20 @@ const storeData = store('data', {
   WebDav: { id: '', url: '' },
 })
 
-const disks = Array.from({ length: 26 }, (_, i) => { const disk = `${String.fromCharCode(65 + i)}:`; return { id: disk, name: disk } })
+const disks = Array.from({ length: 26 }, (_, i) => {
+  const disk = `${String.fromCharCode(65 + i)}:`
+  return { id: disk, name: disk }
+})
 
 onGetField(() => {
   modelData.input = []
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [modelData.input.length === 0, t('Input can not be empty')],
+  [
+    modelData.input.length === 0,
+    t('Input can not be empty'),
+  ],
 ])
 
 const fileNameOptions = computed(() => {

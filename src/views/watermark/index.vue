@@ -23,7 +23,20 @@ import { useStore } from '@/hooks/useStore'
 
 let page: any
 const { store } = useStore()
-const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 const record = ref<IRecordValue>({
   fields: {},
 })
@@ -64,9 +77,18 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
-  [!!modelData.input && modelData.output === modelData.input, 'Input and output cannot be the same'],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
+  [
+    !!modelData.input && modelData.output === modelData.input,
+    'Input and output cannot be the same',
+  ],
 ])
 
 const previewDiv = ref()

@@ -113,7 +113,10 @@ onFieldTraverse(async (item) => {
       fieldMode[item.id] = await (field as INumberField).getFormatter()
       break
     case FieldType.Currency:{
-      const [code, digits] = await Promise.all([
+      const [
+        code,
+        digits,
+      ] = await Promise.all([
         (field as ICurrencyField).getCurrencyCode(),
         (field as ICurrencyField).getDecimalDigits(),
       ])
@@ -121,7 +124,11 @@ onFieldTraverse(async (item) => {
       break
     }
     case FieldType.Rating:{
-      const [min, max, icon] = await Promise.all([
+      const [
+        min,
+        max,
+        icon,
+      ] = await Promise.all([
         (field as IRatingField).getMin(),
         (field as IRatingField).getMax(),
         (field as IRatingField).getRatingIcon(),
@@ -206,7 +213,7 @@ const conv: ExtractFieldHandlers<FieldValueHandlers> = {
       return h('span', {}, format(vals, fieldMode[fid]))
   },
   [FieldType.DuplexLink]({ vals }) {
-    return h(NSpace, {}, vals.text.split(',').map(val => h(NTag, { bordered: false }, val)))
+    return h(NSpace, { size: 'small' }, vals.text.split(',').map(val => h(NTag, { bordered: false, size: 'small' }, val)))
   },
   [FieldType.Email]() {
 
@@ -215,7 +222,10 @@ const conv: ExtractFieldHandlers<FieldValueHandlers> = {
 
   },
   [FieldType.GroupChat]({ vals }) {
-    return h('span', { }, vals.map(val => h('span', { class: 'flexCenter' }, [h(NAvatar, { round: true, size: 'small', src: val.avatarUrl }), val.name])))
+    return h('span', { }, vals.map(val => h('span', { class: 'flexCenter' }, [
+      h(NAvatar, { round: true, size: 'small', src: val.avatarUrl }),
+      val.name,
+    ])))
   },
   [FieldType.Location]() {
 
@@ -231,7 +241,7 @@ const conv: ExtractFieldHandlers<FieldValueHandlers> = {
   },
   [FieldType.MultiSelect]({ fid, vals }) {
     if (fieldMode[fid])
-      return h('span', {}, vals.map(val => h('span', { style: { backgroundColor: fieldMode[fid][val.id].bgColor, borderRadius: '50%', color: fieldMode[fid][val.id].textColor, display: 'inline-block', margin: '3px', padding: '3px 6px' } }, fieldMode[fid][val.id].name)))
+      return h(NSpace, { size: 'small' }, vals.map(val => h(NTag, { color: { borderColor: fieldMode[fid][val.id].bgColor, color: fieldMode[fid][val.id].bgColor, textColor: fieldMode[fid][val.id].textColor }, round: true, size: 'small' }, fieldMode[fid][val.id].name)))
   },
   [FieldType.NotSupport]() {
   },
@@ -250,17 +260,20 @@ const conv: ExtractFieldHandlers<FieldValueHandlers> = {
       return h(NRate, { count: fieldMode[fid].max - fieldMode[fid].min + 1, readonly: true, value: vals }, h('span', { innerHTML: RatingFieldIcon(fieldMode[fid].icon) }))
   },
   [FieldType.SingleLink]({ vals }) {
-    return h(NSpace, {}, vals.text.split(',').map(val => h(NTag, { bordered: false }, val)))
+    return h(NSpace, { size: 'small' }, vals.text.split(',').map(val => h(NTag, { bordered: false, size: 'small' }, val)))
   },
   [FieldType.SingleSelect]({ fid, vals }) {
     if (fieldMode[fid] && fieldMode[fid][vals.id])
-      return h('span', { style: { backgroundColor: fieldMode[fid][vals.id].bgColor, borderRadius: '50%', color: fieldMode[fid][vals.id].textColor, display: 'inline-block', margin: '3px', padding: '3px 6px' } }, fieldMode[fid][vals.id].name)
+      return h(NTag, { color: { borderColor: fieldMode[fid][vals.id].bgColor, color: fieldMode[fid][vals.id].bgColor, textColor: fieldMode[fid][vals.id].textColor }, round: true, size: 'small' }, fieldMode[fid][vals.id].name)
   },
   [FieldType.Url]({ vals }) {
     return h('span', {}, vals.map(item => item.link).join('\n'))
   },
   [FieldType.User]({ vals }) {
-    return h('span', {}, vals.map(val => h('span', { class: 'flexCenter' }, [h(NAvatar, { round: true, size: 'small' }, val.name), val.name])))
+    return h('span', {}, vals.map(val => h('span', { class: 'flexCenter' }, [
+      h(NAvatar, { round: true, size: 'small' }, val.name),
+      val.name,
+    ])))
   },
 }
 
@@ -459,7 +472,7 @@ onMounted(async () => {
     display: -webkit-inline-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    .n-rate :deep(.n-rate__item:not(.n-rate__item--active) svg path){
+    .n-rate :deep(.n-rate__item:not(.n-rate__item--active) svg path) {
       fill: rgba(255, 255, 255, 0.2);
     }
   }
@@ -477,7 +490,13 @@ onMounted(async () => {
     display: none;
   }
   &::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #ff00cc, #ffcc00, #00ffcc, #ff0066) !important;
+    background: linear-gradient(
+      135deg,
+      #ff00cc,
+      #ffcc00,
+      #00ffcc,
+      #ff0066
+    ) !important;
     border-radius: 10px;
   }
 }
@@ -538,11 +557,11 @@ onMounted(async () => {
     border-left: 1px solid var(--text-link-disabled);
   }
 }
-.qr{
+.qr {
   position: absolute;
   bottom: 5px;
   right: 5px;
-  img{
+  img {
     width: 65px;
     height: 65px;
   }
@@ -619,18 +638,38 @@ onMounted(async () => {
 }
 
 .backgroundColor-5 {
-  background-image: linear-gradient(150deg, rgb(0, 224, 245), rgb(31, 158, 255), rgb(51, 85, 255));
+  background-image: linear-gradient(
+    150deg,
+    rgb(0, 224, 245),
+    rgb(31, 158, 255),
+    rgb(51, 85, 255)
+  );
 }
 
 .backgroundColor-6 {
-  background-image: linear-gradient(330deg, rgb(255, 25, 125), rgb(45, 13, 255), rgb(0, 255, 179));
+  background-image: linear-gradient(
+    330deg,
+    rgb(255, 25, 125),
+    rgb(45, 13, 255),
+    rgb(0, 255, 179)
+  );
 }
 
 .backgroundColor-7 {
-  background-image: linear-gradient(150deg, rgb(0, 176, 158), rgb(19, 77, 93), rgb(16, 23, 31));
+  background-image: linear-gradient(
+    150deg,
+    rgb(0, 176, 158),
+    rgb(19, 77, 93),
+    rgb(16, 23, 31)
+  );
 }
 
 .backgroundColor-8 {
-  background-image: linear-gradient(150deg, rgb(95, 108, 138), rgb(48, 59, 94), rgb(14, 18, 38));
+  background-image: linear-gradient(
+    150deg,
+    rgb(95, 108, 138),
+    rgb(48, 59, 94),
+    rgb(14, 18, 38)
+  );
 }
 </style>

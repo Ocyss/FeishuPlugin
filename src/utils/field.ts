@@ -13,7 +13,7 @@ export function TextFieldToStr(val: IOpenCellValue | IOpenSegment[], separator =
     }
     return ''
   }
-  return val.map((item: any) => item ? item.text ?? item.name ?? item.enName ?? item.link : '').join(separator)
+  return val.map((item: any) => (item ? item.text ?? item.name ?? item.enName ?? item.link : '')).join(separator)
 }
 
 export function NumberFieldFormat(value: number, formatter: NumberFormatter): string {

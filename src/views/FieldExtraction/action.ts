@@ -1,7 +1,11 @@
 import { FieldType } from '@lark-base-open/js-sdk'
 import format from 'date-fns/format'
 
-export function start(record: IRecord, data: ModelType & { dateKey: string, delimiter: string, key: string }, fieldType: (id: string) => FieldType): IRecord | null {
+export function start(
+  record: IRecord,
+  data: ModelType & { dateKey: string, delimiter: string, key: string },
+  fieldType: (id: string) => FieldType,
+): IRecord | null {
   const processValue = (val: any): string => {
     if (Array.isArray(val)) {
       return val

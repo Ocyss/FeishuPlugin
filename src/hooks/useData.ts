@@ -60,7 +60,7 @@ export function useData() {
   }
   const tableId = computed<string | null>({
     get() { return table.value?.id ?? null },
-    set(tableId) {
+    set(tableId: string | null) {
       _setTable(tableId)
     },
   })
@@ -116,7 +116,7 @@ export function useData() {
       return fieldMetaList.value
 
     if (actionTypeMap) {
-      return fieldMetaList.value?.filter((item) => {
+      return fieldMetaList.value?.filter((item: IFieldMeta) => {
         const actions = actionTypeMap[item.type]
         return actions ? actions.includes(filterTypeOrAction) : false
       })
@@ -124,7 +124,7 @@ export function useData() {
     const filterTypes = Array.isArray(filterTypeOrAction)
       ? filterTypeOrAction
       : [filterTypeOrAction]
-    return fieldMetaList.value?.filter(item =>
+    return fieldMetaList.value?.filter((item: IFieldMeta) =>
       filterTypes.includes(item.type),
     )
   }
@@ -133,7 +133,10 @@ export function useData() {
     return handleAsyncError('Failed to get table data', async () => {
       layout.value?.update(true, t('Update Table data'))
       await callHook('beforeGetTable')
-      const [_tableMetaList, selection] = await Promise.all([
+      const [
+        _tableMetaList,
+        selection,
+      ] = await Promise.all([
         bitable.base.getTableMetaList(),
         bitable.base.getSelection(),
       ])
@@ -150,7 +153,7 @@ export function useData() {
       if (!tableId.value || !table.value)
         throw new Error('table is empty')
       const views = await table.value.getViewMetaList()
-      viewMetaList.value = views.filter(item => item.type === base.ViewType.Grid)
+      viewMetaList.value = views.filter((item: IViewMeta) => item.type === base.ViewType.Grid)
       if (viewMetaList.value.length > 0)
         await _setView(viewMetaList.value[0].id)
       await callHook('getView')
@@ -166,12 +169,16 @@ export function useData() {
       fieldMetaList.value = await view.value.getFieldMetaList()
       fieldMap.value = fieldMaps(fieldMetaList.value)
       await callHook('getField')
-      await Promise.all(fieldMetaList.value.map(item => callHook('fieldTraverse', item)))
+      await Promise.all(fieldMetaList.value.map((item: IFieldMeta) => callHook('fieldTraverse', item)))
       layout.value?.update(false)
     })
   }
 
-  async function getRecords(f: (val: { pr: Progress, records: IGetRecordsResponse }) => Promise<any>, all = false, pageSize = 1000): Promise<void> {
+  async function getRecords(
+    f: (val: { pr: Progress, records: IGetRecordsResponse }) => Promise<any>,
+    all = false,
+    pageSize = 1000,
+  ): Promise<void> {
     if (layout.value) {
       layout.value.update(true, t('Step 1 - Getting Table'))
       layout.value.init()
@@ -203,7 +210,8 @@ export function useData() {
               vid = selection.viewId
             }
             else {
-              const views = (await table.value.getViewMetaList()).filter(item => item.type === ViewType.Grid)
+              const views = (await table.value.getViewMetaList())
+                .filter((item: IViewMeta) => item.type === ViewType.Grid)
               vid = views[0].id
             }
           }

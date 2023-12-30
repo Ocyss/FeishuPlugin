@@ -19,7 +19,21 @@ import { eventBucket, useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 import { TextFieldToStr } from '@/utils/field'
 
-const { fieldMetaList, fieldName, fieldType, filterFields, getRecords, getTable, layout, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  fieldMetaList,
+  fieldName,
+  fieldType,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 const { store } = useStore()
 
 const storeData = store('data', {
@@ -44,16 +58,26 @@ const recordsIdMap: Record<string, IRecord> = {}
 const notification = useNotification()
 type outType = FieldType.Checkbox | FieldType.DateTime | FieldType.Text
 const outActions: Record<outType, { name: string, id: number }[]> = {
-  [FieldType.Checkbox]: [{ id: 101, name: '勾选' }, { id: 102, name: '不勾选' }],
+  [FieldType.Checkbox]: [
+    { id: 101, name: '勾选' },
+    { id: 102, name: '不勾选' },
+  ],
   [FieldType.DateTime]: [{ id: 201, name: '出库时间' }],
   [FieldType.Text]: [],
 }
 let lastRecord: Omit<IRecord, 'recordId'> | null = null
 
 const inputAlert = computed<[boolean, string]>(() => {
-  if (storeData.value.modle) // 出库
-    return [Object.keys(storeData.value.out).length === 0, t('请配置出库时需要进行的操作')]
-  return [!storeData.value.in.field, t('请配置入库时SN码填写的字段')]
+  if (storeData.value.modle) {
+    return [
+      Object.keys(storeData.value.out).length === 0,
+      t('请配置出库时需要进行的操作'),
+    ]
+  }
+  return [
+    !storeData.value.in.field,
+    t('请配置入库时SN码填写的字段'),
+  ]
 })
 
 // let verifyTimer: NodeJS.Timeout
@@ -172,8 +196,10 @@ function updateOut(v: string[]) {
 }
 
 async function updataSnField(fieldId: string) {
-  for (const id in recordsSnMap) delete recordsSnMap[id]
-  for (const id in recordsIdMap) delete recordsIdMap[id]
+  for (const id in recordsSnMap)
+    delete recordsSnMap[id]
+  for (const id in recordsIdMap)
+    delete recordsIdMap[id]
   await getRecords(async ({ pr, records }) => {
     records.records.forEach((item) => {
       const val = TextFieldToStr(item.fields[fieldId])
@@ -366,7 +392,7 @@ onMounted(async () => {
 </i18n>
 
 <style lang="scss" scoped>
-.n-form-item :deep(.n-form-item-feedback-wrapper){
-  min-height:5px
+.n-form-item :deep(.n-form-item-feedback-wrapper) {
+  min-height: 5px;
 }
 </style>

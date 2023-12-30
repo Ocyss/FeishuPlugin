@@ -16,7 +16,20 @@ import type { Progress } from '@/utils'
 import { useData } from '@/hooks/useData'
 import { TextFieldToStr } from '@/utils/field'
 
-const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 // const { store } = useStore()
 
 const modelData = reactive<ModelType & {
@@ -42,9 +55,18 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
-  [!modelData.model && !modelData.pages, t('拆分符不能为空')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
+  [
+    !modelData.model && !modelData.pages,
+    t('拆分符不能为空'),
+  ],
 ])
 
 function pagesCreate(name: string, f: (v: { id: string, name: string }) => void) {
@@ -79,7 +101,8 @@ function start(records: IRecord[], pr: Progress, inField: IAttachmentField, outF
             else if (text in record.fields)
               text = TextFieldToStr(record.fields[text])
 
-            const pages = text.replaceAll(/\b(?:end|e(?:nd)?)\b/gi, '1000').replaceAll(/\b(?:start|s(?:tart)?)\b/gi, '1').split('/')
+            const pages = text.replaceAll(/\b(?:end|e(?:nd)?)\b/gi, '1000').replaceAll(/\b(?:start|s(?:tart)?)\b/gi, '1')
+              .split('/')
             console.log(record.recordId, text, pages)
 
             for (const page of pages) {
@@ -110,7 +133,10 @@ async function main(all?: boolean) {
   if (!table.value || !modelData.input || !modelData.output)
     return
   layout.value?.update(true, '获取字段信息')
-  const [inField, outField] = await Promise.all([
+  const [
+    inField,
+    outField,
+  ] = await Promise.all([
     table.value.getFieldById<IAttachmentField>(modelData.input),
     table.value.getFieldById<IAttachmentField>(modelData.output),
   ])

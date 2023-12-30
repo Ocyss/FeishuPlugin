@@ -35,7 +35,26 @@ import type { Progress } from '@/utils'
 import { TextFieldToStr, fieldDefault } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 
-const { errorHandle, fieldId, fieldMetaList, fieldName, fieldType, filterFields, getRecords, getTable, layout, message, onFieldTraverse, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  fieldId,
+  fieldMetaList,
+  fieldName,
+  fieldType,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  message,
+  onFieldTraverse,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 
 const { copy } = useClipboard()
 
@@ -54,8 +73,14 @@ onFieldTraverse((item) => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!viewId.value, t('View can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !viewId.value,
+    t('View can not be empty'),
+  ],
 ])
 
 function start(records: IRecord[], pr: Progress) {

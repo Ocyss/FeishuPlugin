@@ -40,7 +40,20 @@ const emit = defineEmits<{
   (e: 'save', value: any): void
 }>()
 
-const { errorHandle, filterFields, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  filterFields,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 const { createActionOptions, modelData, start, storeData } = useAction()
 onGetField(() => {
   modelData.input = null
@@ -56,8 +69,14 @@ const radios = [
 ]
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [!modelData.input, t('Input can not be empty')],
-  [!modelData.output, t('Output can not be empty')],
+  [
+    !modelData.input,
+    t('Input can not be empty'),
+  ],
+  [
+    !modelData.output,
+    t('Output can not be empty'),
+  ],
 ])
 
 const dateFormatter = computed(() =>
@@ -138,7 +157,11 @@ onMounted(async () => {
     <form-input-number v-else-if="storeData.action === 3" :msg="t('Time setting operation')" :data="storeData.set" />
     <n-form-item v-else-if="storeData.action === 4" :label="t('Time random operation')">
       <n-space item-style="display: flex;" align="center">
-        <n-checkbox v-for="(_, key) in storeData.rand" :key="key" v-model:checked="storeData.rand[key]" :label="t(key)" />
+        <n-checkbox
+          v-for="(_, key) in storeData.rand" :key="key"
+          v-model:checked="storeData.rand[key]"
+          :label="t(key)"
+        />
       </n-space>
     </n-form-item>
     <form-select

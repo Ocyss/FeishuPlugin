@@ -14,7 +14,10 @@ const { copy } = useClipboard()
 const { locale } = useI18n()
 const router = useRouter()
 const route = useRoute()
-const routes = [{ name: 'home' }, ...getRoutes(_routes)]
+const routes = [
+  { name: 'home' },
+  ...getRoutes(_routes),
+]
 const apis: DropdownOption[] = [
   {
     f: () => {

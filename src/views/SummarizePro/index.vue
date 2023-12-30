@@ -19,7 +19,22 @@ import request from '@/utils/request'
 import { useStore } from '@/hooks/useStore'
 
 const { store } = useStore()
-const { errorHandle, fieldId, fieldMetaList, fieldName, getRecords, getTable, layout, onGetField, t, table, tableId, tableMetaList, viewId, viewMetaList } = useData()
+const {
+  errorHandle,
+  fieldId,
+  fieldMetaList,
+  fieldName,
+  getRecords,
+  getTable,
+  layout,
+  onGetField,
+  t,
+  table,
+  tableId,
+  tableMetaList,
+  viewId,
+  viewMetaList,
+} = useData()
 
 const modelData = reactive< ModelType<string[], string[]> & { outputs: Record<string, any> }>({
   input: [],
@@ -33,7 +48,10 @@ onGetField(() => {
 })
 
 const disableds = computed<Array<[boolean, string]>>(() => [
-  [modelData.input?.length === 0, t('Input can not be empty')],
+  [
+    modelData.input?.length === 0,
+    t('Input can not be empty'),
+  ],
 ])
 
 const storeData = store<{

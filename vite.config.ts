@@ -13,7 +13,15 @@ import topLevelAwait from 'vite-plugin-top-level-await'
 import TurboConsole from 'unplugin-turbo-console/vite'
 
 const pathSrc = path.resolve(__dirname, 'src')
-const basePkg = ['bitable', 'FieldType', 'ViewType', ['*', 'base']]
+const basePkg = [
+  'bitable',
+  'FieldType',
+  'ViewType',
+  [
+    '*',
+    'base',
+  ],
+]
 const baseType = [
   'ITableMeta',
   'IOpenCellValue',

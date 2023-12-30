@@ -42,7 +42,7 @@ const emit = defineEmits<{
   (e: 'update:value', value: any, option: any): void
 }>()
 const hover = ref(false)
-const type = computed(() => hover.value ? 'warning' : 'info')
+const type = computed(() => (hover.value ? 'warning' : 'info'))
 </script>
 
 <template>
