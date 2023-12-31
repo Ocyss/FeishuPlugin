@@ -11,6 +11,7 @@ meta:
 </route>
 
 <script setup lang="ts">
+import type { DataTableColumns } from 'naive-ui'
 import { NAvatar, NButton, NCheckbox, NProgress, NRate, NSpace, NTag, darkTheme } from 'naive-ui'
 import { useClipboardItems } from '@vueuse/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
@@ -55,7 +56,7 @@ const qrViewVal = ref('https://feishu.cn/drive/home')
 const qrViewCode = useQRCode(qrViewVal)
 const storeDef = {
   alpha: 80,
-  color: 'backgroundColor-1',
+  color: 1,
   inLeft: 20,
   inTop: 20,
   line: 1,
@@ -63,11 +64,18 @@ const storeDef = {
   outTop: 40,
   radius: 10,
   recordQr: false,
+  singleColumn: true,
+  singleLine: false,
+  striped: false,
+  tdPadding: 12,
+  thPadding: 12,
   theme: false,
   viewQr: false,
   watermark: true,
 }
 const storeData = store('data', storeDef)
+
+const scale = ref(1)
 
 function reset() {
   for (const key in storeDef)
@@ -76,17 +84,14 @@ function reset() {
 }
 
 const theme = computed(() => (storeData.value.theme ? darkTheme : null))
-const fieldValList = computed(() =>
-  fieldMetaList.value.filter(item => !modelData.input.includes(item.id) && item.type !== FieldType.NotSupport),
-)
-const recordValList = ref<IRecord[]>([])
+
 let selectOptColorInfo: Record<number, ISelectOptionColor> = []
 let fieldMode: Record<string, any> = {}
-let fieldWidth: Record<string, number> = {}
+const fieldWidth = ref<Record<string, number>>({})
 
 onGetField(() => {
   fieldMode = {}
-  fieldWidth = {}
+  fieldWidth.value = {}
   modelData.input.length = 0
 })
 
@@ -94,7 +99,7 @@ onFieldTraverse(async (item) => {
   if (!table.value || !view.value)
     return
   const field = await table.value.getField(item.id)
-  fieldWidth[item.id] = await (view.value as IGridView).getFieldWidth(item.id)
+  fieldWidth.value[item.id] = Object.freeze(await (view.value as IGridView).getFieldWidth(item.id))
 
   switch (item.type) {
     case FieldType.DateTime:
@@ -139,17 +144,151 @@ onFieldTraverse(async (item) => {
   }
 })
 
+type ExtractFieldHandlers<T> = {
+  [K in keyof T]: ({ fid, rid, vals }: { rid: string, fid: string, vals: T[K] }) => VNodeChild
+}
+
+const conv: ExtractFieldHandlers<FieldValueHandlers> = {
+  [FieldType.Attachment]({ vals }) {
+    const icon = `<svg t="1703862651962" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2509" width="25" height="25"><path d="M96 1024V0h448v384h384v640H96z m416-544a32 32 0 0 0-32-32H192a32 32 0 0 0-32 32v96a32 32 0 0 0 32 32h288a32 32 0 0 0 32-32v-96z m352 224a32 32 0 0 0-32-32H192a32 32 0 0 0-32 32v96a32 32 0 0 0 32 32h640a32 32 0 0 0 32-32v-96z" fill="#3CC451" p-id="2510"></path><path d="M608 0l320 320H608V0z" fill="#B0E7B8" p-id="2511"></path></svg>`
+    return h('span', { innerHTML: vals.map(_val => icon).join(', ') })
+  },
+  [FieldType.AutoNumber]() {
+  },
+  [FieldType.Barcode]() {
+  },
+  [FieldType.Checkbox]({ vals }) {
+    return h(NCheckbox, { checked: vals, size: 'large' })
+  },
+  [FieldType.CreatedTime]() {
+  },
+  [FieldType.CreatedUser]() {
+  },
+  [FieldType.Currency]({ fid, vals }) {
+    if (fieldMode[fid])
+      return h('span', {}, CurrencyFieldFormat(vals, fieldMode[fid].code, fieldMode[fid].digits))
+  },
+  [FieldType.DateTime]({ fid, vals }) {
+    if (fieldMode[fid])
+      return h('span', {}, format(vals, fieldMode[fid]))
+  },
+  [FieldType.Denied]() {
+  },
+  [FieldType.DuplexLink]({ vals }) {
+    return h(NSpace, { size: 'small' }, vals.text.split(',').map(val => h(NTag, { bordered: false, size: 'small' }, val)))
+  },
+  [FieldType.Email]() {
+  },
+  [FieldType.Formula]() {
+  },
+  [FieldType.GroupChat]({ vals }) {
+    return h('span', {}, vals.map(val => h('span', { class: 'flexCenter', style: { whiteSpace: 'nowrap' } }, [
+      h(NAvatar, { round: true, size: 'small', src: val.avatarUrl }),
+      val.name,
+    ])))
+  },
+  [FieldType.Location]() {
+  },
+  [FieldType.Lookup]() {
+  },
+  [FieldType.ModifiedTime]() {
+  },
+  [FieldType.ModifiedUser]() {
+  },
+  [FieldType.MultiSelect]({ fid, vals }) {
+    if (fieldMode[fid])
+      return h(NSpace, { size: 'small' }, vals.map(val => h(NTag, { color: { borderColor: fieldMode[fid][val.id].bgColor, color: fieldMode[fid][val.id].bgColor, textColor: fieldMode[fid][val.id].textColor }, round: true, size: 'small' }, fieldMode[fid][val.id].name)))
+  },
+  [FieldType.NotSupport]() {
+    return h(NButton, { round: true, size: 'small', type: 'primary' }, '按钮')
+  },
+  [FieldType.Number]({ fid, vals }) {
+    if (fieldMode[fid])
+      return h('span', {}, NumberFieldFormat(vals, fieldMode[fid]))
+  },
+  [FieldType.Phone]() {
+  },
+  [FieldType.Progress]({ vals }) {
+    return h(NProgress, { percentage: vals * 100, type: 'line' })
+  },
+  [FieldType.Rating]({ fid, vals }) {
+    if (fieldMode[fid]) {
+      let value = vals
+      if ((value || value === 0) && fieldMode[fid].min === 0)
+        value++
+      return h(NRate, { count: fieldMode[fid].max - fieldMode[fid].min + 1, readonly: true, value }, h('span', { innerHTML: RatingFieldIcon(fieldMode[fid].icon) }))
+    }
+  },
+  [FieldType.SingleLink]({ vals }) {
+    return h(NSpace, { size: 'small' }, vals.text.split(',').map(val => h(NTag, { bordered: false, size: 'small' }, val)))
+  },
+  [FieldType.SingleSelect]({ fid, vals }) {
+    if (fieldMode[fid] && fieldMode[fid][vals.id])
+      return h(NTag, { color: { borderColor: fieldMode[fid][vals.id].bgColor, color: fieldMode[fid][vals.id].bgColor, textColor: fieldMode[fid][vals.id].textColor }, round: true, size: 'small' }, fieldMode[fid][vals.id].name)
+  },
+  [FieldType.Text]() {
+  },
+  [FieldType.Url]({ vals }) {
+    return h('span', {}, vals.map(item => item.link).join('\n'))
+  },
+  [FieldType.User]({ vals }) {
+    return h('span', {}, vals.map(val => h('span', { class: 'flexCenter', style: { whiteSpace: 'nowrap' } }, [
+      h(NAvatar, { round: true, size: 'small' }, val.name),
+      val.name,
+    ])))
+  },
+}
+
+function convF(type: FieldType, fid: string, rid: string, vals: IOpenCellValue) {
+  const f = conv[type]
+  const flag = (vals !== null && vals !== undefined) || type === FieldType.Rating
+  if (flag && f && typeof f === 'function') {
+    const res = f({ fid, rid, vals } as never)
+    if (res)
+      return res
+  }
+  return h('span', {}, TextFieldToStr(vals))
+}
+
+const tableColumns = computed<DataTableColumns>(() =>
+  fieldMetaList.value
+    .filter(item => !modelData.input.includes(item.id) && item.type !== FieldType.NotSupport)
+    .map((item) => {
+      const width = (fieldWidth.value[item.id] ?? 150)
+        + Math.max(storeData.value.thPadding, storeData.value.tdPadding) * 2
+      return {
+        align: 'center',
+        ellipsis: { lineClamp: storeData.value.line, tooltip: false },
+        ellipsisComponent: 'performant-ellipsis',
+        key: item.id,
+        meta: item,
+        minWidth: width,
+        render: (raw: any) => convF(item.type, item.id, raw.rid, raw[item.id]),
+        resizable: true,
+        title: () => h('div', { class: 'flexCenter', innerHTML: `${fieldIcon(item.type)}&nbsp;${item.name}` }),
+        width,
+      }
+    }),
+)
+
+const tableData = ref<{
+  rid: string
+  [fieldId: string]: IOpenCellValue
+}[]>([])
+
 async function main() {
   if (!table.value || !tableId.value || !viewId.value)
     return
   const recordIdList = await bitable.ui.selectRecordIdList(tableId.value, viewId.value)
-  recordValList.value.length = 0
+  // recordValList.value.length = 0
+  tableData.value.length = 0
   if (recordIdList.length > 0)
     qrRecordVal.value = await table.value.getRecordShareLink(recordIdList[0])
 
   for (const recordId of recordIdList) {
     const val = await table.value.getRecordById(recordId)
-    recordValList.value.push({ fields: val.fields, recordId })
+    tableData.value.push(Object.freeze({ rid: recordId, ...val.fields }))
+    // recordValList.value.push({ fields: val.fields, recordId })
   }
 }
 
@@ -158,7 +297,7 @@ async function start(_copy = false) {
     message.error(t('iframe被阻止，无法复制图片'))
     return
   }
-
+  scale.value = 1
   const mime = 'image/jpeg'
   const data = await domToJpeg(box.value, {
     scale: 2,
@@ -180,114 +319,6 @@ async function start(_copy = false) {
   }
 }
 
-type ExtractFieldHandlers<T> = {
-  [K in keyof T]?: ({ fid, rid, vals }: { rid: string, fid: string, vals: T[K] }) => VNodeChild
-}
-
-const conv: ExtractFieldHandlers<FieldValueHandlers> = {
-  [FieldType.Attachment]({ vals }) {
-    const icon = `<svg t="1703862651962" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2509" width="25" height="25"><path d="M96 1024V0h448v384h384v640H96z m416-544a32 32 0 0 0-32-32H192a32 32 0 0 0-32 32v96a32 32 0 0 0 32 32h288a32 32 0 0 0 32-32v-96z m352 224a32 32 0 0 0-32-32H192a32 32 0 0 0-32 32v96a32 32 0 0 0 32 32h640a32 32 0 0 0 32-32v-96z" fill="#3CC451" p-id="2510"></path><path d="M608 0l320 320H608V0z" fill="#B0E7B8" p-id="2511"></path></svg>`
-    return h('span', { innerHTML: vals.map(_val => icon).join(', ') })
-  },
-  [FieldType.AutoNumber]() {
-
-  },
-  [FieldType.Barcode]() {
-
-  },
-  [FieldType.Checkbox]({ vals }) {
-    return h(NCheckbox, { defaultChecked: vals, size: 'large' })
-  },
-  [FieldType.CreatedTime]() {
-
-  },
-  [FieldType.CreatedUser]() {
-
-  },
-  [FieldType.Currency]({ fid, vals }) {
-    if (fieldMode[fid])
-      return h('span', {}, CurrencyFieldFormat(vals, fieldMode[fid].code, fieldMode[fid].digits))
-  },
-  [FieldType.DateTime]({ fid, vals }) {
-    if (fieldMode[fid])
-      return h('span', {}, format(vals, fieldMode[fid]))
-  },
-  [FieldType.DuplexLink]({ vals }) {
-    return h(NSpace, { size: 'small' }, vals.text.split(',').map(val => h(NTag, { bordered: false, size: 'small' }, val)))
-  },
-  [FieldType.Email]() {
-
-  },
-  [FieldType.Formula]() {
-
-  },
-  [FieldType.GroupChat]({ vals }) {
-    return h('span', { }, vals.map(val => h('span', { class: 'flexCenter' }, [
-      h(NAvatar, { round: true, size: 'small', src: val.avatarUrl }),
-      val.name,
-    ])))
-  },
-  [FieldType.Location]() {
-
-  },
-  [FieldType.Lookup]() {
-
-  },
-  [FieldType.ModifiedTime]() {
-
-  },
-  [FieldType.ModifiedUser]() {
-
-  },
-  [FieldType.MultiSelect]({ fid, vals }) {
-    if (fieldMode[fid])
-      return h(NSpace, { size: 'small' }, vals.map(val => h(NTag, { color: { borderColor: fieldMode[fid][val.id].bgColor, color: fieldMode[fid][val.id].bgColor, textColor: fieldMode[fid][val.id].textColor }, round: true, size: 'small' }, fieldMode[fid][val.id].name)))
-  },
-  [FieldType.NotSupport]() {
-  },
-  [FieldType.Number]({ fid, vals }) {
-    if (fieldMode[fid])
-      return h('span', {}, NumberFieldFormat(vals, fieldMode[fid]))
-  },
-  [FieldType.Phone]() {
-
-  },
-  [FieldType.Progress]({ fid, vals }) {
-    return h(NProgress, { percentage: vals * 100, style: { width: `${fieldWidth[fid]}px` }, type: 'line' })
-  },
-  [FieldType.Rating]({ fid, vals }) {
-    if (fieldMode[fid])
-      return h(NRate, { count: fieldMode[fid].max - fieldMode[fid].min + 1, readonly: true, value: vals }, h('span', { innerHTML: RatingFieldIcon(fieldMode[fid].icon) }))
-  },
-  [FieldType.SingleLink]({ vals }) {
-    return h(NSpace, { size: 'small' }, vals.text.split(',').map(val => h(NTag, { bordered: false, size: 'small' }, val)))
-  },
-  [FieldType.SingleSelect]({ fid, vals }) {
-    if (fieldMode[fid] && fieldMode[fid][vals.id])
-      return h(NTag, { color: { borderColor: fieldMode[fid][vals.id].bgColor, color: fieldMode[fid][vals.id].bgColor, textColor: fieldMode[fid][vals.id].textColor }, round: true, size: 'small' }, fieldMode[fid][vals.id].name)
-  },
-  [FieldType.Url]({ vals }) {
-    return h('span', {}, vals.map(item => item.link).join('\n'))
-  },
-  [FieldType.User]({ vals }) {
-    return h('span', {}, vals.map(val => h('span', { class: 'flexCenter' }, [
-      h(NAvatar, { round: true, size: 'small' }, val.name),
-      val.name,
-    ])))
-  },
-}
-
-function convF(type: FieldType, fid: string, rid: string, vals: IOpenCellValue) {
-  const f = conv[type]
-  const flag = (vals !== null && vals !== undefined) || type === FieldType.Rating
-  if (flag && f && typeof f === 'function') {
-    const res = f({ fid, rid, vals } as never)
-    if (res)
-      return res
-  }
-  return h('span', {}, TextFieldToStr(vals))
-}
-
 onMounted(async () => {
   const _selectOptColorInfo = await bitable.ui.getSelectOptionColorInfoList()
   selectOptColorInfo = _selectOptColorInfo.reduce((acc: Record<number, ISelectOptionColor>, item) => {
@@ -295,8 +326,6 @@ onMounted(async () => {
     return acc
   }, {})
   await getTable()
-  console.log(fieldMetaList.value)
-
   // try {
   //   qrViewVal.value = await view.value?.getShareLink() ?? ''
   // }
@@ -313,6 +342,7 @@ onMounted(async () => {
       <form-tags v-model:value="tableId" :msg="t('Table')" :tags="tableMetaList" />
       <form-tags v-model:value="viewId" :msg="t('View')" :tags="viewMetaList" />
     </NSpace>
+    <n-slider v-model:value="scale" :step="0.05" :min="0.1" :max="1.5" />
     <n-config-provider :theme="theme" style="width: 100%; max-height: 60vh">
       <div
         ref="box"
@@ -321,8 +351,9 @@ onMounted(async () => {
           padding: `0px ${storeData.outLeft}px`,
           paddingTop: `${Math.max(storeData.outTop, storeData.watermark ? 45 : 0)}px`,
           paddingBottom: `${Math.max(storeData.outTop, storeData.viewQr || storeData.recordQr ? 88 : 0)}px`,
+          zoom: scale,
         }"
-        :class="storeData.color"
+        :class="`backgroundColor-${storeData.color}`"
       >
         <div v-if="storeData.watermark" class="watermark">
           <a class="brand__logo"><span class="universe-icon"><svg
@@ -346,43 +377,30 @@ onMounted(async () => {
               fill="#133C9A"
             /></svg></span></a><span class="brand__product bold ellipsis"><a class="router-link bold ellipsis">飞书云文档</a></span>
         </div>
-        <n-table
+        <n-data-table
+          :columns="tableColumns"
+          :data="tableData"
           class="card"
           :style="{
-            borderRadius: `${storeData.radius}px`,
-            opacity: storeData.alpha / 100,
+            'border-radius': `${storeData.radius}px`,
+            'opacity': storeData.alpha / 100,
+            '--n-th-padding': `${storeData.thPadding}px`,
+            '--n-td-padding': `${storeData.tdPadding}px`,
           }"
-          :bordered="false"
-          :single-line="false"
+          :single-column="!storeData.singleColumn"
+          :single-line="!storeData.singleLine"
+          :striped="storeData.striped"
         >
-          <thead>
-            <tr>
-              <th v-for="field in fieldValList" :key="field.id">
-                <div class="flexCenter" :style="`width:${fieldWidth[field.id] ?? 150}px`" v-html="fieldIcon(field.type) + field.name" />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="record in recordValList" :key="record.recordId">
-              <td
-                v-for="field in fieldValList"
-                :key="record.recordId + field.id"
-              >
-                <div class="td" :style="{ '-webkit-line-clamp': storeData.line }">
-                  <component :is="convF(field.type, field.id, record.recordId, record.fields[field.id])" />
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </n-table>
+          <template #empty />
+        </n-data-table>
         <div class="qr">
           <img v-if="storeData.viewQr" :src="qrViewCode">
           <img v-if="storeData.recordQr" :src="qrRecordCode">
         </div>
       </div>
     </n-config-provider>
-    <n-collapse style="margin-bottom: 15px">
-      <n-collapse-item title="配置" name="1">
+    <n-collapse style="margin-bottom: 15px" accordion display-directive="show">
+      <n-collapse-item title="配置">
         <form-select
           v-model:value="modelData.input"
           :msg="t('选择不显示的字段')"
@@ -390,54 +408,67 @@ onMounted(async () => {
           :options="filterFields()"
         />
         <n-form-item label="最大行数：">
-          <n-slider v-model:value="storeData.line" :min="1" :max="10" :step="1" />
+          <n-slider v-model:value="storeData.line" :min="1" :max="10" />
         </n-form-item>
-        <n-form-item label="水印：">
+        <n-form-item label-placement="left" label="水印：">
           <n-switch v-model:value="storeData.watermark" />
         </n-form-item>
-        <n-form-item label="视图二维码：">
+        <n-form-item label-placement="left" label="视图二维码：">
           <n-switch v-model:value="storeData.viewQr" disabled />
         </n-form-item>
-        <n-form-item label="记录二维码：">
+        <n-form-item label-placement="left" label="记录二维码：">
           <n-switch v-model:value="storeData.recordQr" />
         </n-form-item>
-        <div>
-          <n-h3>外边距：</n-h3>
-          <n-form-item label="上下边距：">
-            <n-slider v-model:value="storeData.outTop" :min="25" :max="150" :step="1" />
-          </n-form-item>
-          <n-form-item label="左右边距：">
-            <n-slider v-model:value="storeData.outLeft" :min="25" :max="150" :step="1" />
-          </n-form-item>
-        </div>
-        <div>
-          <n-h3>卡片：</n-h3>
-          <n-form-item label="深色模式：">
+      </n-collapse-item>
+      <n-collapse-item title="外观">
+        <n-collapse class="style" accordion display-directive="show">
+          <n-form-item style="margin-left: 14px" label-placement="left" label="深色模式：">
             <n-switch v-model:value="storeData.theme" />
           </n-form-item>
-          <n-form-item label="透明度：">
-            <n-slider v-model:value="storeData.alpha" :min="0" :max="100" :step="1" />
-          </n-form-item>
-          <n-form-item label="圆角：">
-            <n-slider v-model:value="storeData.radius" :min="0" :max="50" :step="1" />
-          </n-form-item>
-        </div>
-        <div>
-          <n-h3>背景：</n-h3>
-          <NSpace class="options-img">
-            <div
-              v-for="item in 8"
-              :key="item"
-              :class="`op backgroundColor-${item} ${
-                storeData.color === `backgroundColor-${item}` ? 'checked' : ''
-              }`"
-              @click="storeData.color = `backgroundColor-${item}`"
-            />
-          </NSpace>
-        </div>
-        <NButton style="margin: 15px 0;" type="warning" @click="reset">
-          重置
-        </NButton>
+          <n-collapse-item title="边距：">
+            <n-form-item label="上下边距：">
+              <n-slider v-model:value="storeData.outTop" :min="25" :max="150" />
+            </n-form-item>
+            <n-form-item label="左右边距：">
+              <n-slider v-model:value="storeData.outLeft" :min="25" :max="150" />
+            </n-form-item>
+          </n-collapse-item>
+          <n-collapse-item title="表格：">
+            <n-form-item label-placement="left" label="条纹：">
+              <n-switch v-model:value="storeData.striped" />
+            </n-form-item>
+            <n-form-item label-placement="left" label="行分割线：">
+              <n-switch v-model:value="storeData.singleColumn" />
+            </n-form-item>
+            <n-form-item label-placement="left" label="列分割线：">
+              <n-switch v-model:value="storeData.singleLine" />
+            </n-form-item>
+            <n-form-item label="标题填充：">
+              <n-slider v-model:value="storeData.thPadding" :min="0" :max="50" />
+            </n-form-item>
+            <n-form-item label="内容填充：">
+              <n-slider v-model:value="storeData.tdPadding" :min="0" :max="50" />
+            </n-form-item>
+          </n-collapse-item>
+          <n-collapse-item title="卡片：">
+            <n-form-item label="透明度：">
+              <n-slider v-model:value="storeData.alpha" :min="0" :max="100" />
+            </n-form-item>
+            <n-form-item label="圆角：">
+              <n-slider v-model:value="storeData.radius" :min="0" :max="50" />
+            </n-form-item>
+          </n-collapse-item>
+          <n-collapse-item title="背景：">
+            <NSpace class="options-img">
+              <div
+                v-for="item in 8"
+                :key="item"
+                class="op" :class="{ checked: storeData.color === item, [`backgroundColor-${item}`]: true }"
+                @click="storeData.color = item"
+              />
+            </NSpace>
+          </n-collapse-item>
+        </n-collapse>
       </n-collapse-item>
     </n-collapse>
     <form-start
@@ -446,6 +477,7 @@ onMounted(async () => {
       :buttons="[
         ['复制', () => start(true)],
         ['下载', () => start(false)],
+        ['重置配置', reset],
       ]"
       @update:click="main"
     />
@@ -468,13 +500,89 @@ onMounted(async () => {
   .card {
     box-sizing: border-box;
   }
-  .td {
-    display: -webkit-inline-box;
-    -webkit-box-orient: vertical;
+  .watermark {
+    margin: 0 12px;
+    padding: 5px 8px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
     overflow: hidden;
-    .n-rate :deep(.n-rate__item:not(.n-rate__item--active) svg path) {
-      fill: rgba(255, 255, 255, 0.2);
+    width: 132px;
+    position: absolute;
+    top: 5px;
+    left: -5px;
+    .brand__logo {
+      -webkit-box-flex: 0;
+      -ms-flex: none;
+      flex: none;
+      display: -webkit-inline-box;
+      display: -ms-inline-flexbox;
+      display: inline-flex;
     }
+
+    .brand__logo svg {
+      width: 30px;
+      height: 30px;
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+
+    .brand__product {
+      line-height: 24px;
+      color: var(--text-title);
+      font-size: 14px;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .brand__product .router-link {
+      display: inline-block;
+      font-weight: 700;
+    }
+
+    .brand__ee-log {
+      height: 20px;
+      margin-top: 1px;
+      padding-left: 15px;
+      border-left: 1px solid var(--text-link-disabled);
+    }
+  }
+  .qr {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    img {
+      width: 65px;
+      height: 65px;
+    }
+  }
+}
+
+.n-data-table {
+  :deep(th svg) {
+    width: 14px;
+    height: 14px;
+  }
+  :deep(.n-ellipsis) {
+    width: 100%;
+  }
+  :deep(.n-data-table-wrapper) {
+    border-radius: v-bind('`${storeData.radius}px`');
+  }
+  :deep(.n-data-table-empty) {
+    display: none;
+  }
+  :deep(.n-rate .n-rate__item:not(.n-rate__item--active) svg path) {
+    fill: var(--n-item-color);
+  }
+  :deep(.n-data-table-th .n-data-table-resize-button) {
+    right: calc(var(--n-resizable-container-size) / -2);
+    cursor: pointer;
   }
 }
 
@@ -505,80 +613,27 @@ onMounted(async () => {
   margin: 10px 0px;
   font-weight: 600;
 }
-.watermark {
-  margin: 0 12px;
-  padding: 5px 8px;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  overflow: hidden;
-  width: 132px;
-  position: absolute;
-  top: 5px;
-  left: -5px;
-  .brand__logo {
-    -webkit-box-flex: 0;
-    -ms-flex: none;
-    flex: none;
-    display: -webkit-inline-box;
-    display: -ms-inline-flexbox;
-    display: inline-flex;
-  }
 
-  .brand__logo svg {
-    width: 30px;
-    height: 30px;
-    margin-right: 12px;
-    vertical-align: middle;
+.n-collapse :deep(.n-collapse-item) {
+  border-top: unset !important;
+  --n-title-padding: 0 !important;
+  .n-form-item-feedback-wrapper {
+    display: none;
   }
-
-  .brand__product {
-    line-height: 24px;
-    color: var(--text-title);
-    font-size: 14px;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    overflow: hidden;
-  }
-
-  .brand__product .router-link {
-    display: inline-block;
-    font-weight: 700;
-  }
-
-  .brand__ee-log {
-    height: 20px;
-    margin-top: 1px;
-    padding-left: 15px;
-    border-left: 1px solid var(--text-link-disabled);
+  .style > div {
+    margin-left: 8px;
   }
 }
-.qr {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  img {
-    width: 65px;
-    height: 65px;
-  }
-}
+
 .options-img .op {
   width: 32px;
   height: 32px;
   border-radius: 4px;
-  border: 2px solid #ffffff;
+  border: 3px solid #ffffff;
   cursor: pointer;
   &.checked {
     border: 3px solid rgb(42, 148, 125);
   }
-}
-
-.n-radio-group .n-radio-button.n-radio-button--checked {
-  background: unset;
 }
 </style>
 

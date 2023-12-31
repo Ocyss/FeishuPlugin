@@ -2,18 +2,23 @@ import type { CurrencyCode, IAutonumberField, IBarcodeField, ICheckBoxField, ICr
 import { FieldType, NumberFormatter, RatingIconType } from '@lark-base-open/js-sdk'
 import type { FieldMaps } from '@/types'
 
+function _TextFieldToStr(item: any): string {
+  switch (typeof item) {
+    case 'string':
+      return item
+    case 'number':
+      return item.toString()
+    case 'object':
+      return item.text ?? item.fullAddress ?? item.name ?? item.enName ?? item.link ?? item.value ?? ''
+  }
+  return ''
+}
+
 // 多行文本转文本
 export function TextFieldToStr(val: IOpenCellValue | IOpenSegment[], separator = '') {
-  if (!Array.isArray(val) || !val) {
-    switch (typeof val) {
-      case 'string':
-        return val
-      case 'number':
-        return val.toString()
-    }
-    return ''
-  }
-  return val.map((item: any) => (item ? item.text ?? item.name ?? item.enName ?? item.link : '')).join(separator)
+  if (!Array.isArray(val) || !val)
+    return _TextFieldToStr(val)
+  return val.map(_TextFieldToStr).join(separator)
 }
 
 export function NumberFieldFormat(value: number, formatter: NumberFormatter): string {
