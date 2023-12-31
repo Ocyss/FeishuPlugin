@@ -31,7 +31,7 @@ meta:
 <script lang="ts" setup>
 import type { SelectOption } from 'naive-ui'
 import { useClipboard } from '@vueuse/core'
-import type { Progress } from '@/utils'
+import type { Progress } from '@/hooks/useProgress'
 import { TextFieldToStr, fieldDefault } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 

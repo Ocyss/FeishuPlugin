@@ -3,8 +3,9 @@ import type { DataTableColumns } from 'naive-ui'
 import { NTag } from 'naive-ui'
 import { LogType } from '@/types'
 import type { LogRowData } from '@/types'
-import { Progress } from '@/utils'
 import { useInfo } from '@/hooks/useInfo'
+import type { Progress, ProgressR } from '@/hooks/useProgress'
+import { useProgress } from '@/hooks/useProgress'
 import { tKey } from '@/keys'
 
 const t = inject(tKey, () => useI18n().t, true)
@@ -92,7 +93,11 @@ function init() {
 // 新建一个加载进度
 function spin(spinMsg: string, n = 0) {
   lock.value = true
-  const p = reactive(new Progress(spinMsg, n))
+  const p = reactive<ProgressR>(useProgress({
+    completed: 0,
+    message: spinMsg,
+    total: n,
+  }))
   progress.value.push(p)
   return p
 }
@@ -171,7 +176,7 @@ defineExpose({
         v-else
         :key="item.message"
       >
-        {{ `${item.message}: ${item.completed}/${item.total}` }}
+        {{ `${item.message}: ${Math.round(item.completedOutput)}/${Math.round(item.totalOutput)}` }}
       </div>
     </template>
     <template #icon>

@@ -24,7 +24,7 @@ meta:
 
 <script setup lang="ts">
 import axios from 'axios'
-import type { Progress } from '@/utils'
+import type { Progress } from '@/hooks/useProgress'
 import { useData } from '@/hooks/useData'
 
 const {

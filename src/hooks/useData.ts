@@ -5,7 +5,8 @@ import { useInfo } from '@/hooks/useInfo'
 import type Layout from '@/components/layout.vue'
 import type { FieldMaps, LogRowData } from '@/types'
 import { fieldMaps } from '@/utils/field'
-import { EventBucket, type Progress } from '@/utils'
+import { EventBucket } from '@/utils'
+import type { Progress } from '@/hooks/useProgress'
 import { tKey } from '@/keys'
 
 function getFieldMapValue(
@@ -112,7 +113,7 @@ export function useData() {
     filterTypeOrAction?: FieldType | FieldType[] | any,
     actionTypeMap?: Record<number, any[]>,
   ) {
-    if (!filterTypeOrAction)
+    if (filterTypeOrAction === undefined)
       return fieldMetaList.value
 
     if (actionTypeMap) {
@@ -192,13 +193,13 @@ export function useData() {
         let promise: any[] = []
         const pr = layout.value.spin(t('Record'), 0)
         if (all) {
+          const size = (await table.value.getRecordIdList()).length
+          pr.addTotal(size)
           while (records.hasMore) {
             records = await table.value.getRecords({
               pageSize,
               pageToken: records.pageToken,
             })
-            if (pr.total === 0)
-              pr.addTotal(records.total)
             await f({ pr, records })
           }
         }
@@ -215,7 +216,6 @@ export function useData() {
               vid = views[0].id
             }
           }
-
           const recordIdList = await bitable.ui.selectRecordIdList(tableId.value!, vid)
           pr.addTotal(recordIdList.length)
           promise = recordIdList.map(async (item) => {

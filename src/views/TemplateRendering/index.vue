@@ -29,7 +29,7 @@ meta:
 <script setup lang="ts">
 import { Liquid } from 'liquidjs'
 import Layout from '@/components/layout.vue'
-import type { Progress } from '@/utils'
+import type { Progress } from '@/hooks/useProgress'
 import { TextFieldToStr } from '@/utils/field'
 import { useData } from '@/hooks/useData'
 

@@ -89,7 +89,7 @@ export function useAction() {
   ) {
     return {
       [ActionType.Add]: (val: number) => add(val, addVal).getTime(),
-      [ActionType.Format]: (val: number) => format(val, dateKey),
+      [ActionType.Format]: (val: number) => { return format(val, dateKey) },
       [ActionType.Parse]: (val: IOpenSegment[]) => {
         for (const format of dateFormatterList) {
           try {
@@ -130,7 +130,7 @@ export function useAction() {
       && record.fields[input]
     ) {
       const val = record.fields[input]
-      record.fields[output] = action[storeData.value.action](val as number & IOpenSegment[])
+      record.fields[output] = action[storeData.value.action](val as never)
       return record
     }
     return null

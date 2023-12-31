@@ -12,7 +12,7 @@ meta:
 
 <script setup lang="ts">
 import { PDFMerger } from './pdf-merger'
-import type { Progress } from '@/utils'
+import type { Progress } from '@/hooks/useProgress'
 import { useData } from '@/hooks/useData'
 import { TextFieldToStr } from '@/utils/field'
 

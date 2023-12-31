@@ -13,7 +13,7 @@ meta:
 <script setup lang="ts">
 import type { IMultiSelectField, ISingleSelectField } from '@lark-base-open/js-sdk'
 import { useData } from '@/hooks/useData'
-import type { Progress } from '@/utils'
+import type { Progress } from '@/hooks/useProgress'
 import { TextFieldToStr } from '@/utils/field'
 import request from '@/utils/request'
 import { useStore } from '@/hooks/useStore'

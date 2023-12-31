@@ -12,7 +12,7 @@ meta:
 </route>
 
 <script setup lang="ts">
-import type { Progress } from '@/utils'
+import type { Progress } from '@/hooks/useProgress'
 import { useData } from '@/hooks/useData'
 
 const {

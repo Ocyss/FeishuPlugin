@@ -13,7 +13,8 @@ meta:
 <script setup lang="ts">
 import type { IDuplexLinkField } from '@lark-base-open/js-sdk'
 import { PDFMerger } from '../pdf-merger'
-import { EventBucket, type Progress } from '@/utils'
+import type { Progress } from '@/hooks/useProgress'
+import { EventBucket } from '@/utils'
 import { useData } from '@/hooks/useData'
 import { TextFieldToStr, fieldMaps } from '@/utils/field'
 import { useStore } from '@/hooks/useStore'
