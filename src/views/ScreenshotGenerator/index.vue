@@ -14,17 +14,18 @@ meta:
 import type { DataTableColumns } from 'naive-ui'
 import { NAvatar, NButton, NCheckbox, NProgress, NRate, NSpace, NTag, darkTheme } from 'naive-ui'
 import { useClipboardItems } from '@vueuse/core'
-import { useQRCode } from '@vueuse/integrations/useQRCode'
 import { domToJpeg } from 'modern-screenshot'
 import type { ICurrencyField, IDateTimeField, IGridView, INumberField, IRatingField, ISelectOptionColor, ISingleSelectField } from '@lark-base-open/js-sdk'
 import { FieldType } from '@lark-base-open/js-sdk'
 import type { VNodeChild } from 'vue'
 import format from 'date-fns/format'
+import QRCodeVue3 from 'qrcode-vue3'
 import { useData } from '@/hooks/useData'
 import { useStore } from '@/hooks/useStore'
 import { base64ToBlob } from '@/utils/files'
 import type { FieldValueHandlers } from '@/utils/field'
 import { CurrencyFieldFormat, NumberFieldFormat, RatingFieldIcon, TextFieldToStr, fieldIcon } from '@/utils/field'
+import logoSvg from '@/assets/logo.svg'
 
 const { copy } = useClipboardItems()
 const {
@@ -51,9 +52,8 @@ const modelData = reactive({
 })
 
 const qrRecordVal = ref('https://feishu.cn/drive/home')
-const qrRecordCode = useQRCode(qrRecordVal)
-const qrViewVal = ref('https://feishu.cn/drive/home')
-const qrViewCode = useQRCode(qrViewVal)
+// const qrViewVal = ref('https://feishu.cn/drive/home')
+
 const storeDef = {
   alpha: 80,
   color: 1,
@@ -62,6 +62,7 @@ const storeDef = {
   line: 1,
   outLeft: 40,
   outTop: 40,
+  qrWidth: 65,
   radius: 10,
   recordQr: false,
   singleColumn: true,
@@ -350,32 +351,13 @@ onMounted(async () => {
         :style="{
           padding: `0px ${storeData.outLeft}px`,
           paddingTop: `${Math.max(storeData.outTop, storeData.watermark ? 45 : 0)}px`,
-          paddingBottom: `${Math.max(storeData.outTop, storeData.viewQr || storeData.recordQr ? 88 : 0)}px`,
+          paddingBottom: `${Math.max(storeData.outTop, storeData.viewQr || storeData.recordQr ? storeData.qrWidth + 10 : 0)}px`,
           zoom: scale,
         }"
         :class="`backgroundColor-${storeData.color}`"
       >
         <div v-if="storeData.watermark" class="watermark">
-          <a class="brand__logo"><span class="universe-icon"><svg
-            width="1em"
-            height="1em"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            data-icon="LarkLogoColorful"
-          >
-            <path
-              d="m12.924 12.803.056-.054c.038-.034.076-.072.11-.11l.077-.076.23-.227 1.334-1.319.335-.331c.063-.063.13-.123.195-.183a7.777 7.777 0 0 1 1.823-1.24 7.607 7.607 0 0 1 1.014-.4 13.177 13.177 0 0 0-2.5-5.013 1.203 1.203 0 0 0-.94-.448h-9.65c-.173 0-.246.224-.107.325a28.23 28.23 0 0 1 8 9.098c.007-.006.016-.013.023-.022Z"
-              fill="#00D6B9"
-            />
-            <path
-              d="M9.097 21.299a13.258 13.258 0 0 0 11.821-7.247c-.113.22-.243.43-.378.625a5.219 5.219 0 0 1-1.098 1.152 3.777 3.777 0 0 1-.262.185 5.117 5.117 0 0 1-.353.218 4.643 4.643 0 0 1-.726.331 5.317 5.317 0 0 1-1.883.312 5.892 5.892 0 0 1-.524-.031 6.509 6.509 0 0 1-.729-.126c-.06-.016-.12-.029-.18-.044-.167-.044-.33-.092-.495-.14-.082-.024-.164-.046-.246-.072-.123-.038-.246-.072-.366-.11l-.3-.095-.284-.094-.192-.067a4.955 4.955 0 0 1-.233-.082 3.452 3.452 0 0 1-.168-.06c-.11-.04-.22-.079-.328-.12l-.189-.072-.252-.098c-.089-.035-.18-.07-.269-.107l-.173-.07c-.073-.028-.142-.06-.215-.088l-.164-.07-.17-.075-.148-.066-.136-.06-.139-.063a90.183 90.183 0 0 1-.142-.066 4.808 4.808 0 0 0-.18-.083c-.063-.028-.123-.06-.186-.088a5.697 5.697 0 0 1-.198-.098 27.762 27.762 0 0 1-8.067-5.969.18.18 0 0 0-.313.123l.007 9.21c0 .4.198.779.533 1a13.177 13.177 0 0 0 7.325 2.205Z"
-              fill="#3370FF"
-            />
-            <path
-              d="M23.732 9.295a7.55 7.55 0 0 0-3.35-.776 7.521 7.521 0 0 0-2.284.35c-.054.016-.107.035-.158.05a8.297 8.297 0 0 0-.855.35 7.14 7.14 0 0 0-.552.297 6.716 6.716 0 0 0-.533.347c-.123.089-.243.18-.363.275-.13.104-.252.211-.375.321-.067.06-.13.123-.196.184l-.334.328-1.338 1.321-.23.228-.076.075c-.038.038-.076.073-.11.11l-.057.054a1.914 1.914 0 0 1-.085.08c-.032.028-.063.06-.095.088a13.286 13.286 0 0 1-2.748 1.946c.06.028.12.057.18.082l.142.066c.044.022.091.041.139.063l.135.06.149.067.17.075.164.07c.073.031.142.06.215.088.056.025.116.047.173.07.088.034.177.072.268.107.085.031.168.066.253.098l.189.072c.11.041.218.082.328.12.057.019.11.041.167.06.08.028.155.053.234.082l.192.066.284.095.3.095c.123.037.243.075.366.11l.246.072c.164.048.331.095.495.14.06.015.12.03.18.043.114.029.227.05.34.07.13.022.26.04.389.057a5.815 5.815 0 0 0 .994.019 5.172 5.172 0 0 0 1.413-.3 5.405 5.405 0 0 0 .726-.334c.06-.035.122-.07.182-.108a7.96 7.96 0 0 0 .432-.297 5.362 5.362 0 0 0 .577-.517 5.285 5.285 0 0 0 .37-.429 5.797 5.797 0 0 0 .527-.827l.13-.258 1.166-2.325-.003.006a7.391 7.391 0 0 1 1.527-2.186Z"
-              fill="#133C9A"
-            /></svg></span></a><span class="brand__product bold ellipsis"><a class="router-link bold ellipsis">飞书云文档</a></span>
+          <a class="brand__logo"><span class="universe-icon"><img :src="logoSvg"></span></a><span class="brand__product bold ellipsis"><a class="router-link bold ellipsis">飞书云文档</a></span>
         </div>
         <n-data-table
           :columns="tableColumns"
@@ -393,9 +375,20 @@ onMounted(async () => {
         >
           <template #empty />
         </n-data-table>
-        <div class="qr">
-          <img v-if="storeData.viewQr" :src="qrViewCode">
-          <img v-if="storeData.recordQr" :src="qrRecordCode">
+
+        <!-- <QRCodeVue3 v-if="storeData.viewQr" /> -->
+        <div class="qr" :style="`width:${storeData.qrWidth}px;height:${storeData.qrWidth}px;right:${storeData.outLeft}px;border-radius:${storeData.radius}px`">
+          <QRCodeVue3
+            v-if="storeData.recordQr"
+            :key="qrRecordVal"
+            :value="qrRecordVal"
+            :margin="0"
+            :image-options="{ crossOrigin: 'anonymous', imageSize: 0.5, margin: 0 }"
+            :dots-options="{ color: '#133c9a', type: 'rounded' }"
+            :corners-square-options="{ color: '#3370ff', type: 'rounded' }"
+            :corners-dot-options="{ color: '#00d6b9', type: 'rounded' }"
+            :image="logoSvg"
+          />
         </div>
       </div>
     </n-config-provider>
@@ -418,6 +411,9 @@ onMounted(async () => {
         </n-form-item>
         <n-form-item label-placement="left" label="记录二维码：">
           <n-switch v-model:value="storeData.recordQr" />
+        </n-form-item>
+        <n-form-item label="二维码大小：">
+          <n-slider v-model:value="storeData.qrWidth" :min="50" :max="300" />
         </n-form-item>
       </n-collapse-item>
       <n-collapse-item title="外观">
@@ -523,7 +519,7 @@ onMounted(async () => {
       display: inline-flex;
     }
 
-    .brand__logo svg {
+    .brand__logo img {
       width: 30px;
       height: 30px;
       margin-right: 12px;
@@ -556,9 +552,13 @@ onMounted(async () => {
     position: absolute;
     bottom: 5px;
     right: 5px;
-    img {
-      width: 65px;
-      height: 65px;
+    :deep(div) {
+      width: 100%;
+      height: 100%;
+      img {
+        width: 100%;
+        height: 100%;
+      }
     }
   }
 }

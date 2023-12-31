@@ -30,6 +30,7 @@
     "modern-screenshot": "^4.4.37",
     "pdfjs": "^2.5.3",
     "qrcode": "^1.5.3",
+    "qrcode-vue3": "^1.6.8",
     "random-ease": "^1.0.8",
     "reset-css": "^5.0.2",
     "sass": "^1.69.6",

@@ -65,6 +65,9 @@ dependencies:
   qrcode:
     specifier: ^1.5.3
     version: 1.5.3
+  qrcode-vue3:
+    specifier: ^1.6.8
+    version: 1.6.8
   random-ease:
     specifier: ^1.0.8
     version: 1.0.8
@@ -4306,6 +4309,16 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
     dev: true
+
+  /qrcode-generator@1.4.4:
+    resolution: {integrity: sha512-HM7yY8O2ilqhmULxGMpcHSF1EhJJ9yBj8gvDEuZ6M+KGJ0YY2hKpnXvRD+hZPLrDVck3ExIGhmPtSdcjC+guuw==}
+    dev: false
+
+  /qrcode-vue3@1.6.8:
+    resolution: {integrity: sha512-LtMnwKWi58ZqHbXBcsTF/VxDYhI6RrBIrDQw8fbDVlO8p5tJBZa7TaIaVYLY937vKO2WCEBmOKksGlpm5ccEIg==}
+    dependencies:
+      qrcode-generator: 1.4.4
+    dev: false
 
   /qrcode@1.5.3:
     resolution: {integrity: sha512-puyri6ApkEHYiVl4CFzo1tDkAZ+ATcnbJrJ6RiBM1Fhctdn/ix9MTE3hRph33omisEbC/2fcfemsseiKgBPKZg==}
