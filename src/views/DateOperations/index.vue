@@ -41,14 +41,12 @@ const emit = defineEmits<{
 }>()
 
 const {
-  errorHandle,
   filterFields,
-  getRecords,
+  getRecordss,
   getTable,
   layout,
   onGetField,
   t,
-  table,
   tableId,
   tableMetaList,
   viewId,
@@ -95,22 +93,15 @@ function dateRenderLabel(option: SelectOption): VNodeChild {
 const actionOptions = createActionOptions()
 
 function main(all?: boolean) {
-  getRecords(
-    ({ pr, records }) => {
-      return table.value!.setRecords(records.records.map((item) => {
-        pr.add()
-        return start(item, actionOptions)
-      }).filter(item => item !== null) as IRecord[])
+  getRecordss(
+    {
+      all,
+      func: async (record) => {
+        return start(record, actionOptions)
+      },
+      update: true,
     },
-    all,
-    5000,
   )
-    .catch((error: Error) => {
-      errorHandle('main', error)
-    })
-    .finally(() => {
-      layout.value?.finish()
-    })
 }
 
 onMounted(async () => {

@@ -12,11 +12,11 @@ export function useProgress(data = { completed: 0, message: '', total: 0 }) {
     total.value += n
   }
   const completedOutput = useTransition(completed, {
-    duration: 5000,
+    duration: 3000,
     transition: TransitionPresets.easeOutExpo,
   })
   const totalOutput = useTransition(total, {
-    duration: 2000,
+    duration: 1500,
     transition: TransitionPresets.easeOutExpo,
   })
   return {

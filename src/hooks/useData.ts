@@ -5,6 +5,7 @@ import { useInfo } from '@/hooks/useInfo'
 import type Layout from '@/components/layout.vue'
 import type { FieldMaps, LogRowData } from '@/types'
 import { fieldMaps } from '@/utils/field'
+import { AsyncPool } from '@/utils/asyncpool'
 import { EventBucket } from '@/utils'
 import type { Progress } from '@/hooks/useProgress'
 import { tKey } from '@/keys'
@@ -180,64 +181,142 @@ export function useData() {
     all = false,
     pageSize = 1000,
   ): Promise<void> {
-    if (layout.value) {
-      layout.value.update(true, t('Step 1 - Getting Table'))
+    if (!layout.value)
+      throw new Error('layout not loaded')
+    if (!table.value)
+      throw new Error('table not loaded')
+    layout.value.init()
+    layout.value.update(true, t('Step 1 - Getting Table'))
+    layout.value.update(true, t('Step 2 - Getting Records'))
+    let promise: any[] = []
+    const pr = layout.value.spin(t('Record'), 0)
+    if (all) {
+      let records: IGetRecordsResponse = {
+        hasMore: true,
+        records: [],
+        total: 0,
+      }
+      const size = (await table.value.getRecordIdList()).length
+      pr.addTotal(size)
+      while (records.hasMore) {
+        records = await table.value.getRecords({
+          pageSize,
+          pageToken: records.pageToken,
+        })
+        await f({ pr, records })
+      }
+    }
+    else {
+      let vid = viewId.value
+      if (!vid) {
+        const selection = await bitable.base.getSelection()
+        if (selection.viewId && selection.tableId === tableId.value) {
+          vid = selection.viewId
+        }
+        else {
+          const views = (await table.value.getViewMetaList())
+            .filter((item: IViewMeta) => item.type === ViewType.Grid)
+          vid = views[0].id
+        }
+      }
+      const recordIdList = await bitable.ui.selectRecordIdList(tableId.value!, vid)
+      pr.addTotal(recordIdList.length)
+      promise = recordIdList.map(async (item) => {
+        const record = await table.value!.getRecordById(item)
+        await f({
+          pr,
+          records: {
+            hasMore: false,
+            records: [{ fields: record.fields, recordId: item }],
+            total: 0,
+          },
+        })
+      })
+    }
+    await Promise.all(promise)
+  }
+
+  async function getRecordss({
+    all = false,
+    func = null as null | ((val: IRecord) => Promise<IRecord | null | undefined>),
+    limit = 1000,
+    pageSize = 5000,
+    update = false,
+    updateFunc = (value: IRecord[]) => {
+      return table.value?.setRecords(value)
+    },
+    updateSize = 2500,
+  }) {
+    try {
+      if (!func)
+        throw new Error('getRecords need func')
+      if (!layout.value)
+        throw new Error('layout not loaded')
+      if (!table.value)
+        throw new Error('table not loaded')
       layout.value.init()
-      if (table.value) {
-        layout.value.update(true, t('Step 2 - Getting Records'))
+      layout.value.update(true, t('Step 1 - Getting Table'))
+      layout.value.update(true, t('Step 2 - Getting Records'))
+      const pr = layout.value.spin(t('Record'), 0)
+      const fn: typeof func = async (val: IRecord) => {
+        try {
+          return await func(val)
+        }
+        finally {
+          pr.add()
+        }
+      }
+      const pool = new AsyncPool<typeof func>(fn, limit)
+      if (update)
+        pool.resultHooks(updateFunc, updateSize)
+
+      if (!all) {
+        let vid = viewId.value
+        if (!vid) {
+          const selection = await bitable.base.getSelection()
+          if (selection.viewId && selection.tableId === tableId.value) {
+            vid = selection.viewId
+          }
+          else {
+            const views = (await table.value.getViewMetaList())
+              .filter((item: IViewMeta) => item.type === ViewType.Grid)
+            vid = views[0].id
+          }
+        }
+        const recordIdList = await bitable.ui.selectRecordIdList(tableId.value!, vid)
+        pr.addTotal(recordIdList.length)
+        for (const item of recordIdList) {
+          const record = await table.value.getRecordById(item)
+          pool.run({ fields: record.fields, recordId: item })
+        }
+      }
+      else {
         let records: IGetRecordsResponse = {
           hasMore: true,
           records: [],
           total: 0,
         }
-        let promise: any[] = []
-        const pr = layout.value.spin(t('Record'), 0)
-        if (all) {
-          const size = (await table.value.getRecordIdList()).length
-          pr.addTotal(size)
-          while (records.hasMore) {
-            records = await table.value.getRecords({
-              pageSize,
-              pageToken: records.pageToken,
-            })
-            await f({ pr, records })
-          }
-        }
-        else {
-          let vid = viewId.value
-          if (!vid) {
-            const selection = await bitable.base.getSelection()
-            if (selection.viewId && selection.tableId === tableId.value) {
-              vid = selection.viewId
-            }
-            else {
-              const views = (await table.value.getViewMetaList())
-                .filter((item: IViewMeta) => item.type === ViewType.Grid)
-              vid = views[0].id
-            }
-          }
-          const recordIdList = await bitable.ui.selectRecordIdList(tableId.value!, vid)
-          pr.addTotal(recordIdList.length)
-          promise = recordIdList.map(async (item) => {
-            const record = await table.value!.getRecordById(item)
-            await f({
-              pr,
-              records: {
-                hasMore: false,
-                records: [{ fields: record.fields, recordId: item }],
-                total: 0,
-              },
-            })
+        const size = (await table.value.getRecordIdList()).length
+        pr.addTotal(size)
+        while (records.hasMore) {
+          records = await table.value.getRecords({
+            pageSize,
+            pageToken: records.pageToken,
           })
+          for (const item of records.records)
+            pool.run(item)
         }
-        await Promise.all(promise)
       }
-      else {
-        throw new Error('table not loaded')
-      }
+      await pool.all()
     }
-    else {
-      throw new Error('layout not loaded')
+    catch (err) {
+      if (err instanceof Error)
+        errorHandle('getRecords', err)
+      else
+        errorHandle('getRecords', new Error(JSON.stringify(err)))
+    }
+    finally {
+      layout.value?.finish()
     }
   }
 
@@ -301,6 +380,7 @@ export function useData() {
     filterFields,
     getField,
     getRecords,
+    getRecordss,
     getTable,
     getView,
     layout,

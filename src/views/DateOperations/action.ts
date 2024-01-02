@@ -122,7 +122,7 @@ export function useAction() {
     action: ReturnType<typeof createActionOptions>,
     input = modelData.input,
     output = modelData.output,
-  ): IRecord | null {
+  ): IRecord | undefined {
     if (
       input && output
       && input in record.fields
@@ -133,7 +133,6 @@ export function useAction() {
       record.fields[output] = action[storeData.value.action](val as never)
       return record
     }
-    return null
   }
   return {
     createActionOptions,

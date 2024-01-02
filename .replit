@@ -1,15 +1,15 @@
-run = "vite"
+run = "pnpm run dev"
 entrypoint = "src/App.vue"
 
 hidden = [".config", "tsconfig.json", "tsconfig.node.json", "vite.config.js", ".gitignore"]
 
 [nix]
-channel = "stable-21_11"
+channel = "stable-22_11"
 
 [env]
-PATH = "/home/runner/$REPL_SLUG/.config/npm/node_global/bin:/home/runner/$REPL_SLUG/node_modules/.bin"
+PATH = "$REPL_HOME/.config/npm/node_global/bin:$REPL_HOME/node_modules/.bin"
 XDG_CONFIG_HOME = "/home/runner/.config"
-npm_config_prefix = "/home/runner/$REPL_SLUG/.config/npm/node_global"
+npm_config_prefix = "$REPL_HOME/.config/npm/node_global"
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix", ".config"]
@@ -31,5 +31,6 @@ pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
 start = "typescript-language-server --stdio"
 
 [deployment]
-build = ["sh", "-c", "npm run build"]
-run = ["sh", "-c", "npm run preview"]
+deploymentTarget = "static"
+build = ["pnpm", "run", "build"]
+publicDir = "dist"

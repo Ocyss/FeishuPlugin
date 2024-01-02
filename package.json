@@ -1,5 +1,5 @@
 {
-  "name": "id-card-withdrawal",
+  "name": "@ocyss/feishu-plugin",
   "type": "module",
   "version": "1.0.0",
   "scripts": {
@@ -28,6 +28,7 @@
     "liquidjs": "^10.10.0",
     "lodash-es": "^4.17.21",
     "modern-screenshot": "^4.4.37",
+    "p-limit": "^5.0.0",
     "pdfjs": "^2.5.3",
     "qrcode": "^1.5.3",
     "qrcode-vue3": "^1.6.8",
