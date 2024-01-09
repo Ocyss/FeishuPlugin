@@ -112,6 +112,5 @@ export default defineConfig({
       cert: fs.readFileSync('./localhost.repl.co.pem'),
       key: fs.readFileSync('./localhost.repl.co-key.pem'),
     },
-    port: 443,
   },
 })

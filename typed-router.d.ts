@@ -51,7 +51,7 @@ declare module 'vue-router/auto/routes' {
     'home': RouteRecordInfo<'home', '/home', Record<never, never>, Record<never, never>>,
     'IDcardWithdrawal': RouteRecordInfo<'IDcardWithdrawal', '/IDcardWithdrawal', Record<never, never>, Record<never, never>>,
     'JsonParser': RouteRecordInfo<'JsonParser', '/JsonParser', Record<never, never>, Record<never, never>>,
-    'kkview': RouteRecordInfo<'kkview', '/Kkview', Record<never, never>, Record<never, never>>,
+    'kkview': RouteRecordInfo<'kkview', '/kkview', Record<never, never>, Record<never, never>>,
     'PDFToolkit': RouteRecordInfo<'PDFToolkit', '/PDFToolkit', Record<never, never>, Record<never, never>>,
     'PDFToolkitZhw': RouteRecordInfo<'PDFToolkitZhw', '/PDFToolkit/zhw', Record<never, never>, Record<never, never>>,
     'Phonearea': RouteRecordInfo<'Phonearea', '/Phonearea', Record<never, never>, Record<never, never>>,
@@ -63,7 +63,7 @@ declare module 'vue-router/auto/routes' {
     'SummarizePro': RouteRecordInfo<'SummarizePro', '/SummarizePro', Record<never, never>, Record<never, never>>,
     'TemplateRendering': RouteRecordInfo<'TemplateRendering', '/TemplateRendering', Record<never, never>, Record<never, never>>,
     'UrlToImg': RouteRecordInfo<'UrlToImg', '/UrlToImg', Record<never, never>, Record<never, never>>,
-    'watermark': RouteRecordInfo<'watermark', '/Watermark', Record<never, never>, Record<never, never>>,
+    'watermark': RouteRecordInfo<'watermark', '/watermark', Record<never, never>, Record<never, never>>,
   }
 }
 

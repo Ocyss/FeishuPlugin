@@ -1,7 +1,10 @@
 {
   "name": "@ocyss/feishu-plugin",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "author": "Ocyss <npm@ocyss.icu> (https://github.com/Ocyss)",
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://github.com/Ocyss/FeishuPlugin",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
