@@ -10,6 +10,7 @@ import { eventBucket } from '@/hooks/useData'
 
 defineEmits(['update:theme'])
 const message = useMessage()
+const dialog = useDialog()
 const { copy } = useClipboard()
 const { locale } = useI18n()
 const router = useRouter()
@@ -43,15 +44,6 @@ const apis: DropdownOption[] = [
     },
     label: 'printRoutes',
   },
-  // {
-  //   f: () => {
-  //     void bitable.ui.showToast({
-  //       message: 'hello world',
-  //       toastType: ToastType.info,
-  //     })
-  //   },
-  //   label: 'showToast',
-  // },
   {
     f: async () => {
       const selection = await bitable.base.getSelection()
@@ -62,7 +54,39 @@ const apis: DropdownOption[] = [
     },
     label: 'PrintRecord',
   },
+  {
+    f: () => {
+      const d = dialog.warning({
+        content: '将删除除了焦点外的全部数据表\nAll data tables except the focus will be deleted',
+        negativeText: '取消/Cancel',
+        onPositiveClick: async () => {
+          d.loading = true
+          const [
+            tableMetaList,
+            selection,
+          ] = await Promise.all([
+            bitable.base.getTableMetaList(),
+            bitable.base.getSelection(),
+          ])
+          if (!selection.tableId) {
+            d.loading = false
+            message.error('未有选中表')
+            return
+          }
+          await Promise.all(tableMetaList.map(async (tableMeta) => {
+            if (tableMeta.id !== selection.tableId)
+              await bitable.base.deleteTable(tableMeta.id)
+          }))
+          d.destroy()
+        },
+        positiveText: '确定/Sure',
+        title: '危险/Danger',
+      })
+    },
+    label: '删除其他表（Danger!）',
+  },
 ]
+
 const state = reactive({
   bridge: {
     lang: '',
