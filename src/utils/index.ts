@@ -1,6 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router/auto'
 
-
 export class EventBucket {
   value: ((...args: any[]) => any)[] = []
   get length() {
