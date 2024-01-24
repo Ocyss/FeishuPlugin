@@ -25,7 +25,7 @@ import { useStore } from '@/hooks/useStore'
 import { base64ToBlob } from '@/utils/files'
 import type { FieldValueHandlers } from '@/utils/field'
 import { CurrencyFieldFormat, NumberFieldFormat, RatingFieldIcon, TextFieldToStr, fieldIcon } from '@/utils/field'
-import logoSvg from '@/assets/logo.svg'
+import baseSvg from '@/assets/base.svg'
 
 const { copy } = useClipboardItems()
 const {
@@ -201,7 +201,7 @@ const conv: ExtractFieldHandlers<FieldValueHandlers> = {
       return h(NSpace, { size: 'small' }, vals.map(val => h(NTag, { color: { borderColor: fieldMode[fid][val.id].bgColor, color: fieldMode[fid][val.id].bgColor, textColor: fieldMode[fid][val.id].textColor }, round: true, size: 'small' }, fieldMode[fid][val.id].name)))
   },
   [FieldType.NotSupport]() {
-    return h(NButton, { round: true, size: 'small', type: 'primary' }, '按钮')
+    return h(NButton, { round: true, size: 'small', type: 'primary' }, 'click')
   },
   [FieldType.Number]({ fid, vals }) {
     if (fieldMode[fid])
@@ -294,29 +294,31 @@ async function main() {
 }
 
 async function start(_copy = false) {
-  if (_copy) {
-    message.error(t('iframe被阻止，无法复制图片'))
-    return
-  }
   scale.value = 1
   const mime = 'image/jpeg'
   const data = await domToJpeg(box.value, {
     scale: 2,
   })
   if (_copy) {
-    await copy([
-      new ClipboardItem({
-        [mime]: base64ToBlob(data),
-      }),
-    ])
-    message.success(t('已复制到剪切板'))
+    try {
+      await copy([
+        new ClipboardItem({
+          [mime]: base64ToBlob(data),
+        }),
+      ])
+      message.success(t('copied to clipboard'))
+    }
+    catch (e) {
+      console.log(e)
+      message.error(t('iframe blocked, unable to copy image'))
+    }
   }
   else {
     const a = document.createElement('a')
     a.download = 'ScreenshotGenerator.jpeg'
     a.href = data
     a.dispatchEvent(new MouseEvent('click'))
-    message.success(t('开始下载'))
+    message.success(t('start download'))
   }
 }
 
@@ -357,7 +359,7 @@ onMounted(async () => {
         :class="`backgroundColor-${storeData.color}`"
       >
         <div v-if="storeData.watermark" class="watermark">
-          <a class="brand__logo"><span class="universe-icon"><img :src="logoSvg"></span></a><span class="brand__product bold ellipsis"><a class="router-link bold ellipsis">飞书云文档</a></span>
+          <a class="brand__logo"><span class="universe-icon"><img :src="baseSvg"></span></a><span class="brand__product bold ellipsis"><a class="router-link bold ellipsis">{{ t('Lark Base') }}</a></span>
         </div>
         <n-data-table
           :columns="tableColumns"
@@ -387,74 +389,74 @@ onMounted(async () => {
             :dots-options="{ color: '#133c9a', type: 'rounded' }"
             :corners-square-options="{ color: '#3370ff', type: 'rounded' }"
             :corners-dot-options="{ color: '#00d6b9', type: 'rounded' }"
-            :image="logoSvg"
+            :image="baseSvg"
           />
         </div>
       </div>
     </n-config-provider>
     <n-collapse style="margin-bottom: 15px" accordion display-directive="show">
-      <n-collapse-item title="配置">
+      <n-collapse-item :title="t('configuration')">
         <form-select
           v-model:value="modelData.input"
-          :msg="t('选择不显示的字段')"
+          :msg="t('select fields to hide')"
           multiple
           :options="filterFields()"
         />
-        <n-form-item label="最大行数：">
+        <n-form-item :label="t('maximum rows:')">
           <n-slider v-model:value="storeData.line" :min="1" :max="10" />
         </n-form-item>
-        <n-form-item label-placement="left" label="水印：">
+        <n-form-item label-placement="left" :label="t('watermark:')">
           <n-switch v-model:value="storeData.watermark" />
         </n-form-item>
-        <n-form-item label-placement="left" label="视图二维码：">
+        <n-form-item label-placement="left" :label="t('view QR code:')">
           <n-switch v-model:value="storeData.viewQr" disabled />
         </n-form-item>
-        <n-form-item label-placement="left" label="记录二维码：">
+        <n-form-item label-placement="left" :label="t('record QR code:')">
           <n-switch v-model:value="storeData.recordQr" />
         </n-form-item>
-        <n-form-item label="二维码大小：">
+        <n-form-item :label="t('QR code size:')">
           <n-slider v-model:value="storeData.qrWidth" :min="50" :max="300" />
         </n-form-item>
       </n-collapse-item>
-      <n-collapse-item title="外观">
+      <n-collapse-item :title="t('appearance')">
         <n-collapse class="style" accordion display-directive="show">
-          <n-form-item style="margin-left: 14px" label-placement="left" label="深色模式：">
+          <n-form-item style="margin-left: 14px" label-placement="left" :label="t('dark mode:')">
             <n-switch v-model:value="storeData.theme" />
           </n-form-item>
-          <n-collapse-item title="边距：">
-            <n-form-item label="上下边距：">
+          <n-collapse-item :title="t('margin:')">
+            <n-form-item :label="t('vertical margin:')">
               <n-slider v-model:value="storeData.outTop" :min="25" :max="150" />
             </n-form-item>
-            <n-form-item label="左右边距：">
+            <n-form-item :label="t('horizontal margin:')">
               <n-slider v-model:value="storeData.outLeft" :min="25" :max="150" />
             </n-form-item>
           </n-collapse-item>
-          <n-collapse-item title="表格：">
-            <n-form-item label-placement="left" label="条纹：">
+          <n-collapse-item :title="t('table:')">
+            <n-form-item label-placement="left" :label="t('stripes:')">
               <n-switch v-model:value="storeData.striped" />
             </n-form-item>
-            <n-form-item label-placement="left" label="行分割线：">
+            <n-form-item label-placement="left" :label="t('row separators:')">
               <n-switch v-model:value="storeData.singleColumn" />
             </n-form-item>
-            <n-form-item label-placement="left" label="列分割线：">
+            <n-form-item label-placement="left" :label="t('column separators:')">
               <n-switch v-model:value="storeData.singleLine" />
             </n-form-item>
-            <n-form-item label="标题填充：">
+            <n-form-item :label="t('title padding:')">
               <n-slider v-model:value="storeData.thPadding" :min="0" :max="50" />
             </n-form-item>
-            <n-form-item label="内容填充：">
+            <n-form-item :label="t('content padding:')">
               <n-slider v-model:value="storeData.tdPadding" :min="0" :max="50" />
             </n-form-item>
           </n-collapse-item>
-          <n-collapse-item title="卡片：">
-            <n-form-item label="透明度：">
+          <n-collapse-item :title="t('card:')">
+            <n-form-item :label="t('opacity:')">
               <n-slider v-model:value="storeData.alpha" :min="0" :max="100" />
             </n-form-item>
-            <n-form-item label="圆角：">
+            <n-form-item :label="t('border radius:')">
               <n-slider v-model:value="storeData.radius" :min="0" :max="50" />
             </n-form-item>
           </n-collapse-item>
-          <n-collapse-item title="背景：">
+          <n-collapse-item :title="t('background:')">
             <NSpace class="options-img">
               <div
                 v-for="item in 8"
@@ -468,12 +470,11 @@ onMounted(async () => {
       </n-collapse-item>
     </n-collapse>
     <form-start
-      msg="选择分享记录"
-      operate
+      :msg="t('select records to share')"
       :buttons="[
-        ['复制', () => start(true)],
-        ['下载', () => start(false)],
-        ['重置配置', reset],
+        [t('copy'), () => start(true)],
+        [t('download'), () => start(false)],
+        [t('reset configuration'), reset],
       ]"
       @update:click="main"
     />
@@ -481,7 +482,38 @@ onMounted(async () => {
 </template>
 
 <i18n locale="zh" lang="json">
-{}
+{
+  "iframe blocked, unable to copy image": "iframe 被阻止，无法复制图片",
+  "copied to clipboard": "已复制到剪切板",
+  "start download": "开始下载",
+  "configuration": "配置",
+  "select fields to hide": "选择不显示的字段",
+  "maximum rows:": "最大行数：",
+  "watermark:": "水印：",
+  "view QR code:": "视图二维码：",
+  "record QR code:": "记录二维码：",
+  "QR code size:": "二维码大小：",
+  "appearance": "外观",
+  "dark mode:": "深色模式：",
+  "margin:": "边距：",
+  "vertical margin:": "上下边距：",
+  "horizontal margin:": "左右边距：",
+  "table:": "表格：",
+  "stripes:": "条纹：",
+  "row separators:": "行分割线：",
+  "column separators:": "列分割线：",
+  "title padding:": "标题填充：",
+  "content padding:": "内容填充：",
+  "card:": "卡片：",
+  "opacity:": "透明度：",
+  "border radius:": "圆角：",
+  "background:": "背景：",
+  "select records to share": "选择分享记录",
+  "copy": "复制",
+  "download": "下载",
+  "reset configuration": "重置配置",
+  "Lark Base": "飞书多维表格"
+}
 </i18n>
 
 <style lang="scss" scoped>
@@ -522,7 +554,7 @@ onMounted(async () => {
     .brand__logo img {
       width: 30px;
       height: 30px;
-      margin-right: 12px;
+      margin-right: 6px;
       vertical-align: middle;
     }
 
